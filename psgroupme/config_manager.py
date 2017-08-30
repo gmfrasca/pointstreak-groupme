@@ -11,11 +11,13 @@ class ConfigManager(object):
         with open(cfg_path) as f:
             return yaml.load(f)
 
-    def get_bot_id(self, bot_name):
-        matched_bots =  [bot['id'] for bot in self.cfg['bots'] if \
-            bot['name'] == bot_name]
+    def get_bot_data(self, bot_name):
+        matched_bots = [bot for bot in self.cfg['bots'] if bot['bot_name'] == bot_name]
         if len(matched_bots) > 0:
             return matched_bots[0]
         return None
-        
+ 
+    def get_bot_id(self, bot_name):
+        bot = self.get_bot_data(bot_name)
+        return bot.get('bot_id', None) if bot else None       
 

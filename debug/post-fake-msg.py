@@ -16,7 +16,7 @@ test_data={
     'sender_type': 'user',
     'source_guid': 'GUID',
     'system': False,
-    'text': 'Hello World',
+    'text': 'Hello, TestBot',
     'user_id': '1234567890'
 }
 post(args.url, data=json.dumps(test_data))
