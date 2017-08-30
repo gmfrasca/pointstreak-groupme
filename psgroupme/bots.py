@@ -1,16 +1,12 @@
-from flask import Flask, request
-from flask_restful import Resource, Api
+from flask import request
+from flask_restful import Resource
 from responder import Responder
 from config_manager import ConfigManager
 import json
 
-app = Flask(__name__)
-api = Api(app)
 
-
-class ScheduleBot(Resource):
-    
-    BOT_NAME = 'TestBot'
+class BaseBot(Resource):
+    BOT_NAME = 'BaseBot'
 
     def __init__(self):
         cfg_mgr = ConfigManager()
@@ -21,10 +17,11 @@ class ScheduleBot(Resource):
     def handle_msg(self, msg):
         system = msg.get('system', True)
         sender_type = msg.get('sender_type', 'user')
-        if system or sender_type == 'bot':
-            return
-        self.responder.reply('FOOBAR')
-        return
+        if system and sender_type != 'bot':
+            self.respond(msg)
+
+    def respond(self, msg):
+        self.responder.reply('Hello, this is {0}'.format(self.BOT_NAME))
 
     def get(self):
         return {'foo': 'bar'}
@@ -40,9 +37,10 @@ class ScheduleBot(Resource):
             return None
         return None
 
-api.add_resource(ScheduleBot, '/schedulebot')
 
-if __name__ == '__main__':
-    app.run(port='5002')
+class ScheduleBot(BaseBot):
+    
+    BOT_NAME = 'TestBot'
+    
 
-
+   
