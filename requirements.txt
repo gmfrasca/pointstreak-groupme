@@ -4,3 +4,4 @@ flask
 flask-restful
 json
 requests
+yaml

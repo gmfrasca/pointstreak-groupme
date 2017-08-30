@@ -1,0 +1,7 @@
+bots:
+    - name: '<add bot name here>'
+      botid: '<add bot id hash here>'
+      groupname: '<add bot group name here>'
+      groupid: '<add bot group id here>'
+      avatarurl: '<add URL to bot avatar here>'
+      callbackurl: '<add URL to bot callback here>'
