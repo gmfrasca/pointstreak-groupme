@@ -4,3 +4,11 @@ GLOBAL_RESPONSES = [
         'reply': 'Hello, {name}'
     }
 ]
+
+SCHEDULE_BOT_RESPONSES = [
+    {
+        'input': r'when.*next game\??',
+        'reply': 'Dude, I dunno yet.'
+    }
+
+]

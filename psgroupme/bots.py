@@ -51,7 +51,11 @@ class BaseBot(Resource):
 class ScheduleBot(BaseBot):
     
     BOT_NAME = 'TestBot'
-    
+
+    def __init__(self):
+        super(ScheduleBot, self).__init__()
+        self.responses.extend(bot_responses.SCHEDULE_BOT_RESPONSES)
+ 
     def respond(self, msg):
         self.responder.reply(msg)
    
