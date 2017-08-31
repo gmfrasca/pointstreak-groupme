@@ -6,6 +6,7 @@ import bot_responses
 import json
 import re
 
+
 class BaseBot(Resource):
     BOT_NAME = 'BaseBot'
 
@@ -26,7 +27,8 @@ class BaseBot(Resource):
     def read_msg(self, msg):
         context = msg.copy()
         context.update(self.bot_data)
-        matches = [x for x in self.responses if re.search(x['input'].format(**context), msg['text'], re.I | re.U)]
+        matches = [x for x in self.responses if re.search(
+           x['input'].format(**context), msg['text'], re.I | re.U)]
         if len(matches) > 0:
             self.respond(matches[0]['reply'].format(**context))
 
@@ -43,19 +45,17 @@ class BaseBot(Resource):
             self.handle_msg(msg)
             return {'post': msg}
         except ValueError:
-            logger.warning('Could not decode message: {0}'.format(data_str))
-            return None
+            pass
         return None
 
 
 class ScheduleBot(BaseBot):
-    
+
     BOT_NAME = 'TestBot'
 
     def __init__(self):
         super(ScheduleBot, self).__init__()
         self.responses.extend(bot_responses.SCHEDULE_BOT_RESPONSES)
- 
+
     def respond(self, msg):
         self.responder.reply(msg)
-   

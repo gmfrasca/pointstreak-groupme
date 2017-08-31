@@ -11,4 +11,4 @@ class Responder(object):
     def reply(self, message):
         data = dict(bot_id=self.bot_id, text=message)
         resp = post(GROUPME_BOT_URL, data=data)
-        assert resp.status_code in range(200,399) 
+        assert resp.status_code in range(200, 399)
