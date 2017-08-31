@@ -1,9 +1,11 @@
 from setuptools import setup, find_packages
 
+
 def get_reqs():
     with open('requirements.txt') as reqs:
         for req in reqs.readlines():
             yield req.strip()
+
 
 setup(
     name='psgroupme',
