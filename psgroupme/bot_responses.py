@@ -1,7 +1,6 @@
 from team_schedule import PointstreakSchedule
 
-sched = PointstreakSchedule()
-
+# Responses shared by all bots
 GLOBAL_RESPONSES = [
     {
         'input': r'(hi|hello|(wha[tz]s?\s?up)), {bot_name}',
@@ -9,6 +8,8 @@ GLOBAL_RESPONSES = [
     }
 ]
 
+# Responses specific to ScheduleBot
+sched = PointstreakSchedule()
 SCHEDULE_BOT_RESPONSES = [
     {
         'input': r'when.*next game\??',
