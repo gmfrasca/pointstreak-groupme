@@ -83,9 +83,9 @@ class PointstreakGame(object):
                                                      self.awayteam,
                                                      self.awayscore,
                                                      self.full_gametime_str)
-        return '{0} vs {1} on {2} at {3}'.format(self.hometeam,
-                                                 self.awayteam,
-                                                 self.full_gametime_str)
+        return '{0} vs {1} at {2}'.format(self.hometeam,
+                                          self.awayteam,
+                                          self.full_gametime_str)
 
 
 class PointstreakSchedule(object):
