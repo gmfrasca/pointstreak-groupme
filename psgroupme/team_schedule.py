@@ -4,7 +4,7 @@ off of Poinstreak, a team stats-tracking website
 """
 import parsedatetime as pdt
 from bs4 import BeautifulSoup
-import requests
+from requests import get
 import datetime
 
 # Unused for now, may be useful later for run limits in Amazon Lambda
@@ -41,8 +41,8 @@ class PointstreakGame(object):
 
     def __init__(self, date, time, hometeam, homescore, awayteam, awayscore):
         """ Store this game's relevant data """
-        self.date = date
-        self.time = time
+        self.date = date.strip()
+        self.time = time.strip()
         self.full_gametime = self.assemble_full_gametime(date, time)
         self.full_gametime_str = self.full_gametime.strftime(TIME_DESCRIPTOR)
         self.hometeam = hometeam
@@ -117,7 +117,7 @@ class PointstreakSchedule(object):
         Returns:
              a bs tbody element containing the team schedule
         """
-        html_doc = requests.get(url).text
+        html_doc = get(url).text
         soup = BeautifulSoup(html_doc, 'html.parser')
         table = soup.find("table", {'class': 'nova-stats-table'})
         return table.tbody
