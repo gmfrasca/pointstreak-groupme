@@ -187,8 +187,10 @@ class TestPointstreakSchedule(unittest.TestCase):
     </table>
   </body>
  </html>'''
-        team_score_soup = BeautifulSoup(test_html_score).body.table.tr.td
-        team_no_score_soup = BeautifulSoup(test_html_no_score).body.table.tr.td
+        team_score_soup = BeautifulSoup(test_html_score,
+                                        'html.parser').body.table.tr.td
+        team_no_score_soup = BeautifulSoup(test_html_no_score,
+                                           'html.parser').body.table.tr.td
 
         team, score = self.schedule.parse_team(team_score_soup)
         self.assertEqual(team, 'home')
