@@ -2,6 +2,7 @@ from flask import request
 from flask_restful import Resource
 from responder import Responder
 from config_manager import ConfigManager
+from team_schedule import PointstreakSchedule
 import bot_responses
 import json
 import re
@@ -14,6 +15,7 @@ class BaseBot(Resource):
     """
 
     BOT_NAME = 'BaseBot'
+    SPECIFIC_SET_RESPONSES = None
 
     def __init__(self, cfg_path=None):
         """Load the config for this bot based on Name"""
@@ -26,6 +28,13 @@ class BaseBot(Resource):
         # Set up the Responder
         self.responder = Responder(self.bot_id)
         self.responses = bot_responses.GLOBAL_RESPONSES
+        self.responses.extend(self.get_bot_specific_responses())
+        if self.SPECIFIC_SET_RESPONSES is not None:
+            self.responses.extend(self.SPECIFIC_SET_RESPONSES)
+
+    def get_bot_specific_responses(self):
+        """Override this method to add bot-specific responses"""
+        return []
 
     def handle_msg(self, msg):
         """Check if a message is actionable (not system or bot), and respond"""
@@ -70,12 +79,39 @@ class BaseBot(Resource):
 class ScheduleBot(BaseBot):
 
     BOT_NAME = 'TestBot'
+    SPECIFIC_SET_RESPONSES = bot_responses.SCHEDULE_BOT_RESPONSES
 
-    def __init__(self):
+    def __init__(self, cfg_path=None, schedule=None):
         """Initialize the bot, and add ScheduleBot-specific responses"""
+        self.schedule = PointstreakSchedule() if schedule is None else schedule
         super(ScheduleBot, self).__init__()
-        self.responses.extend(bot_responses.SCHEDULE_BOT_RESPONSES)
+
+    def get_bot_specific_responses(self):
+        responses = [
+            {
+                'input': r'when.*next game([\?\!\.( is)].*)??$',
+                'reply': str(self.schedule.get_next_game())
+            },
+            {
+                'input': r'what was the score\??',
+                'reply': str(self.schedule.get_last_game())
+            },
+            {
+                'input': r'^how(\'d| did)? we do([\?\!\.].*)??$',
+                'reply': str(self.schedule.get_last_game())
+            },
+            {
+                'input': r'what is.* schedule([\?\!\.].*)??$',
+                'reply': str(self.schedule)
+            }
+        ]
+        return responses
 
     def respond(self, msg):
         """Respond using the matched message reply"""
         self.responder.reply(msg)
+
+
+class HockeyBot(ScheduleBot):
+    """Just a clone of ScheduleBot, with a different bot name"""
+    BOT_NAME = 'HockeyBot'

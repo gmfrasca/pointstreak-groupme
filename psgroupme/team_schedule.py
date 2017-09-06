@@ -96,8 +96,8 @@ class PointstreakSchedule(object):
 
     def __init__(self, url=SCHEDULE_URL):
         """Retrieve the target schedule and parse"""
-        self.html_table = self.retrieve_html_table(url)
-        self.games = self.parse_table()
+        self.url = url
+        self.refresh_schedule()
 
     def __repr__(self):
         """Prints the list of games in order to form a schedule"""
@@ -105,6 +105,14 @@ class PointstreakSchedule(object):
         for game in self.games:
             res += '{0}\n'.format(game)
         return res
+
+    def refresh_schedule(self):
+        self.html_table = self.retrieve_html_table(self.url)
+        self.games = self.parse_table()
+
+    def get_schedule(self):
+        self.refresh_schedule()
+        return str(self)
 
     def retrieve_html_table(self, url):
         """
@@ -174,6 +182,7 @@ class PointstreakSchedule(object):
         Returns:
             the next game after :target_datetime:
         """
+        self.refresh_schedule()
         for game in self.games:
             if game.full_gametime > target_datetime:
                 return game
@@ -189,6 +198,7 @@ class PointstreakSchedule(object):
         Returns:
             the last game before :target_datetime:
         """
+        self.refresh_schedule()
         last_game = None
         for game in self.games:
             last_game = game if game.full_gametime < target_datetime \
@@ -225,7 +235,7 @@ def main():
     print "--- Today's Date ---"
     print now
     print "--- Full Schedule ---"
-    print schedule
+    print schedule.get_schedule()
     print "--- Next Game on Schedule ---"
     if not next_game:
         print 'No games left on schedule'

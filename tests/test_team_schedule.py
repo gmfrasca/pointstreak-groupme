@@ -5,7 +5,8 @@ import mock
 import datetime
 from bs4 import BeautifulSoup
 
-
+# This would get real ugly if we followed Pep8 here. Disable for this file only
+# flake8: noqa
 MOCK_HTML = '''
 <html>
   <head>
@@ -143,6 +144,7 @@ class TestPointstreakSchedule(unittest.TestCase):
                                              'home', None, 'away', None)
 
         self.schedule = PointstreakSchedule()
+        self.schedule.refresh_schedule = mock.MagicMock()
 
     def tearDown(self):
         pass
@@ -199,7 +201,6 @@ class TestPointstreakSchedule(unittest.TestCase):
         team, score = self.schedule.parse_team(team_no_score_soup)
         self.assertEqual(team, 'away')
         self.assertEqual(score, None)
-
 
     def test_repr(self):
         expected = '''home 6 : away 0 on Tue Aug 15 08:45PM

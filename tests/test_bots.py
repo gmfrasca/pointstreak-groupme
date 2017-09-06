@@ -1,6 +1,7 @@
 import psgroupme
-from psgroupme.bots import BaseBot, ScheduleBot
+from psgroupme.bots import BaseBot, ScheduleBot, HockeyBot
 from psgroupme.bot_responses import GLOBAL_RESPONSES, SCHEDULE_BOT_RESPONSES
+from psgroupme.team_schedule import PointstreakSchedule
 import unittest
 import mock
 import json
@@ -15,7 +16,7 @@ MOCK_CFG = {
                      'group_id': '12345',
                      'callback_url': 'http://foo.bar',
                      'avatar_url': 'http://funny.jpg'
-                 },
+                },
                 {
                      'bot_name': 'TestBot',
                      'bot_id': '2',
@@ -23,9 +24,45 @@ MOCK_CFG = {
                      'group_id': '12345',
                      'callback_url': 'http://foo.bar',
                      'avatar_url': 'http://funny.jpg'
-                 }
+                },
+                {
+                      'bot_name': 'HockeyBot',
+                      'bot_id': '3',
+                      'group_name': 'foo',
+                      'group_id': '12345',
+                      'callback_url': 'http://foo.bar',
+                      'avatar_url': 'http://funny.jpg'
+                }
             ]
         }
+
+
+class PointstreakScheduleMock(PointstreakSchedule):
+
+    def __init__(self, *args, **kwargs):
+        self.html_table = mock.MagicMock()
+        self.games = mock.MagicMock()
+
+    def __repr__(self):
+        return 'TestSchedule'
+
+    def refresh_schedule(self):
+        return
+
+    def retrieve_html_table(self, *args, **kwargs):
+        return 'TestHtml'
+
+    def parse_table(self, *args, **kwargs):
+        return 'TestParsedTable'
+
+    def parse_team(self, *args, **kwargs):
+        return 'TestTeam', 5
+
+    def get_next_game_after(self, *args, **kwargs):
+        return 'TestNextGame'
+
+    def get_last_game_before(self, *args, **kwargs):
+        return 'TestLastGame'
 
 
 class TestBaseBot(unittest.TestCase):
@@ -61,8 +98,8 @@ class TestBaseBot(unittest.TestCase):
     @mock.patch.object(psgroupme.responder.Responder, 'reply')
     def test_respond(self, reply_fn):
         self.bot.respond("foobar")
-        reply_fn.assert_called_once_with('Hello, this is {0}'.format(self.bot.BOT_NAME))
-
+        reply_fn.assert_called_once_with('Hello, this is {0}'.format(
+            self.bot.BOT_NAME))
 
     def test_includes_standard_replies(self):
         for resp_item in GLOBAL_RESPONSES:
@@ -102,10 +139,9 @@ class TestBaseBot(unittest.TestCase):
         self.bot.handle_msg(test_msg)
         self.bot.read_msg.assert_not_called()
 
-
     def test_read_msg(self):
         self.bot.respond = mock.MagicMock()
-        self.bot.responses= [
+        self.bot.responses = [
             {
                 'input': r'foobar',
                 'reply': 'helloworld'
@@ -142,7 +178,8 @@ class TestScheduleBot(TestBaseBot):
     @mock.patch.object(psgroupme.config_manager.ConfigManager, 'load_cfg')
     def setUp(self, mock_cfg_mgr_load):
         mock_cfg_mgr_load.return_value = MOCK_CFG
-        self.bot = ScheduleBot()
+        self.mock_sched = PointstreakScheduleMock()
+        self.bot = ScheduleBot(schedule=self.mock_sched)
 
     def test_includes_specialized_replies(self):
         for resp_item in SCHEDULE_BOT_RESPONSES:
@@ -156,3 +193,57 @@ class TestScheduleBot(TestBaseBot):
 
     def test_excludes_specialized_replies(self):
         pass
+
+    @mock.patch.object(psgroupme.bots.ScheduleBot, 'respond')
+    def test_real_responses(self, mock_resp):
+        # Canned responses
+        nextgame_resp = 'TestNextGame'
+        lastgame_resp = 'TestLastGame'
+        schedule_resp = 'TestSchedule'
+        bot_name = self.bot.BOT_NAME
+
+        username = 'TestUser'
+        context = dict(name=username, system=False, sender_type='user')
+        test_msg_list = [
+            ('Hello, {0}'.format(bot_name), 'Hello, {0}'.format(username)),
+            ('abc', None),
+            ('Does anyone know when the next game is', nextgame_resp),
+            ('When the f is the next game', nextgame_resp),
+            ('next game', None),
+            ('how did we do', lastgame_resp),
+            ('HoW dId We Do?', lastgame_resp),
+            ('HoW dId We Do? blah blah blah', lastgame_resp),
+            ('did we do', None),
+            ('how\'d we do?', lastgame_resp),
+            ('how we do', lastgame_resp),
+            ('how we do it', None),
+            ('this is how we do it', None),
+            ('what was the score', lastgame_resp),
+            ('what was the score, {0}'.format(bot_name), lastgame_resp),
+            ('what is schedule', schedule_resp),
+            ('what is scheduled', None),
+            ('what is the schedule', schedule_resp)
+        ]
+        for dialog in test_msg_list:
+            with mock.patch.object(psgroupme.bots.ScheduleBot,
+                                   'respond') as mock_resp:
+                test_msg = dict(text=dialog[0])
+                test_msg.update(context)
+                self.bot.read_msg(test_msg)
+                if dialog[1]:
+                    mock_resp.assert_called_with(dialog[1])
+                else:
+                    mock_resp.assert_not_called()
+
+
+class TestHockeyBot(TestScheduleBot):
+    """Just a clone of ScheduleBot, with a different bot name"""
+
+    @mock.patch.object(psgroupme.config_manager.ConfigManager, 'load_cfg')
+    def setUp(self, mock_cfg_mgr_load):
+        mock_cfg_mgr_load.return_value = MOCK_CFG
+        self.mock_sched = PointstreakScheduleMock()
+        self.bot = HockeyBot(schedule=self.mock_sched)
+
+    def test_bot_name(self):
+        assert self.bot.BOT_NAME
