@@ -141,6 +141,7 @@ class TestBaseBot(unittest.TestCase):
 
     def test_read_msg(self):
         self.bot.respond = mock.MagicMock()
+        self.bot.refresh_responses = mock.MagicMock()
         self.bot.responses = [
             {
                 'input': r'foobar',
@@ -159,18 +160,22 @@ class TestBaseBot(unittest.TestCase):
         test_msg = dict(text='ignore_me')
         self.bot.read_msg(test_msg)
         self.bot.respond.assert_not_called()
+        self.bot.refresh_responses.assert_called()
 
         test_msg = dict(text='foobar')
         self.bot.read_msg(test_msg)
         self.bot.respond.assert_called_with('helloworld')
+        self.bot.refresh_responses.assert_called()
 
         test_msg = dict(text='1test2')
         self.bot.read_msg(test_msg)
         self.bot.respond.assert_called_with('testregex')
+        self.bot.refresh_responses.assert_called()
 
         test_msg = dict(text='format_test')
         self.bot.read_msg(test_msg)
         self.bot.respond.assert_called_with('{}'.format(self.bot.BOT_NAME))
+        self.bot.refresh_responses.assert_called()
 
 
 class TestScheduleBot(TestBaseBot):
@@ -197,9 +202,9 @@ class TestScheduleBot(TestBaseBot):
     @mock.patch.object(psgroupme.bots.ScheduleBot, 'respond')
     def test_real_responses(self, mock_resp):
         # Canned responses
-        nextgame_resp = 'TestNextGame'
-        lastgame_resp = 'TestLastGame'
-        schedule_resp = 'TestSchedule'
+        nextgame_resp = self.bot.NEXTGAME_RESPONSE.format('TestNextGame')
+        lastgame_resp = self.bot.LASTGAME_RESPONSE.format('TestLastGame')
+        schedule_resp = self.bot.SCHEDULE_RESPONSE.format('TestSchedule')
         bot_name = self.bot.BOT_NAME
 
         username = 'TestUser'
@@ -246,4 +251,4 @@ class TestHockeyBot(TestScheduleBot):
         self.bot = HockeyBot(schedule=self.mock_sched)
 
     def test_bot_name(self):
-        assert self.bot.BOT_NAME
+        self.assertNotEqual(self.bot.BOT_NAME, ScheduleBot.BOT_NAME)

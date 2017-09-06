@@ -27,6 +27,9 @@ class BaseBot(Resource):
 
         # Set up the Responder
         self.responder = Responder(self.bot_id)
+        self.refresh_responses()
+
+    def refresh_responses(self):
         self.responses = bot_responses.GLOBAL_RESPONSES
         self.responses.extend(self.get_bot_specific_responses())
         if self.SPECIFIC_SET_RESPONSES is not None:
@@ -49,6 +52,8 @@ class BaseBot(Resource):
         self.responses.  Also updates the incoming message with the bot cfg for
         extra context (usefull in replies, such as {bot_name})
         """
+        self.refresh_responses()
+
         context = msg.copy()
         context.update(self.bot_data)
         matches = [x for x in self.responses if re.search(
@@ -80,6 +85,9 @@ class ScheduleBot(BaseBot):
 
     BOT_NAME = 'TestBot'
     SPECIFIC_SET_RESPONSES = bot_responses.SCHEDULE_BOT_RESPONSES
+    NEXTGAME_RESPONSE = 'The next game is: {0}'
+    LASTGAME_RESPONSE = 'The last game was: {0}'
+    SCHEDULE_RESPONSE = 'This is the current schedule:\n{0}'
 
     def __init__(self, cfg_path=None, schedule=None):
         """Initialize the bot, and add ScheduleBot-specific responses"""
@@ -87,22 +95,28 @@ class ScheduleBot(BaseBot):
         super(ScheduleBot, self).__init__()
 
     def get_bot_specific_responses(self):
+        nextgame_resp = self.NEXTGAME_RESPONSE.format(str(
+                       self.schedule.get_next_game()))
+        lastgame_resp = self.LASTGAME_RESPONSE.format(str(
+                       self.schedule.get_last_game()))
+        schedule_resp = self.SCHEDULE_RESPONSE.format(str(
+                       self.schedule.get_schedule()))
         responses = [
             {
                 'input': r'when.*next game([\?\!\.( is)].*)??$',
-                'reply': str(self.schedule.get_next_game())
+                'reply': nextgame_resp
             },
             {
                 'input': r'what was the score\??',
-                'reply': str(self.schedule.get_last_game())
+                'reply': lastgame_resp
             },
             {
                 'input': r'^how(\'d| did)? we do([\?\!\.].*)??$',
-                'reply': str(self.schedule.get_last_game())
+                'reply': lastgame_resp
             },
             {
                 'input': r'what is.* schedule([\?\!\.].*)??$',
-                'reply': str(self.schedule)
+                'reply': schedule_resp
             }
         ]
         return responses
