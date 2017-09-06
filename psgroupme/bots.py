@@ -95,12 +95,23 @@ class ScheduleBot(BaseBot):
         super(ScheduleBot, self).__init__()
 
     def get_bot_specific_responses(self):
-        nextgame_resp = self.NEXTGAME_RESPONSE.format(str(
-                       self.schedule.get_next_game()))
+        next_game = self.schedule.get_next_game()
+        last_game = self.schedule.get_last_game()
+        schedule = self.schedule.get_schedule()
+
+        nextgame_resp = self.NEXTGAME_RESPONSE.format(str(next_game))
         lastgame_resp = self.LASTGAME_RESPONSE.format(str(
                        self.schedule.get_last_game()))
         schedule_resp = self.SCHEDULE_RESPONSE.format(str(
                        self.schedule.get_schedule()))
+
+        if next_game is None:
+            nextgame_resp = "There are no games left on the schedule :("
+        if last_game is None:
+            lastgame_resp = "The season hasn't started yet"
+        if schedule is None:
+            schedule_resp = "No schedule yet :("
+
         responses = [
             {
                 'input': r'when.*next game([\?\!\.( is)].*)??$',
