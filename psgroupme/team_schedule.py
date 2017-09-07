@@ -107,10 +107,12 @@ class PointstreakSchedule(object):
         return res
 
     def refresh_schedule(self):
+        """Reload the schedule from pointstreak"""
         self.html_table = self.retrieve_html_table(self.url)
         self.games = self.parse_table()
 
     def get_schedule(self):
+        """Get a string representation of the current schedule"""
         self.refresh_schedule()
         return str(self)
 
