@@ -1,6 +1,9 @@
 import yaml
+import os
 
-DEFAULT_CONFIG = '../config/bots.local.yaml'
+CONFIG_PATH = 'config/bots.local.yaml'
+PACKAGE_PATH = os.path.dirname(os.path.dirname(__file__))
+DEFAULT_CONFIG = os.path.join(PACKAGE_PATH, CONFIG_PATH)
 
 
 class ConfigManager(object):
@@ -19,7 +22,7 @@ class ConfigManager(object):
     def get_bot_data(self, bot_name):
         """Get the configuration for a bot based on bot name"""
         matched_bots = [bot for bot in self.cfg['bots'] if
-                        bot['bot_name'] == bot_name]
+                        bot['class_name'] == bot_name]
         if len(matched_bots) > 0:
             return matched_bots[0]
         return None

@@ -1,30 +1,22 @@
-from team_schedule import PointstreakSchedule
-
 # Responses shared by all bots
+github_url = 'https://github.com/gmfrasca/pointstreak-groupme'
+
 GLOBAL_RESPONSES = [
     {
-        'input': r'(hi|hello|(wha[tz]s?\s?up)), {bot_name}',
+        'input': r'(hi|hello|greetings|salutations|sup),? {bot_name}',
         'reply': 'Hello, {name}'
+    },
+    {
+        'input': r'show me the (source|sauce|src|code)',
+        'reply': 'You can find it at ' + github_url
+
+    },
+    {
+        'input': r'(what|who) is {bot_name}',
+        'reply': ('I am a GroupMe helper bot, beep boop.\n' +
+                  'More info at ' + github_url)
     }
 ]
 
 # Responses specific to ScheduleBot
-sched = PointstreakSchedule()
-SCHEDULE_BOT_RESPONSES = [
-    {
-        'input': r'when.*next game\??',
-        'reply': str(sched.get_next_game())
-    },
-    {
-        'input': r'what was the score',
-        'reply': str(sched.get_last_game())
-    },
-    {
-        'input': r'how( did)? we do',
-        'reply': str(sched.get_last_game())
-    },
-    {
-        'input': r'what is.*schedule',
-        'reply': str(sched)
-    }
-]
+SCHEDULE_BOT_RESPONSES = []
