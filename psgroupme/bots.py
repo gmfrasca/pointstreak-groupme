@@ -83,7 +83,7 @@ class BaseBot(Resource):
 
 class ScheduleBot(BaseBot):
 
-    BOT_NAME = 'TestBot'
+    BOT_NAME = 'ScheduleBot'
     SPECIFIC_SET_RESPONSES = bot_responses.SCHEDULE_BOT_RESPONSES
     NEXTGAME_RESPONSE = 'The next game is: {0}'
     LASTGAME_RESPONSE = 'The last game was: {0}'

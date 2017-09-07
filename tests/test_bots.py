@@ -18,7 +18,7 @@ MOCK_CFG = {
                      'avatar_url': 'http://funny.jpg'
                 },
                 {
-                     'bot_name': 'TestBot',
+                     'bot_name': 'ScheduleBot',
                      'bot_id': '2',
                      'group_name': 'foo',
                      'group_id': '12345',
