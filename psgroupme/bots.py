@@ -14,15 +14,25 @@ class BaseBot(Resource):
     found in bot_responses.py
     """
 
-    BOT_NAME = 'BaseBot'
     SPECIFIC_SET_RESPONSES = None
+
+    @property
+    def bot_type(self):
+        return type(self).__name__
 
     def __init__(self, cfg_path=None):
         """Load the config for this bot based on Name"""
         # Get the Bot Config
         self.cfg_mgr = ConfigManager(cfg_path)
-        self.bot_data = self.cfg_mgr.get_bot_data(self.BOT_NAME)
-        self.bot_id = self.cfg_mgr.get_bot_id(self.BOT_NAME)
+        self.bot_data = self.cfg_mgr.get_bot_data(self.bot_type)
+        self.bot_id = self.cfg_mgr.get_bot_id(self.bot_type)
+        self.bot_id = self.bot_data.get('bot_id')
+        self.bot_name = self.bot_data.get('bot_name', 'UnknownBot')
+        self.group_id = self.bot_data.get('group_id', 'UnknownGroup')
+        self.group_name = self.bot_data.get('group_name', 'UnknownGroup')
+        self.callback_url = self.bot_data.get('callback_url', None)
+        self.avatar_url = self.bot_data.get('avatar_url', None)
+
         assert self.bot_id is not None
 
         # Set up the Responder
@@ -32,6 +42,7 @@ class BaseBot(Resource):
     def refresh_responses(self):
         self.responses = bot_responses.GLOBAL_RESPONSES
         self.responses.extend(self.get_bot_specific_responses())
+
         if self.SPECIFIC_SET_RESPONSES is not None:
             self.responses.extend(self.SPECIFIC_SET_RESPONSES)
 
@@ -63,7 +74,7 @@ class BaseBot(Resource):
 
     def respond(self, msg):
         """Have the bot post a message to it's group"""
-        self.responder.reply('Hello, this is {0}'.format(self.BOT_NAME))
+        self.responder.reply('Hello, this is {0}'.format(self.bot_name))
 
     def get(self):
         """React to a GET call"""
@@ -83,7 +94,6 @@ class BaseBot(Resource):
 
 class ScheduleBot(BaseBot):
 
-    BOT_NAME = 'ScheduleBot'
     SPECIFIC_SET_RESPONSES = bot_responses.SCHEDULE_BOT_RESPONSES
     NEXTGAME_RESPONSE = 'The next game is: {0}'
     LASTGAME_RESPONSE = 'The last game was: {0}'
@@ -139,4 +149,3 @@ class ScheduleBot(BaseBot):
 
 class HockeyBot(ScheduleBot):
     """Just a clone of ScheduleBot, with a different bot name"""
-    BOT_NAME = 'HockeyBot'

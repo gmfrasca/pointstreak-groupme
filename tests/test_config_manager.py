@@ -7,7 +7,8 @@ class TestConfigManager(unittest.TestCase):
 
     MOCK_YAML = '''
 bots:
-    - bot_name: 'foo'
+    - class_name: 'foo'
+      bot_name: 'bar'
       bot_id: '12345'
       group_name: 'foo'
       group_id: '12345'
@@ -28,7 +29,8 @@ bots:
         expected = {
             'bots': [
                 {
-                     'bot_name': 'foo',
+                     'class_name': 'foo',
+                     'bot_name': 'bar',
                      'bot_id': '12345',
                      'group_name': 'foo',
                      'group_id': '12345',
@@ -41,7 +43,8 @@ bots:
 
     def test_get_bot_data(self):
         expected = {
-            'bot_name': 'foo',
+            'class_name': 'foo',
+            'bot_name': 'bar',
             'bot_id': '12345',
             'group_name': 'foo',
             'group_id': '12345',

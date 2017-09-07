@@ -7,10 +7,17 @@ import mock
 import json
 
 
+BOTNAMES = {
+    'BaseBot': 'BaseBot',
+    'ScheduleBot': 'TestBot',
+    'HockeyBot': 'HockeyBot'
+}
+
 MOCK_CFG = {
             'bots': [
                 {
-                     'bot_name': 'BaseBot',
+                     'class_name': 'BaseBot',
+                     'bot_name': BOTNAMES['BaseBot'],
                      'bot_id': '1',
                      'group_name': 'foo',
                      'group_id': '12345',
@@ -18,7 +25,8 @@ MOCK_CFG = {
                      'avatar_url': 'http://funny.jpg'
                 },
                 {
-                     'bot_name': 'ScheduleBot',
+                     'class_name': 'ScheduleBot',
+                     'bot_name': BOTNAMES['ScheduleBot'],
                      'bot_id': '2',
                      'group_name': 'foo',
                      'group_id': '12345',
@@ -26,7 +34,8 @@ MOCK_CFG = {
                      'avatar_url': 'http://funny.jpg'
                 },
                 {
-                      'bot_name': 'HockeyBot',
+                      'class_name': 'HockeyBot',
+                      'bot_name': BOTNAMES['HockeyBot'],
                       'bot_id': '3',
                       'group_name': 'foo',
                       'group_id': '12345',
@@ -99,7 +108,7 @@ class TestBaseBot(unittest.TestCase):
     def test_respond(self, reply_fn):
         self.bot.respond("foobar")
         reply_fn.assert_called_once_with('Hello, this is {0}'.format(
-            self.bot.BOT_NAME))
+            type(self.bot).__name__))
 
     def test_includes_standard_replies(self):
         for resp_item in GLOBAL_RESPONSES:
@@ -174,7 +183,8 @@ class TestBaseBot(unittest.TestCase):
 
         test_msg = dict(text='format_test')
         self.bot.read_msg(test_msg)
-        self.bot.respond.assert_called_with('{}'.format(self.bot.BOT_NAME))
+        self.bot.respond.assert_called_with('{}'.format(
+            BOTNAMES[self.bot.bot_type]))
         self.bot.refresh_responses.assert_called()
 
 
@@ -205,7 +215,7 @@ class TestScheduleBot(TestBaseBot):
         nextgame_resp = self.bot.NEXTGAME_RESPONSE.format('TestNextGame')
         lastgame_resp = self.bot.LASTGAME_RESPONSE.format('TestLastGame')
         schedule_resp = self.bot.SCHEDULE_RESPONSE.format('TestSchedule')
-        bot_name = self.bot.BOT_NAME
+        bot_name = BOTNAMES[self.bot.bot_type]
 
         username = 'TestUser'
         context = dict(name=username, system=False, sender_type='user')
@@ -234,6 +244,7 @@ class TestScheduleBot(TestBaseBot):
                                    'respond') as mock_resp:
                 test_msg = dict(text=dialog[0])
                 test_msg.update(context)
+                print(test_msg)
                 self.bot.read_msg(test_msg)
                 if dialog[1]:
                     mock_resp.assert_called_with(dialog[1])
@@ -251,4 +262,4 @@ class TestHockeyBot(TestScheduleBot):
         self.bot = HockeyBot(schedule=self.mock_sched)
 
     def test_bot_name(self):
-        self.assertNotEqual(self.bot.BOT_NAME, ScheduleBot.BOT_NAME)
+        self.assertNotEqual(self.bot.bot_type, ScheduleBot.__name__)
