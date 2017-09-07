@@ -1,6 +1,9 @@
 import yaml
+import os
 
-DEFAULT_CONFIG = '../config/bots.local.yaml'
+CONFIG_PATH = 'config/bots.local.yaml'
+PACKAGE_PATH = os.path.dirname(os.path.dirname(__file__))
+DEFAULT_CONFIG = os.path.join(PACKAGE_PATH, CONFIG_PATH)
 
 
 class ConfigManager(object):
