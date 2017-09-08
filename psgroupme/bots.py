@@ -110,16 +110,14 @@ class ScheduleBot(BaseBot):
         schedule = self.schedule.get_schedule()
 
         nextgame_resp = self.NEXTGAME_RESPONSE.format(str(next_game))
-        lastgame_resp = self.LASTGAME_RESPONSE.format(str(
-                       self.schedule.get_last_game()))
-        schedule_resp = self.SCHEDULE_RESPONSE.format(str(
-                       self.schedule.get_schedule()))
+        lastgame_resp = self.LASTGAME_RESPONSE.format(str(last_game))
+        schedule_resp = self.SCHEDULE_RESPONSE.format(str(schedule))
 
         if next_game is None:
             nextgame_resp = "There are no games left on the schedule :("
         if last_game is None:
             lastgame_resp = "The season hasn't started yet"
-        if schedule is None:
+        if schedule is None or len(self.schedule.games) < 1:
             schedule_resp = "No schedule yet :("
 
         responses = [
