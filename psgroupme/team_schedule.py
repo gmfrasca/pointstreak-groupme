@@ -19,7 +19,7 @@ MAX_RESPONSES = FREE_REQUESTS if MAX_RESPONSES > FREE_REQUESTS else \
 # Poinstreak URL info
 PS_URL = 'http://stats.pointstreak.com'
 SCHED_EXT = 'players/players-team-schedule.html'
-SCHED_PARAMS = 'teamid=666456&seasonid=17266'
+SCHED_PARAMS = 'teamid=666456&seasonid=17455'
 SCHEDULE_URL = '{0}/{1}?{2}'.format(PS_URL, SCHED_EXT, SCHED_PARAMS)
 
 # Expected Column Data Contents
