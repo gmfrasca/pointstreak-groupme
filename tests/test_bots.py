@@ -50,7 +50,8 @@ class PointstreakScheduleMock(PointstreakSchedule):
 
     def __init__(self, *args, **kwargs):
         self.html_table = mock.MagicMock()
-        self.games = mock.MagicMock()
+        self.games = [self.get_last_game_before(),
+                      self.get_next_game_after()]
 
     def __repr__(self):
         return 'TestSchedule'
@@ -211,6 +212,7 @@ class TestScheduleBot(TestBaseBot):
 
     @mock.patch.object(psgroupme.bots.ScheduleBot, 'respond')
     def test_real_responses(self, mock_resp):
+
         # Canned responses
         nextgame_resp = self.bot.NEXTGAME_RESPONSE.format('TestNextGame')
         lastgame_resp = self.bot.LASTGAME_RESPONSE.format('TestLastGame')
