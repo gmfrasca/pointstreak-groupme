@@ -16,11 +16,11 @@ MAX_RESPONSES = 1024 * FREE_COMP_TIME / (ESTIMATED_RUNTIME * ALLOCATED_MEMORY)
 MAX_RESPONSES = FREE_REQUESTS if MAX_RESPONSES > FREE_REQUESTS else \
     MAX_RESPONSES
 
-# Poinstreak URL info
+# Default Poinstreak URL info
+TEAM_ID = 666456
+SEASON_ID = 17455
 PS_URL = 'http://stats.pointstreak.com'
 SCHED_EXT = 'players/players-team-schedule.html'
-SCHED_PARAMS = 'teamid=666456&seasonid=17455'
-SCHEDULE_URL = '{0}/{1}?{2}'.format(PS_URL, SCHED_EXT, SCHED_PARAMS)
 
 # Expected Column Data Contents
 COLUMNS = {
@@ -94,9 +94,11 @@ class PointstreakSchedule(object):
     a Poinstreak Team Schedule page
     """
 
-    def __init__(self, url=SCHEDULE_URL):
+    def __init__(self, team_id=TEAM_ID, season_id=SEASON_ID):
         """Retrieve the target schedule and parse"""
-        self.url = url
+        self.team_id = TEAM_ID
+        self.season_id = SEASON_ID
+        self.url = self.get_schedule_url(team_id, season_id)
         self.refresh_schedule()
 
     def __repr__(self):
@@ -105,6 +107,10 @@ class PointstreakSchedule(object):
         for game in self.games:
             res += '{0}\n'.format(game)
         return res
+
+    def get_schedule_url(self, team_id, season_id):
+        sched_params = 'teamid={0}&seasonid={1}'.format(team_id, season_id)
+        return '{0}/{1}?{2}'.format(PS_URL, SCHED_EXT, sched_params)
 
     def refresh_schedule(self):
         """Reload the schedule from pointstreak"""
