@@ -68,6 +68,12 @@ class PointstreakDatabase(object):
                                 (season_id, season_name, schedule_url))
             self.save()
 
+    def set_notified(self, game_id, notified):
+        notified = 1 if notified else 0
+        self.cursor.execute("UPDATE games SET notified=? WHERE game_id=?",
+                            (notified, game_id))
+        self.save()
+
     def get_game(self, game_id):
         res = self.cursor.execute("SELECT * FROM games WHERE game_id=?",
                                   (game_id,))

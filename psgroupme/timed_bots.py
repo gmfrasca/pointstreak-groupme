@@ -3,6 +3,7 @@ from config_manager import ConfigManager
 from team_schedule import PointstreakSchedule
 from responder import Responder
 from time import sleep
+import datetime
 import threading
 
 
@@ -50,6 +51,21 @@ class TimedBot(threading.Thread):
 
 class GamedayReminderBot(TimedBot):
 
+    MORNING_CUTOFF = datetime.time(10, 00)
+    NIGHT_CUTOFF = datetime.time(22, 00)
+
+    def game_has_been_notified(self, game_id):
+        return self.db.game_has_been_notified(game_id)
+
+    def send_game_notification(self, game_id):
+        print("Game Today")
+        self.db.set_notified(game_id, True)
+        sleep(1)
+
+    def ok_time_to_send_msg(self):
+        now = datetime.datetime.now().time()
+        return self.MORNING_CUTOFF <= now <= self.NIGHT_CUTOFF
+
     def run(self):
         # Set up Database
         self.db = PointstreakDatabase()
@@ -61,6 +77,15 @@ class GamedayReminderBot(TimedBot):
         while True:
             if self.db.is_game_today(self.team_id, self.season_id):
                 game_id = self.db.get_todays_game(self.team_id, self.season_id)
-                if not self.game_has_been_notified(game_id):
-                    print("Game Today")
-                    sleep(60)
+                if not self.game_has_been_notified(game_id) and \
+                        self.ok_time_to_send_msg():
+                    self.send_game_notification(game_id)
+
+
+def main():
+    grb = GamedayReminderBot()
+    grb.run()
+
+
+if __name__ == '__main__':
+    main()
