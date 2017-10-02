@@ -231,7 +231,7 @@ def main():
     This is more of a testing procedure.  Get all relevent info and print it
     """
     schedule = PointstreakSchedule()
-    now = datetime.datetime.now() - datetime.timedelta(days=7)
+    now = datetime.datetime.now()
     next_game = schedule.get_next_game()
     last_game = schedule.get_last_game()
     print "--- Today's Date ---"
