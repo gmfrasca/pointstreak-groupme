@@ -1,6 +1,7 @@
 from timed_bots import GamedayReminderBot
 import signal
 
+
 def main():
     bots_to_run = [GamedayReminderBot]
     running_bots = []
