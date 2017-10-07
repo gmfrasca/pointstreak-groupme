@@ -155,9 +155,9 @@ class ScheduleBot(BaseBot):
 class HockeyBot(ScheduleBot):
     """Just a clone of ScheduleBot, with a different bot name"""
 
+
 class TestBot(HockeyBot):
     """Debug"""
     def respond(self, msg):
         """Respond using the matched message reply"""
         print(msg)
-
