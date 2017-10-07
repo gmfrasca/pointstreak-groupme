@@ -17,7 +17,7 @@ def main():
             for bot in running_bots:
                 bot.stop()
             exit(0)
-            
-            
+
+
 if __name__ == '__main__':
     main()
