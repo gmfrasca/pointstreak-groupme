@@ -41,7 +41,7 @@ class BaseBot(Resource):
         self.refresh_responses()
 
     def refresh_responses(self):
-        self.responses = bot_responses.GLOBAL_RESPONSES
+        self.responses = list(bot_responses.GLOBAL_RESPONSES)
         self.responses.extend(self.get_bot_specific_responses())
 
         if self.SPECIFIC_SET_RESPONSES is not None:
@@ -154,3 +154,10 @@ class ScheduleBot(BaseBot):
 
 class HockeyBot(ScheduleBot):
     """Just a clone of ScheduleBot, with a different bot name"""
+
+
+class TestBot(HockeyBot):
+    """Debug"""
+    def respond(self, msg):
+        """Respond using the matched message reply"""
+        print(msg)

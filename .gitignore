@@ -105,5 +105,8 @@ ENV/
 *.local.json
 *.local.xml
 
-#local dev
+# local dev
 localdev/
+
+# db files
+*.db

@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 import json
 
 DEFAULT_MSG = 'Hello, TestBot.'
-DEFAULT_URL = 'http://127.0.0.1:5002/schedulebot'
+DEFAULT_URL = 'http://127.0.0.1:5002/testbot'
 
 parser = ArgumentParser()
 parser.add_argument("-u", "--url", dest="url", default=DEFAULT_URL)
