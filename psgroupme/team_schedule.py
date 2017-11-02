@@ -67,6 +67,8 @@ class PointstreakGame(object):
         # Pointstreak does not give us a better way to determine it
         year = str(now.year)
         full_gametime = date.split()[1:]
+        if full_gametime[0] in ['Jan', 'Feb', 'Mar'] and now.month > 7:
+            year = str(now.year + 1)
         full_gametime.extend([year])
         full_gametime.extend(time.split())
         full_gametime = ' '.join(full_gametime)
