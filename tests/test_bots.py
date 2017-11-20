@@ -2,6 +2,7 @@ import psgroupme
 from psgroupme.bots import BaseBot, ScheduleBot, HockeyBot
 from psgroupme.bot_responses import GLOBAL_RESPONSES, SCHEDULE_BOT_RESPONSES
 from psgroupme.team_schedule import PointstreakSchedule
+from jinja2 import Template
 import unittest
 import mock
 import json
@@ -212,11 +213,14 @@ class TestScheduleBot(TestBaseBot):
 
     @mock.patch.object(psgroupme.bots.ScheduleBot, 'respond')
     def test_real_responses(self, mock_resp):
-
         # Canned responses
-        nextgame_resp = self.bot.NEXTGAME_RESPONSE.format('TestNextGame')
-        lastgame_resp = self.bot.LASTGAME_RESPONSE.format('TestLastGame')
-        schedule_resp = self.bot.SCHEDULE_RESPONSE.format('TestSchedule')
+        context = dict(
+            NEXT_GAME='TestNextGame',
+            LAST_GAME='TestLastGame',
+            SCHEDULE='TestSchedule')
+        nextgame_resp = Template(self.bot.NEXTGAME_RESPONSE).render(**context)
+        lastgame_resp = Template(self.bot.LASTGAME_RESPONSE).render(**context)
+        schedule_resp = Template(self.bot.SCHEDULE_RESPONSE).render(**context)
         bot_name = BOTNAMES[self.bot.bot_type]
 
         username = 'TestUser'

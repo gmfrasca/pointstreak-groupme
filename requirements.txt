@@ -1,6 +1,7 @@
 flake8==3.3.0
 parsedatetime==2.4
 bs4==0.0.1
+Jinja2==2.9.6
 flask
 flask-restful
 requests

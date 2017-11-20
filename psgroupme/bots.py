@@ -3,6 +3,7 @@ from flask_restful import Resource
 from responder import Responder
 from config_manager import ConfigManager
 from team_schedule import PointstreakSchedule
+from jinja2 import Template
 import datetime
 import bot_responses
 import json
@@ -97,9 +98,9 @@ class BaseBot(Resource):
 class ScheduleBot(BaseBot):
 
     SPECIFIC_SET_RESPONSES = bot_responses.SCHEDULE_BOT_RESPONSES
-    NEXTGAME_RESPONSE = 'The next game is: {0}'
-    LASTGAME_RESPONSE = 'The last game was: {0}'
-    SCHEDULE_RESPONSE = 'This is the current schedule:\n{0}'
+    NEXTGAME_RESPONSE = 'The next game is: {{ NEXT_GAME }}'
+    LASTGAME_RESPONSE = 'The last game was: {{ LAST_GAME }}'
+    SCHEDULE_RESPONSE = 'This is the current schedule:\n{{ SCHEDULE }}'
 
     def __init__(self, cfg_path=None, schedule=None):
         """Initialize the bot, and add ScheduleBot-specific responses"""
@@ -107,16 +108,22 @@ class ScheduleBot(BaseBot):
         super(ScheduleBot, self).__init__(cfg_path=cfg_path)
 
     def get_bot_specific_responses(self):
+
+        # Get Base level context
         self.schedule.refresh_schedule()
         next_game = self.schedule.get_next_game()
         last_game = self.schedule.get_last_game()
         schedule = self.schedule.get_schedule()
         today = datetime.datetime.now().strftime("%a %b %d %I:%M.%S%p")
+        context = dict(NEXT_GAME=next_game,
+                       LAST_GAME=last_game,
+                       SCHEDULE=schedule,
+                       TODAY=today)
 
-        nextgame_resp = self.NEXTGAME_RESPONSE.format(str(next_game))
-        lastgame_resp = self.LASTGAME_RESPONSE.format(str(last_game))
-        schedule_resp = self.SCHEDULE_RESPONSE.format(str(schedule))
-
+        # Generate Human-Readable Responses rendered from Base Level Context
+        nextgame_resp = Template(self.NEXTGAME_RESPONSE).render(**context)
+        lastgame_resp = Template(self.LASTGAME_RESPONSE).render(**context)
+        schedule_resp = Template(self.SCHEDULE_RESPONSE).render(**context)
         if next_game is None:
             nextgame_resp = "There are no games left on the schedule :("
         if last_game is None:
@@ -124,28 +131,38 @@ class ScheduleBot(BaseBot):
         if schedule is None or len(self.schedule.games) < 1:
             schedule_resp = "No schedule yet :("
 
+        # Add Rendered Responses to context
+        context.update(dict(
+            NEXT_GAME_RESP=nextgame_resp,
+            LAST_GAME_RESP=lastgame_resp,
+            SCHEDULE_RESP=schedule_resp))
+
+        # TODO: Move this to a file
         responses = [
             {
                 'input': r'when.*next game([\?\!\.( is)].*)??$',
-                'reply': nextgame_resp
+                'reply': '{{ NEXT_GAME_RESP }}'
             },
             {
                 'input': r'what was the score\??',
-                'reply': lastgame_resp
+                'reply': '{{ LAST_GAME_RESP }}'
             },
             {
                 'input': r'^how(\'d| did)? we do([\?\!\.].*)??$',
-                'reply': lastgame_resp
+                'reply': '{{ LAST_GAME_RESP }}'
             },
             {
                 'input': r'what is.* schedule([\?\!\.].*)??$',
-                'reply': schedule_resp
+                'reply': '{{ SCHEDULE_RESP }}'
             },
             {
                 'input': r'^what is today$',
-                'reply': today
+                'reply': '{{ TODAY }}'
              }
         ]
+        for response in responses:
+            temp = Template(response['reply'])
+            response['reply'] = temp.render(**context)
         return responses
 
     def respond(self, msg):
