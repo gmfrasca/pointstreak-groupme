@@ -3,6 +3,7 @@ from flask_restful import Resource
 from responder import Responder
 from config_manager import ConfigManager
 from team_schedule import PointstreakSchedule
+from team_locker_room import TeamLockerRoom
 import datetime
 import bot_responses
 import json
@@ -34,12 +35,10 @@ class BaseBot(Resource):
         self.group_name = self.bot_data.get('group_name', 'UnknownGroup')
         self.callback_url = self.bot_data.get('callback_url', None)
         self.avatar_url = self.bot_data.get('avatar_url', None)
-
         assert self.bot_id is not None
 
         # Set up the Responder
         self.responder = Responder(self.bot_id)
-        self.refresh_responses()
 
     def refresh_responses(self):
         self.responses = list(bot_responses.GLOBAL_RESPONSES)
@@ -59,19 +58,27 @@ class BaseBot(Resource):
         if not system and sender_type != 'bot':
             self.read_msg(msg)
 
+    def get_matching_responses(self, msg):
+        context = msg.copy()
+        context.update(self.bot_data)
+        return [x for x in self.responses if re.search(
+                   x['input'].format(**context), msg['text'], re.I | re.U)]
+
     def read_msg(self, msg):
         """
         Read a message's contents, and act on it if it matches a regex in
         self.responses.  Also updates the incoming message with the bot cfg for
         extra context (usefull in replies, such as {bot_name})
         """
-        self.refresh_responses()
+        if not hasattr(self, 'responses'):
+            self.refresh_responses()
 
         context = msg.copy()
         context.update(self.bot_data)
-        matches = [x for x in self.responses if re.search(
-           x['input'].format(**context), msg['text'], re.I | re.U)]
+        matches = self.get_matching_responses(msg)
         if len(matches) > 0:
+            self.refresh_responses()
+            matches = self.get_matching_responses(msg)
             self.respond(matches[0]['reply'].format(**context))
 
     def respond(self, msg):
@@ -101,10 +108,19 @@ class ScheduleBot(BaseBot):
     LASTGAME_RESPONSE = 'The last game was: {0}'
     SCHEDULE_RESPONSE = 'This is the current schedule:\n{0}'
 
-    def __init__(self, cfg_path=None, schedule=None):
+    def __init__(self, cfg_path=None, schedule=None, tlr=None):
         """Initialize the bot, and add ScheduleBot-specific responses"""
-        self.schedule = PointstreakSchedule() if schedule is None else schedule
         super(ScheduleBot, self).__init__(cfg_path=cfg_path)
+
+        # Setup Pointstreak Schedule
+        self.schedule = PointstreakSchedule() if schedule is None else schedule
+
+        # Set up TeamLockerRoom
+        self.tlr = tlr
+        if tlr is None:
+            self.tlr_username = self.bot_data.get('tlr_username', None)
+            self.tlr_password = self.bot_data.get('tlr_password', None)
+            self.tlr = TeamLockerRoom(self.tlr_username, self.tlr_password)
 
     def get_bot_specific_responses(self):
         self.schedule.refresh_schedule()
@@ -112,10 +128,12 @@ class ScheduleBot(BaseBot):
         last_game = self.schedule.get_last_game()
         schedule = self.schedule.get_schedule()
         today = datetime.datetime.now().strftime("%a %b %d %I:%M.%S%p")
+        attendance = self.tlr.get_next_game_attendance()
 
         nextgame_resp = self.NEXTGAME_RESPONSE.format(str(next_game))
         lastgame_resp = self.LASTGAME_RESPONSE.format(str(last_game))
         schedule_resp = self.SCHEDULE_RESPONSE.format(str(schedule))
+        attendance_resp = attendance
 
         if next_game is None:
             nextgame_resp = "There are no games left on the schedule :("
@@ -142,9 +160,13 @@ class ScheduleBot(BaseBot):
                 'reply': schedule_resp
             },
             {
+                'input': r'^how many do we have',
+                'reply': attendance_resp
+            },
+            {
                 'input': r'^what is today$',
                 'reply': today
-             }
+            }
         ]
         return responses
 
