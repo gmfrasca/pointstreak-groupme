@@ -75,6 +75,12 @@ class PointstreakScheduleMock(PointstreakSchedule):
         return 'TestLastGame'
 
 
+class TeamLockerRoomMock(object):
+
+    def get_next_game_attendance(self):
+        return "NextGameAttendance"
+
+
 class TestBaseBot(unittest.TestCase):
 
     @mock.patch.object(psgroupme.config_manager.ConfigManager, 'load_cfg')
@@ -112,10 +118,12 @@ class TestBaseBot(unittest.TestCase):
             type(self.bot).__name__))
 
     def test_includes_standard_replies(self):
+        self.bot.refresh_responses()
         for resp_item in GLOBAL_RESPONSES:
             assert resp_item in self.bot.responses
 
     def test_excludes_specialized_replies(self):
+        self.bot.refresh_responses()
         for resp_item in SCHEDULE_BOT_RESPONSES:
             assert resp_item not in self.bot.responses
 
@@ -170,7 +178,7 @@ class TestBaseBot(unittest.TestCase):
         test_msg = dict(text='ignore_me')
         self.bot.read_msg(test_msg)
         self.bot.respond.assert_not_called()
-        self.bot.refresh_responses.assert_called()
+        self.bot.refresh_responses.assert_not_called()
 
         test_msg = dict(text='foobar')
         self.bot.read_msg(test_msg)
@@ -194,8 +202,9 @@ class TestScheduleBot(TestBaseBot):
     @mock.patch.object(psgroupme.config_manager.ConfigManager, 'load_cfg')
     def setUp(self, mock_cfg_mgr_load):
         mock_cfg_mgr_load.return_value = MOCK_CFG
+        self.mock_tlr = TeamLockerRoomMock()
         self.mock_sched = PointstreakScheduleMock()
-        self.bot = ScheduleBot(schedule=self.mock_sched)
+        self.bot = ScheduleBot(schedule=self.mock_sched, tlr=self.mock_tlr)
 
     def test_includes_specialized_replies(self):
         for resp_item in SCHEDULE_BOT_RESPONSES:
@@ -261,7 +270,8 @@ class TestHockeyBot(TestScheduleBot):
     def setUp(self, mock_cfg_mgr_load):
         mock_cfg_mgr_load.return_value = MOCK_CFG
         self.mock_sched = PointstreakScheduleMock()
-        self.bot = HockeyBot(schedule=self.mock_sched)
+        self.mock_tlr = TeamLockerRoomMock()
+        self.bot = HockeyBot(schedule=self.mock_sched, tlr=self.mock_tlr)
 
     def test_bot_name(self):
         self.assertNotEqual(self.bot.bot_type, ScheduleBot.__name__)
