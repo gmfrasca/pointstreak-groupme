@@ -58,7 +58,12 @@ class GamedayReminderBot(TimedBot):
         return self.db.game_has_been_notified(game_id)
 
     def send_game_notification(self, game_id):
-        print("Game Today")
+        game = self.db.get_game(game_id)
+        msg = "Its Gameday! {0} vs {1} at {2}".format(game['hometeam'],
+                                                      game['awayteam'],
+                                                      game['time'])
+        print(msg)
+        self.send_msg(msg)
         self.db.set_notified(game_id, True)
         sleep(1)
 
