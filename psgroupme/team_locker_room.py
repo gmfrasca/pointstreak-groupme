@@ -1,5 +1,6 @@
 import requests
 import json
+import sys
 import re
 
 DEFAULT_TLR_URL = 'https://teamlockerroom.com'
@@ -54,6 +55,7 @@ class TeamLockerRoom(object):
                 return game
         return None
 
+    # TODO: Refactor to get_next_game_attendance_str
     def get_next_game_attendance(self):
         next_game = self.get_next_game()
         if next_game:
@@ -63,10 +65,36 @@ class TeamLockerRoom(object):
                     "and {1} players checked out").format(attin, attout)
         return "No upcoming games found."
 
+    def get_next_game_id(self):
+        game = self.get_next_game()
+        if game:
+            return game.get('gameid', None)
+        return None
+
+    def get_game_attendees(self, gameid):
+        game = self.get_next_game()
+        game_url = '{0}/#game/{1}'.format(self.baseurl, game.get('gameid'))
+
+        # FIXME DEBUG
+        game_url = 'https://teamlockerroom.com/#game/3139016'
+        payload = {
+            'status-17768537': 'out',
+            'flags-17768537': 'foobar'
+        }
+        response = self.session.post(game_url, data=payload)
+        print response.text
+
+        return game_url
+
+    def get_next_game_attendees(self):
+        gameid = self.get_next_game_id()
+        return self.get_game_attendees(gameid) if gameid else None
+
 
 def main():
-    tlr = TeamLockerRoom('<EMAIL_HERE>', '<PASSWORD_HERE>')
-    print tlr.get_next_game_attendance()
+    assert len(sys.argv) > 2
+    tlr = TeamLockerRoom(sys.argv[1], sys.argv[2])
+    print tlr.get_next_game_attendees()
 
 
 if __name__ == '__main__':
