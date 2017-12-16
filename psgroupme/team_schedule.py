@@ -36,7 +36,7 @@ COLUMNS = {
 TIME_DESCRIPTOR = "%a %b %d %I:%M%p"  # 12-hour
 
 
-class PointstreakGame(object):
+class Game(object):
     """Represents a game parsed from a Pointstreak schedule"""
 
     def __init__(self, date, time, hometeam, homescore, awayteam, awayscore):
@@ -157,12 +157,12 @@ class PointstreakSchedule(object):
                 gametime = cells[COLUMNS['gametime']].string
                 home, hscore = self.parse_team(cells[COLUMNS['hometeam']])
                 away, ascore = self.parse_team(cells[COLUMNS['awayteam']])
-                games.append(PointstreakGame(gamedate,
-                                             gametime,
-                                             home,
-                                             hscore,
-                                             away,
-                                             ascore))
+                games.append(Game(gamedate,
+                                  gametime,
+                                  home,
+                                  hscore,
+                                  away,
+                                  ascore))
         return games
 
     def parse_team(self, team_cell):

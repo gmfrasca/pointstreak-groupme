@@ -1,4 +1,4 @@
-from psgroupme.team_schedule import PointstreakSchedule, PointstreakGame
+from psgroupme.team_schedule import PointstreakSchedule, Game
 from psgroupme.team_schedule import main as sched_main
 import unittest
 import mock
@@ -76,7 +76,7 @@ def mocked_get(*args, **kwargs):
     return MockResponse(MOCK_HTML, 200)
 
 
-class TestPointstreakGame(unittest.TestCase):
+class TestGame(unittest.TestCase):
 
     def setUp(self):
         with mock.patch('psgroupme.team_schedule.datetime.datetime') as mck_dt:
@@ -89,10 +89,8 @@ class TestPointstreakGame(unittest.TestCase):
         self.test_date = 'Thu, Aug 31'
         self.hour_time = '7:22 PM'
 
-        self.game = PointstreakGame(self.test_date, self.hour_time,
-                                    'home', None, 'away', None)
-        self.done_game = PointstreakGame(self.test_date, self.hour_time,
-                                         'home', 6, 'away', 5)
+        self.game = Game(self.test_date, self.hour_time, 'home', None, 'away', None)
+        self.done_game = Game(self.test_date, self.hour_time, 'home', 6, 'away', 5)
 
     def tearDown(self):
         pass
@@ -136,12 +134,9 @@ class TestPointstreakSchedule(unittest.TestCase):
         hour_before = '5:22 PM'
         hour_after = '7:22 PM'
 
-        self.game_in_an_hour = PointstreakGame(test_date, hour_after,
-                                               'home', None, 'away', None)
-        self.game_hour_ago = PointstreakGame(test_date, hour_before,
-                                             'home', 6, 'away', 5)
-        self.unplayed_game = PointstreakGame(test_date, hour_before,
-                                             'home', None, 'away', None)
+        self.game_in_an_hour = Game(test_date, hour_after, 'home', None, 'away', None)
+        self.game_hour_ago = Game(test_date, hour_before, 'home', 6, 'away', 5)
+        self.unplayed_game = Game(test_date, hour_before, 'home', None, 'away', None)
 
         self.schedule = PointstreakSchedule()
         self.schedule.refresh_schedule = mock.MagicMock()
