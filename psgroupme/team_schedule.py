@@ -36,6 +36,18 @@ COLUMNS = {
 TIME_DESCRIPTOR = "%a %b %d %I:%M%p"  # 12-hour
 
 
+class ScheduleFactory(object):
+
+    def create(self, schedule_type, **kwargs):
+        if schedule_type == 'pointstreak':
+            return PointstreakSchedule(**kwargs)
+        elif schedule_type == 'sportsengine':
+            return SportsEngineSchedule(**kwargs)
+        else:
+            raise ValueError("Schedule Type '{0}' not found".format(schedule_type))
+
+    create = staticmethod(create)
+
 class Game(object):
     """Represents a game parsed from a Pointstreak schedule"""
 
@@ -88,6 +100,13 @@ class Game(object):
         return '{0} vs {1} at {2}'.format(self.hometeam,
                                           self.awayteam,
                                           self.full_gametime_str)
+
+class SportsEngineSchedule(object):
+    def __init__(slef, team_id=TEAM_ID, season_id=SEASON_ID):
+        self.team_id = TEAM_ID
+        self.season_id = SEASON_ID
+        self.url = self.get_schedule_url(team_id, season_id)
+        self.refresh_schedule()
 
 
 class PointstreakSchedule(object):
