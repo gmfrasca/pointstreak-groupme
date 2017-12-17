@@ -254,4 +254,4 @@ home vs away at Fri Aug 25 08:45PM
     @mock.patch('psgroupme.team_schedule.PointstreakSchedule')
     def test_main(self, mock_sched):
         mock_sched.return_code = self.schedule
-        sched_main()
+        sched_main(schedule_type='pointstreak')

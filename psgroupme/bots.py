@@ -2,7 +2,7 @@ from flask import request
 from flask_restful import Resource
 from responder import Responder
 from config_manager import ConfigManager
-from team_schedule import PointstreakSchedule
+from team_schedule import ScheduleFactory
 from team_locker_room import TeamLockerRoom
 import datetime
 import bot_responses
@@ -107,20 +107,28 @@ class ScheduleBot(BaseBot):
     NEXTGAME_RESPONSE = 'The next game is: {0}'
     LASTGAME_RESPONSE = 'The last game was: {0}'
     SCHEDULE_RESPONSE = 'This is the current schedule:\n{0}'
+    DEFAULT_TEAM_ID = 3367048
+    DEFAULT_SEASON_ID = 481539
 
     def __init__(self, cfg_path=None, schedule=None, tlr=None):
         """Initialize the bot, and add ScheduleBot-specific responses"""
         super(ScheduleBot, self).__init__(cfg_path=cfg_path)
+        self.schedule_type = self.bot_data.get('schedule_type', 'sportsengine')
 
-        # Setup Pointstreak Schedule
-        self.schedule = PointstreakSchedule() if schedule is None else schedule
+        # Setup Pointstreak or SportsEngine Schedule
+        team_id = self.bot_data.get('team_id', self.DEFAULT_TEAM_ID)
+        season_id = self.bot_data.get('schedule_id', self.DEFAULT_SEASON_ID)
+        sched_kwargs = dict(team_id=team_id, season_id=season_id)
+        self.schedule = ScheduleFactory.create(self.schedule_type, **sched_kwargs) \
+            if schedule is None else schedule
 
         # Set up TeamLockerRoom
         self.tlr = tlr
         if tlr is None:
             self.tlr_username = self.bot_data.get('tlr_username', None)
             self.tlr_password = self.bot_data.get('tlr_password', None)
-            self.tlr = TeamLockerRoom(self.tlr_username, self.tlr_password)
+            if self.tlr_username is not None and self.tlr_password is not None:
+                self.tlr = TeamLockerRoom(self.tlr_username, self.tlr_password)
 
     def get_bot_specific_responses(self):
         self.schedule.refresh_schedule()
@@ -128,7 +136,7 @@ class ScheduleBot(BaseBot):
         last_game = self.schedule.get_last_game()
         schedule = self.schedule.get_schedule()
         today = datetime.datetime.now().strftime("%a %b %d %I:%M.%S%p")
-        attendance = self.tlr.get_next_game_attendance()
+        attendance = self.tlr.get_next_game_attendance() if self.tlr else None
 
         nextgame_resp = self.NEXTGAME_RESPONSE.format(str(next_game))
         lastgame_resp = self.LASTGAME_RESPONSE.format(str(last_game))
