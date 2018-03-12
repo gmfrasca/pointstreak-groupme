@@ -24,11 +24,11 @@ SE_SCHED_EXT = 'schedule/team_instance'
 
 # **Team Info**
 # *Sharknados*
-#TEAM_ID = 666456
-#SEASON_ID = 17455
+# TEAM_ID = 666456
+# SEASON_ID = 17455
 # *DnC SportEngine*
-#TEAM_ID = 2945251
-#SEASON_ID = 422822
+# TEAM_ID = 2945251
+# SEASON_ID = 422822
 # *Sharknados SportsEngine*
 TEAM_ID = 3367048
 SEASON_ID = 481539
@@ -54,18 +54,19 @@ class ScheduleFactory(object):
 class Game(object):
     """Represents a game parsed from a Pointstreak schedule"""
 
-    def __init__(self, date, time, hometeam, homescore, awayteam, awayscore):
+    def __init__(self, date, time, hometeam, homescore, awayteam, awayscore,
+                 year=None):
         """ Store this game's relevant data """
         self.date = date.strip()
         self.time = time.strip()
-        self.full_gametime = self.assemble_full_gametime(date, time)
+        self.full_gametime = self.assemble_full_gametime(date, time, year)
         self.full_gametime_str = self.full_gametime.strftime(TIME_DESCRIPTOR)
         self.hometeam = hometeam
         self.homescore = homescore
         self.awayteam = awayteam
         self.awayscore = awayscore
 
-    def assemble_full_gametime(self, date, time):
+    def assemble_full_gametime(self, date, time, year=None):
         """
         Get a parsable full gametime (date + time) based on a
         human-readable date (ex: Wed, Aug 5) and Time
@@ -80,7 +81,7 @@ class Game(object):
         now = datetime.datetime.now()
         # TODO: right now we assume games are in the same year because
         # Pointstreak does not give us a better way to determine it
-        year = str(now.year)
+        year = str(year if year else now.year)
         full_gametime = date.split()[1:]
         if full_gametime[0] in ['Jan', 'Feb', 'Mar'] and now.month > 7:
             year = str(now.year + 1)
