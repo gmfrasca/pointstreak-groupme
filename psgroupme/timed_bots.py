@@ -1,10 +1,14 @@
 from database import PointstreakDatabase
 from config_manager import ConfigManager
-from team_schedule import PointstreakSchedule
+from team_schedule import ScheduleFactory
 from responder import Responder
 from time import sleep
 import datetime
 import threading
+
+
+DEFAULT_TEAM_ID = 0
+DEFAULT_SCHED_ID = 0
 
 
 class TimedBot(threading.Thread):
@@ -54,6 +58,12 @@ class GamedayReminderBot(TimedBot):
     MORNING_CUTOFF = datetime.time(10, 00)
     NIGHT_CUTOFF = datetime.time(22, 00)
 
+    def __init__(self, **kwargs):
+        super(GamedayReminderBot, self).__init__(**kwargs)
+        self.schedule_type = self.bot_data.get('scedule_type', 'sportsengine')
+        self.team_id = self.bot_data.get('team_id', DEFAULT_TEAM_ID)
+        self.schedule_id = self.bot_data.get('schedule_id', DEFAULT_SCHED_ID)
+
     def game_has_been_notified(self, game_id):
         return self.db.game_has_been_notified(game_id)
 
@@ -74,7 +84,8 @@ class GamedayReminderBot(TimedBot):
     def run(self):
         # Set up Database
         self.db = PointstreakDatabase()
-        self.sched = PointstreakSchedule()
+        sched_kwargs = dict(team_id=self.team_id, schedule_id=self.schedule_id)
+        self.sched = ScheduleFactory.create(self.schedule_type, **sched_kwargs)
         self.db.load_schedule(self.sched)
         self.team_id = self.sched.team_id
         self.season_id = self.sched.season_id
