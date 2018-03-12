@@ -29,7 +29,7 @@ class BaseBot(Resource):
         self.cfg_mgr = ConfigManager(cfg_path)
         self.bot_data = self.cfg_mgr.get_bot_data(self.bot_type)
         self.bot_id = self.cfg_mgr.get_bot_id(self.bot_type)
-        self.bot_id = self.bot_data.get('bot_id')
+        #self.bot_id = self.bot_data.get('bot_id')
         self.bot_name = self.bot_data.get('bot_name', 'UnknownBot')
         self.group_id = self.bot_data.get('group_id', 'UnknownGroup')
         self.group_name = self.bot_data.get('group_name', 'UnknownGroup')
