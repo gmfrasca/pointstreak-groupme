@@ -17,6 +17,7 @@ def main():
     else:
         api.add_resource(bots.ScheduleBot, '/schedulebot')
         api.add_resource(bots.HockeyBot, '/hockeybot')
+        api.add_resource(bots.HockeyBot, '/cat5bot')
 
     # Start up the REST API
     app.run(host='0.0.0.0', port='5002')
