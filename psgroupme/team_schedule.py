@@ -17,40 +17,56 @@ MAX_RESPONSES = FREE_REQUESTS if MAX_RESPONSES > FREE_REQUESTS else \
     MAX_RESPONSES
 
 # Default Poinstreak URL info
-TEAM_ID = 666456
-SEASON_ID = 17455
 PS_URL = 'http://stats.pointstreak.com'
-SCHED_EXT = 'players/players-team-schedule.html'
+PS_SCHED_EXT = 'players/players-team-schedule.html'
+SE_URL = 'http://www.pahl.org'
+SE_SCHED_EXT = 'schedule/team_instance'
 
-# Expected Column Data Contents
-COLUMNS = {
-    'homelogo': 0,
-    'hometeam': 1,
-    'awaylogo': 2,
-    'awayteam': 3,
-    'gameday': 4,
-    'gametime': 5,
-    'extras': 6}
+# **Team Info**
+# *Sharknados*
+# TEAM_ID = 666456
+# SEASON_ID = 17455
+# *DnC SportEngine*
+# TEAM_ID = 2945251
+# SEASON_ID = 422822
+# *Sharknados SportsEngine*
+TEAM_ID = 3367048
+SEASON_ID = 481539
 
 # TIME_DESCRIPTOR = "%a %b %d %H:%M"  # 24-hour
 TIME_DESCRIPTOR = "%a %b %d %I:%M%p"  # 12-hour
 
 
-class PointstreakGame(object):
+class ScheduleFactory(object):
+
+    def create(schedule_type, **kwargs):
+        if schedule_type == 'pointstreak':
+            return PointstreakSchedule(**kwargs)
+        elif schedule_type == 'sportsengine':
+            return SportsEngineSchedule(**kwargs)
+        else:
+            raise ValueError("Schedule Type '{0}' not found"
+                             .format(schedule_type))
+
+    create = staticmethod(create)
+
+
+class Game(object):
     """Represents a game parsed from a Pointstreak schedule"""
 
-    def __init__(self, date, time, hometeam, homescore, awayteam, awayscore):
+    def __init__(self, date, time, hometeam, homescore, awayteam, awayscore,
+                 year=None):
         """ Store this game's relevant data """
         self.date = date.strip()
         self.time = time.strip()
-        self.full_gametime = self.assemble_full_gametime(date, time)
+        self.full_gametime = self.assemble_full_gametime(date, time, year)
         self.full_gametime_str = self.full_gametime.strftime(TIME_DESCRIPTOR)
         self.hometeam = hometeam
         self.homescore = homescore
         self.awayteam = awayteam
         self.awayscore = awayscore
 
-    def assemble_full_gametime(self, date, time):
+    def assemble_full_gametime(self, date, time, year=None):
         """
         Get a parsable full gametime (date + time) based on a
         human-readable date (ex: Wed, Aug 5) and Time
@@ -65,7 +81,7 @@ class PointstreakGame(object):
         now = datetime.datetime.now()
         # TODO: right now we assume games are in the same year because
         # Pointstreak does not give us a better way to determine it
-        year = str(now.year)
+        year = str(year if year else now.year)
         full_gametime = date.split()[1:]
         if full_gametime[0] in ['Jan', 'Feb', 'Mar'] and now.month > 7:
             year = str(now.year + 1)
@@ -90,14 +106,9 @@ class PointstreakGame(object):
                                           self.full_gametime_str)
 
 
-class PointstreakSchedule(object):
-    """
-    Represents a Team's Schedule, based on a given URL which points to
-    a Poinstreak Team Schedule page
-    """
+class Schedule(object):
 
     def __init__(self, team_id=TEAM_ID, season_id=SEASON_ID):
-        """Retrieve the target schedule and parse"""
         self.team_id = TEAM_ID
         self.season_id = SEASON_ID
         self.url = self.get_schedule_url(team_id, season_id)
@@ -110,77 +121,10 @@ class PointstreakSchedule(object):
             res += '{0}\n'.format(game)
         return res
 
-    def get_schedule_url(self, team_id, season_id):
-        sched_params = 'teamid={0}&seasonid={1}'.format(team_id, season_id)
-        return '{0}/{1}?{2}'.format(PS_URL, SCHED_EXT, sched_params)
-
-    def refresh_schedule(self):
-        """Reload the schedule from pointstreak"""
-        self.html_table = self.retrieve_html_table(self.url)
-        self.games = self.parse_table()
-
     def get_schedule(self):
         """Get a string representation of the current schedule"""
         self.refresh_schedule()
         return str(self)
-
-    def retrieve_html_table(self, url):
-        """
-        Retrieve the raw html for the table on a Poinstreak Team
-        Schedule webpage
-
-        Args:
-            url (str): The URL to parse a Poinstreak Schedule from
-
-        Returns:
-             a bs tbody element containing the team schedule
-        """
-        html_doc = get(url).text
-        soup = BeautifulSoup(html_doc, 'html.parser')
-        table = soup.find("table", {'class': 'nova-stats-table'})
-        return table.tbody
-
-    def parse_table(self):
-        """
-        Get a list PoinstreakGames by parsing the raw html retrieved
-        from the Poinstreak Team Schedule webpage
-
-        Returns:
-            a list of PoinstreakGames in order from first to last
-        """
-
-        games = []
-        if self.html_table:
-            for game_row in self.html_table.find_all('tr'):
-                cells = game_row.find_all('td')
-                gamedate = cells[COLUMNS['gameday']].string
-                gametime = cells[COLUMNS['gametime']].string
-                home, hscore = self.parse_team(cells[COLUMNS['hometeam']])
-                away, ascore = self.parse_team(cells[COLUMNS['awayteam']])
-                games.append(PointstreakGame(gamedate,
-                                             gametime,
-                                             home,
-                                             hscore,
-                                             away,
-                                             ascore))
-        return games
-
-    def parse_team(self, team_cell):
-        """
-        Parse a team name from the pointstreak schedule cell contents
-
-        Args:
-            team_cell (str): A Raw HTML string containing a link <a>
-                to the team with the text containing the teamname, and
-                (optionally) a <b> element containing a score
-
-        Returns:
-            A two-element tuple containing the plaintext team name and score
-                (or None if it doesn't exist
-        """
-        name = team_cell.a.string
-        score = team_cell.b.string.strip() if team_cell.b else None
-        return name, score
 
     def get_next_game_after(self, target_datetime):
         """
@@ -233,12 +177,172 @@ class PointstreakSchedule(object):
         """
         return self.get_last_game_before(datetime.datetime.now())
 
+    def refresh_schedule(self):
+        """Reload the schedule from pointstreak"""
+        self.html_table = self.retrieve_html_table(self.url)
+        self.games = self.parse_table()
 
-def main():
+    def retrieve_html_table_with_class(self, url, table_class):
+        """
+        Retrieve the raw html for the table on a Poinstreak Team
+        Schedule webpage
+
+        Args:
+            url (str): The URL to parse a Poinstreak Schedule from
+
+        Returns:
+             a bs tbody element containing the team schedule
+        """
+        html_doc = get(url).text
+        soup = BeautifulSoup(html_doc, 'html.parser')
+        table = soup.find("table", {'class': table_class})
+        return table.tbody
+
+
+class SportsEngineSchedule(Schedule):
+
+    # Expected Column Data Contents
+    COLUMNS = {
+        'homelogo': None,
+        'hometeam': None,
+        'awaylogo': None,
+        'awayteam': 2,
+        'gameday': 0,
+        'gametime': 4,
+        'extras': None,
+        'result': 1,
+        'location': 2
+    }
+
+    def __init__(self, **kwargs):
+        self.team_name = 'blah'
+        super(SportsEngineSchedule, self).__init__(**kwargs)
+        self.team_name = self.parse_team_name()
+
+    def parse_team_name(self):
+        html_doc = get(self.url).text
+        soup = BeautifulSoup(html_doc, 'html.parser')
+        return soup.h2.a.text
+
+    def get_schedule_url(self, team_id, season_id):
+        # TODO subseason may not be necessary, appears to default with latest
+        sched_params = '{0}?subseason={1}'.format(team_id, season_id)
+        return '{0}/{1}/{2}'.format(SE_URL, SE_SCHED_EXT, sched_params)
+
+    def retrieve_html_table(self, url):
+        return self.retrieve_html_table_with_class(
+            url, 'statTable sortable noSortImages')
+
+    def parse_table(self):
+        games = []
+        for game_row in self.html_table.find_all('tr'):
+            cells = game_row.find_all('td')
+            gamedate = cells[self.COLUMNS['gameday']].text
+            gametime = self.get_game_time(cells[self.COLUMNS['gametime']])
+            hometeam, awayteam = self.parse_teams(
+                cells[self.COLUMNS['awayteam']])
+            homescore, awayscore = self.parse_score(
+                cells[self.COLUMNS['result']],
+                cells[self.COLUMNS['awayteam']])
+            game = Game(gamedate, gametime, hometeam, homescore, awayteam,
+                        awayscore)
+            games.append(game)
+        return games
+
+    def is_home_team(self, opponent):
+        return True if opponent.div.text.strip()[:1] == '@' else False
+
+    def get_game_time(self, gametime_cell):
+        gametime = gametime_cell.a if gametime_cell.a is not None else None
+        if gametime is not None and gametime.span is not None:
+            return gametime.text
+        return "12:01 AM EST"
+
+    def parse_teams(self, opponent):
+        if self.is_home_team(opponent):
+            return self.team_name, opponent.div.a.text
+        return opponent.div.a.text, self.team_name
+
+    def parse_score(self, score, opponent):
+        if score.div is None or score.div.a is None:
+            return None, None
+        scoretext = score.div.a.text
+        scores = scoretext.split('-')
+        if self.is_home_team(opponent):
+            return scores[0], scores[1]
+        return scores[1], scores[0]
+
+
+class PointstreakSchedule(Schedule):
+    """
+    Represents a Team's Schedule, based on a given URL which points to
+    a Poinstreak Team Schedule page
+    """
+    # Expected Column Data Contents
+    COLUMNS = {
+        'homelogo': 0,
+        'hometeam': 1,
+        'awaylogo': 2,
+        'awayteam': 3,
+        'gameday': 4,
+        'gametime': 5,
+        'extras': 6}
+
+    def get_schedule_url(self, team_id, season_id):
+        sched_params = 'teamid={0}&seasonid={1}'.format(team_id, season_id)
+        return '{0}/{1}?{2}'.format(PS_URL, PS_SCHED_EXT, sched_params)
+
+    def retrieve_html_table(self, url):
+        return self.retrieve_html_table_with_class(url, 'nova-stats-table')
+
+    def parse_table(self):
+        """
+        Get a list PoinstreakGames by parsing the raw html retrieved
+        from the Poinstreak Team Schedule webpage
+
+        Returns:
+            a list of PoinstreakGames in order from first to last
+        """
+
+        games = []
+        if self.html_table:
+            for game_row in self.html_table.find_all('tr'):
+                cells = game_row.find_all('td')
+                gamedate = cells[self.COLUMNS['gameday']].string
+                gametime = cells[self.COLUMNS['gametime']].string
+                home, hscore = self.parse_team(cells[self.COLUMNS['hometeam']])
+                away, ascore = self.parse_team(cells[self.COLUMNS['awayteam']])
+                games.append(Game(gamedate,
+                                  gametime,
+                                  home,
+                                  hscore,
+                                  away,
+                                  ascore))
+        return games
+
+    def parse_team(self, team_cell):
+        """
+        Parse a team name from the pointstreak schedule cell contents
+
+        Args:
+            team_cell (str): A Raw HTML string containing a link <a>
+                to the team with the text containing the teamname, and
+                (optionally) a <b> element containing a score
+
+        Returns:
+            A two-element tuple containing the plaintext team name and score
+                (or None if it doesn't exist
+        """
+        name = team_cell.a.string
+        score = team_cell.b.string.strip() if team_cell.b else None
+        return name, score
+
+
+def main(schedule_type='sportsengine'):
     """
     This is more of a testing procedure.  Get all relevent info and print it
     """
-    schedule = PointstreakSchedule()
+    schedule = ScheduleFactory.create(schedule_type)
     now = datetime.datetime.now()
     next_game = schedule.get_next_game()
     last_game = schedule.get_last_game()

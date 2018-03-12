@@ -42,6 +42,8 @@ class TeamLockerRoom(object):
         self.login()
         response = self.session.get(self.baseurl + "/#home")
         match = re.search('tlr.teamschedule = [^\n]*', response.text)
+        if not match:
+            return dict()
         match = re.search("'[^\n]*'", match.group(0))
         schedule = match.group(0).replace('&quot;', '"')
         schedule = schedule.strip().strip(';').strip("'")

@@ -1,9 +1,11 @@
-from psgroupme.team_schedule import PointstreakSchedule, PointstreakGame
+from psgroupme.team_schedule import PointstreakSchedule, Game
 from psgroupme.team_schedule import main as sched_main
 import unittest
 import mock
 import datetime
 from bs4 import BeautifulSoup
+
+THIS_YEAR = datetime.datetime.now().year
 
 # This would get real ugly if we followed Pep8 here. Disable for this file only
 # flake8: noqa
@@ -76,12 +78,13 @@ def mocked_get(*args, **kwargs):
     return MockResponse(MOCK_HTML, 200)
 
 
-class TestPointstreakGame(unittest.TestCase):
+class TestGame(unittest.TestCase):
 
     def setUp(self):
         with mock.patch('psgroupme.team_schedule.datetime.datetime') as mck_dt:
             # TODO mock now instead of using real time (i.e. get this to work)
-            mock_now = datetime.datetime.strptime('2017-08-31 18:22:24.033246',
+            date_str = '{0}-08-31 18:22:24.033246'.format(THIS_YEAR)
+            mock_now = datetime.datetime.strptime(date_str,
                                                   '%Y-%m-%d %H:%M:%S.%f')
             mck_dt.now.return_value = mock_now
             mck_dt.side_effect = lambda *args, **kw: mock_now
@@ -89,19 +92,17 @@ class TestPointstreakGame(unittest.TestCase):
         self.test_date = 'Thu, Aug 31'
         self.hour_time = '7:22 PM'
 
-        self.game = PointstreakGame(self.test_date, self.hour_time,
-                                    'home', None, 'away', None)
-        self.done_game = PointstreakGame(self.test_date, self.hour_time,
-                                         'home', 6, 'away', 5)
+        self.game = Game(self.test_date, self.hour_time, 'home', None, 'away', None, year=2017)
+        self.done_game = Game(self.test_date, self.hour_time, 'home', 6, 'away', 5, year=2017)
 
     def tearDown(self):
         pass
 
     def test_assemble_full_gametime(self):
-        this_year = datetime.datetime.now().year
+        this_year = 2017
         date = 'Wed, Aug 5'
         time = '8:45 PM'
-        parsed = self.game.assemble_full_gametime(date, time)
+        parsed = self.game.assemble_full_gametime(date, time, this_year)
         self.assertEqual(parsed, datetime.datetime(this_year, 8, 5, 20, 45))
         self.assertEqual(self.game.full_gametime,
                          datetime.datetime(this_year, 8, 31, 19, 22))
@@ -120,28 +121,29 @@ class TestPointstreakSchedule(unittest.TestCase):
     def setUp(self, mocked_resp):
         with mock.patch('psgroupme.team_schedule.datetime.datetime') as mck_dt:
             # TODO mock now instead of using real time (i.e. get this to work)
-            mock_now = datetime.datetime.strptime('2017-08-31 18:22:24.033246',
+            date_str = '{0}-08-31 18:22:24.033246'.format(THIS_YEAR)
+            mock_now = datetime.datetime.strptime(date_str,
                                                   '%Y-%m-%d %H:%M:%S.%f')
             mck_dt.now.return_value = mock_now
             mck_dt.side_effect = lambda *args, **kw: mock_now
 
         self.mock_now = datetime.datetime.strptime(
-            '2017-08-20 18:22:24.033246', '%Y-%m-%d %H:%M:%S.%f')
+            '{0}-08-20 18:22:24.033246'.format(THIS_YEAR),
+            '%Y-%m-%d %H:%M:%S.%f')
         self.mock_preseason = datetime.datetime.strptime(
-            '2017-07-20 18:22:24.033246', '%Y-%m-%d %H:%M:%S.%f')
+            '{0}-07-20 18:22:24.033246'.format(THIS_YEAR),
+            '%Y-%m-%d %H:%M:%S.%f')
         self.mock_postseason = datetime.datetime.strptime(
-            '2017-09-20 18:22:24.033246', '%Y-%m-%d %H:%M:%S.%f')
+            '{0}-09-20 18:22:24.033246'.format(THIS_YEAR),
+            '%Y-%m-%d %H:%M:%S.%f')
         test_date = 'Thu, Aug 31'
         test_time = '6:22 PM'
         hour_before = '5:22 PM'
         hour_after = '7:22 PM'
 
-        self.game_in_an_hour = PointstreakGame(test_date, hour_after,
-                                               'home', None, 'away', None)
-        self.game_hour_ago = PointstreakGame(test_date, hour_before,
-                                             'home', 6, 'away', 5)
-        self.unplayed_game = PointstreakGame(test_date, hour_before,
-                                             'home', None, 'away', None)
+        self.game_in_an_hour = Game(test_date, hour_after, 'home', None, 'away', None)
+        self.game_hour_ago = Game(test_date, hour_before, 'home', 6, 'away', 5)
+        self.unplayed_game = Game(test_date, hour_before, 'home', None, 'away', None)
 
         self.schedule = PointstreakSchedule()
         self.schedule.refresh_schedule = mock.MagicMock()
@@ -203,10 +205,11 @@ class TestPointstreakSchedule(unittest.TestCase):
         self.assertEqual(score, None)
 
     def test_repr(self):
-        expected = '''home 6 : away 0 on Tue Aug 15 08:45PM
-home vs away at Fri Aug 25 08:45PM
+        expected = '''home 6 : away 0 on \w\w\w Aug 15 08:45PM
+home vs away at \w\w\w Aug 25 08:45PM
 '''
-        self.assertEqual(str(self.schedule), expected)
+        print(str(self.schedule))
+        self.assertRegexpMatches(str(self.schedule), expected)
 
     @mock.patch('psgroupme.team_schedule.datetime')
     def test_get_last_game(self, mock_datetime):
@@ -224,7 +227,7 @@ home vs away at Fri Aug 25 08:45PM
 
     def test_last_game_before(self):
         last_game = self.schedule.get_last_game_before(self.mock_now)
-        self.assertEqual(last_game.date, 'Fri, Aug 15')
+        self.assertRegexpMatches(last_game.date, '\w\w\w, Aug 15')
         self.assertEqual(last_game.time, '8:45 pm')
         self.assertGreater(self.mock_now, last_game.full_gametime)
         self.assertEqual(last_game.hometeam, 'home')
@@ -249,7 +252,7 @@ home vs away at Fri Aug 25 08:45PM
     def test_get_next_game_after(self):
         next_game = self.schedule.get_next_game_after(self.mock_now)
         self.assertLess(self.mock_now, next_game.full_gametime)
-        self.assertEqual(next_game.date, 'Fri, Aug 25')
+        self.assertEqual(next_game.date, "Fri, Aug 25")
         self.assertEqual(next_game.time, '8:45 pm')
         self.assertEqual(next_game.hometeam, 'home')
         self.assertEqual(next_game.awayteam, 'away')
@@ -259,4 +262,4 @@ home vs away at Fri Aug 25 08:45PM
     @mock.patch('psgroupme.team_schedule.PointstreakSchedule')
     def test_main(self, mock_sched):
         mock_sched.return_code = self.schedule
-        sched_main()
+        sched_main(schedule_type='pointstreak')

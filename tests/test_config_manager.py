@@ -54,7 +54,7 @@ bots:
         self.assertEqual(self.cfg_mgr.get_bot_data('foo'), expected)
 
     def test_get_bot_data_no_config(self):
-        self.assertEqual(self.cfg_mgr.get_bot_data('nothere'), None)
+        self.assertEqual(self.cfg_mgr.get_bot_data('nothere'), dict())
 
     def test_get_bot_id(self):
         self.assertEqual(self.cfg_mgr.get_bot_id('foo'), '12345')

@@ -25,7 +25,7 @@ class ConfigManager(object):
                         bot['class_name'] == bot_name]
         if len(matched_bots) > 0:
             return matched_bots[0]
-        return None
+        return dict()
 
     def get_bot_id(self, bot_name):
         """Get the bot id for a target bot given it's name"""
