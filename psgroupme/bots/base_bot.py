@@ -77,7 +77,11 @@ class BaseBot(Resource):
         if len(matches) > 0:
             self.refresh_responses()
             matches = self.get_matching_responses(msg)
-            self.respond(matches[0]['reply'].format(**context))
+            try:
+                self.respond(matches[0]['reply'].format(**context))
+            except KeyError:
+                # message requires undefined context variable
+                self.respond('Sorry, that command is not available.')
 
     def respond(self, msg):
         """Have the bot post a message to it's group"""

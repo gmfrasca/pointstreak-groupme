@@ -135,6 +135,9 @@ class TeamLockerRoomMock(object):
     def get_next_game_attendance(self):
         return "NextGameAttendance"
 
+    def get_next_game_attendees(self):
+        return "NextGameAttendees"
+
 
 class TestBaseBot(unittest.TestCase):
 
@@ -278,7 +281,7 @@ class TestScheduleBot(TestBaseBot):
                         mock.mock_open(read_data=MOCK_RESP_CFG)):
             assert open('/fake/config.yaml').read() == MOCK_RESP_CFG
             self.bot = ScheduleBot(bot_id, schedule=self.mock_sched,
-                                   tlr=self.mock_tlr)
+                                   rsvp=self.mock_tlr)
             self.bot.brm = BotResponseManagerMock()
 
     def test_includes_specialized_replies(self):
@@ -356,7 +359,7 @@ class TestHockeyBot(TestScheduleBot):
                         mock.mock_open(read_data=MOCK_RESP_CFG)):
             assert open('/fake/config.yaml').read() == MOCK_RESP_CFG
             self.bot = HockeyBot(bot_id, schedule=self.mock_sched,
-                                 tlr=self.mock_tlr)
+                                 rsvp=self.mock_tlr)
             self.bot.brm = BotResponseManagerMock()
 
     def test_bot_name(self):
