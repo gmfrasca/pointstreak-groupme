@@ -113,7 +113,7 @@ class ScheduleBot(BaseBot):
     def __init__(self, cfg_path=None, schedule=None, tlr=None):
         """Initialize the bot, and add ScheduleBot-specific responses"""
         super(ScheduleBot, self).__init__(cfg_path=cfg_path)
-        self.schedule_type = self.bot_data.get('schedule_type', 'sportsengine')
+        self.schedule_type = self.bot_data.get('schedule_type', 'dash')
 
         # Setup Pointstreak or SportsEngine Schedule
         team_id = self.bot_data.get('team_id', self.DEFAULT_TEAM_ID)
