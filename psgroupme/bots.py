@@ -23,12 +23,14 @@ class BaseBot(Resource):
     def bot_type(self):
         return type(self).__name__
 
-    def __init__(self, cfg_path=None):
+    def __init__(self, bot_id, cfg_path=None):
         """Load the config for this bot based on Name"""
         # Get the Bot Config
         self.cfg_mgr = ConfigManager(cfg_path)
-        self.bot_data = self.cfg_mgr.get_bot_data(self.bot_type)
-        self.bot_id = self.cfg_mgr.get_bot_id(self.bot_type)
+        self.bot_id = bot_id
+        self.bot_data = self.cfg_mgr.get_bot_data_by_id(self.bot_id)
+        # self.bot_data = self.cfg_mgr.get_bot_data(self.bot_type)
+        # self.bot_id = self.cfg_mgr.get_bot_id(self.bot_type)
         # self.bot_id = self.bot_data.get('bot_id')
         self.bot_name = self.bot_data.get('bot_name', 'UnknownBot')
         self.group_id = self.bot_data.get('group_id', 'UnknownGroup')
@@ -110,9 +112,9 @@ class ScheduleBot(BaseBot):
     DEFAULT_TEAM_ID = 3367048
     DEFAULT_SEASON_ID = 481539
 
-    def __init__(self, cfg_path=None, schedule=None, tlr=None):
+    def __init__(self, bot_id, cfg_path=None, schedule=None, tlr=None):
         """Initialize the bot, and add ScheduleBot-specific responses"""
-        super(ScheduleBot, self).__init__(cfg_path=cfg_path)
+        super(ScheduleBot, self).__init__(bot_id, cfg_path=cfg_path)
         self.schedule_type = self.bot_data.get('schedule_type', 'sportsengine')
 
         # Setup Pointstreak or SportsEngine Schedule

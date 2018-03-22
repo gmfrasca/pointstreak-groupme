@@ -123,7 +123,6 @@ class Schedule(object):
 
     def get_schedule(self):
         """Get a string representation of the current schedule"""
-        self.refresh_schedule()
         return str(self)
 
     def get_next_game_after(self, target_datetime):
@@ -136,7 +135,6 @@ class Schedule(object):
         Returns:
             the next game after :target_datetime:
         """
-        self.refresh_schedule()
         for game in self.games:
             if game.full_gametime > target_datetime:
                 return game
@@ -152,7 +150,6 @@ class Schedule(object):
         Returns:
             the last game before :target_datetime:
         """
-        self.refresh_schedule()
         last_game = None
         for game in self.games:
             last_game = game if game.full_gametime < target_datetime \
