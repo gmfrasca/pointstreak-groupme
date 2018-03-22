@@ -101,6 +101,7 @@ ENV/
 .mypy_cache/
 
 # local configurations
+*.local.bkp.yaml
 *.local.yaml
 *.local.json
 *.local.xml
