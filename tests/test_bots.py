@@ -16,27 +16,30 @@ BOTNAMES = {
 MOCK_CFG = {
             'bots': [
                 {
-                     'class_name': 'BaseBot',
+                     'class_name': 'bots.BaseBot',
                      'bot_name': BOTNAMES['BaseBot'],
-                     'bot_id': '1',
+                     'bot_id': '0',
+                     'bot_url': '/basebot',
                      'group_name': 'foo',
                      'group_id': '12345',
                      'callback_url': 'http://foo.bar',
                      'avatar_url': 'http://funny.jpg'
                 },
                 {
-                     'class_name': 'ScheduleBot',
+                     'class_name': 'bots.ScheduleBot',
                      'bot_name': BOTNAMES['ScheduleBot'],
-                     'bot_id': '2',
+                     'bot_id': '1',
+                     'bot_url': '/schedulebot',
                      'group_name': 'foo',
                      'group_id': '12345',
                      'callback_url': 'http://foo.bar',
                      'avatar_url': 'http://funny.jpg'
                 },
                 {
-                      'class_name': 'HockeyBot',
+                      'class_name': 'bots.HockeyBot',
                       'bot_name': BOTNAMES['HockeyBot'],
-                      'bot_id': '3',
+                      'bot_id': '2',
+                      'bot_url': '/hockeybot',
                       'group_name': 'foo',
                       'group_id': '12345',
                       'callback_url': 'http://foo.bar',
@@ -83,10 +86,14 @@ class TeamLockerRoomMock(object):
 
 class TestBaseBot(unittest.TestCase):
 
+    @mock.patch.object(psgroupme.config_manager.ConfigManager,
+                       'get_bot_data_by_id')
     @mock.patch.object(psgroupme.config_manager.ConfigManager, 'load_cfg')
-    def setUp(self, mock_cfg_mgr_load):
-        mock_cfg_mgr_load.return_value = MOCK_CFG
-        self.bot = BaseBot()
+    def setUp(self, mock_load, mock_load_id):
+        bot_id = 0
+        mock_load_id.return_value = MOCK_CFG['bots'][bot_id]
+        self.bot = BaseBot(bot_id)
+        print(self.bot.cfg_mgr.load_cfg().get('bots'))
 
     def tearDown(self):
         pass
@@ -190,6 +197,7 @@ class TestBaseBot(unittest.TestCase):
         self.bot.respond.assert_called_with('testregex')
         self.bot.refresh_responses.assert_called()
 
+        print(self.bot.bot_data)
         test_msg = dict(text='format_test')
         self.bot.read_msg(test_msg)
         self.bot.respond.assert_called_with('{}'.format(
@@ -199,12 +207,16 @@ class TestBaseBot(unittest.TestCase):
 
 class TestScheduleBot(TestBaseBot):
 
+    @mock.patch.object(psgroupme.config_manager.ConfigManager,
+                       'get_bot_data_by_id')
     @mock.patch.object(psgroupme.config_manager.ConfigManager, 'load_cfg')
-    def setUp(self, mock_cfg_mgr_load):
-        mock_cfg_mgr_load.return_value = MOCK_CFG
+    def setUp(self, mock_load, mock_load_id):
+        bot_id = 1
+        mock_load_id.return_value = MOCK_CFG['bots'][bot_id]
         self.mock_tlr = TeamLockerRoomMock()
         self.mock_sched = PointstreakScheduleMock()
-        self.bot = ScheduleBot(schedule=self.mock_sched, tlr=self.mock_tlr)
+        self.bot = ScheduleBot(bot_id, schedule=self.mock_sched,
+                               tlr=self.mock_tlr)
 
     def test_includes_specialized_replies(self):
         for resp_item in SCHEDULE_BOT_RESPONSES:
@@ -266,12 +278,16 @@ class TestScheduleBot(TestBaseBot):
 class TestHockeyBot(TestScheduleBot):
     """Just a clone of ScheduleBot, with a different bot name"""
 
+    @mock.patch.object(psgroupme.config_manager.ConfigManager,
+                       'get_bot_data_by_id')
     @mock.patch.object(psgroupme.config_manager.ConfigManager, 'load_cfg')
-    def setUp(self, mock_cfg_mgr_load):
-        mock_cfg_mgr_load.return_value = MOCK_CFG
+    def setUp(self, mock_load, mock_load_id):
+        bot_id = 2
+        mock_load_id.return_value = MOCK_CFG['bots'][bot_id]
         self.mock_sched = PointstreakScheduleMock()
         self.mock_tlr = TeamLockerRoomMock()
-        self.bot = HockeyBot(schedule=self.mock_sched, tlr=self.mock_tlr)
+        self.bot = HockeyBot(bot_id, schedule=self.mock_sched,
+                             tlr=self.mock_tlr)
 
     def test_bot_name(self):
         self.assertNotEqual(self.bot.bot_type, ScheduleBot.__name__)
