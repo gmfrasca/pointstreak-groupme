@@ -4,6 +4,7 @@ import os
 CONFIG_PATH = 'config/bots.local.yaml'
 PACKAGE_PATH = os.path.dirname(os.path.dirname(__file__))
 DEFAULT_CONFIG = os.path.join(PACKAGE_PATH, CONFIG_PATH)
+DEFAULT_FLASK_PORT = 5002
 
 
 class ConfigManager(object):
@@ -41,3 +42,8 @@ class ConfigManager(object):
     def get_bots(self):
         """Get list of bot configs"""
         return self.cfg.get('bots', list())
+
+    def get_flask_port(self):
+        if 'flask' in self.cfg:
+            return self.cfg['flask'].get('port', DEFAULT_FLASK_PORT)
+        return DEFAULT_FLASK_PORT
