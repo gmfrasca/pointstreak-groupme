@@ -5,6 +5,7 @@ from responder import Responder
 from time import sleep
 import datetime
 import threading
+import logging
 
 
 class TimedBot(threading.Thread):
@@ -39,7 +40,7 @@ class TimedBot(threading.Thread):
         return True
 
     def stop(self):
-        print "\nStopping Bot {0}".format(self.bot_type)
+        logging.info("Stopping Bot {0}".format(self.bot_type))
         self._stop_event.set()
 
     def stopped(self):
@@ -62,7 +63,7 @@ class GamedayReminderBot(TimedBot):
         msg = "Its Gameday! {0} vs {1} at {2}".format(game['hometeam'],
                                                       game['awayteam'],
                                                       game['time'])
-        print(msg)
+        logging.info(msg)
         self.send_msg(msg)
         self.db.set_notified(game_id, True)
         sleep(1)

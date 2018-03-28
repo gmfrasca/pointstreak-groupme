@@ -1,4 +1,5 @@
 import requests
+import logging
 import json
 import sys
 import re
@@ -84,7 +85,7 @@ class TeamLockerRoom(object):
             'flags-17768537': 'foobar'
         }
         response = self.session.post(game_url, data=payload)
-        print response.text
+        logging.info(response.text)
 
         return game_url
 
@@ -96,7 +97,7 @@ class TeamLockerRoom(object):
 def main():
     assert len(sys.argv) > 2
     tlr = TeamLockerRoom(sys.argv[1], sys.argv[2])
-    print tlr.get_next_game_attendees()
+    logging.info(tlr.get_next_game_attendees())
 
 
 if __name__ == '__main__':

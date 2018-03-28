@@ -6,6 +6,7 @@ from team_schedule import ScheduleFactory
 from team_locker_room import TeamLockerRoom
 import datetime
 import bot_responses
+import logging
 import json
 import re
 import sys
@@ -198,6 +199,7 @@ class TestBot(HockeyBot):
     """Debug"""
     def respond(self, msg):
         """Respond using the matched message reply"""
+        logging.info("Response: {0}".format(msg))
         print(msg)
 
 

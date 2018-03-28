@@ -3,6 +3,7 @@ from flask_restful import Api
 from config_manager import ConfigManager
 import sys
 import bots  # noqa: need this to subclass
+import logging
 
 
 def str_to_class(class_name):
@@ -23,7 +24,7 @@ def main():
         bot_url = bot.get('bot_url')
         subclass_name = "{0}{1}".format(class_name, bot_id)
         bot_class = str_to_class(class_name)
-        print("Adding {0}".format(subclass_name))
+        logging.info("Adding {0}".format(subclass_name))
         api.add_resource(type(subclass_name, (bot_class,), {}), bot_url,
                          resource_class_kwargs=dict(bot_id=bot_id))
 
