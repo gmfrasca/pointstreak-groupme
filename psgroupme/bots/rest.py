@@ -2,11 +2,12 @@ from flask import Flask
 from flask_restful import Api
 from config_manager import ConfigManager
 import sys
-import bots  # noqa: need this to subclass
 import logging
+import psgroupme # noqa: need this to subclass
 
 
 def str_to_class(class_name):
+    print sys.module[__name__]
     return reduce(getattr, class_name.split("."), sys.modules[__name__])
 
 

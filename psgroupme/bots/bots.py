@@ -1,7 +1,7 @@
 from flask import request
 from flask_restful import Resource
 from responder import Responder
-from config_manager import ConfigManager
+from ..config_manager import ConfigManager
 from team_schedule import ScheduleFactory
 from team_locker_room import TeamLockerRoom
 import datetime
@@ -187,10 +187,12 @@ class ScheduleBot(BaseBot):
         self.responder.reply(msg)
 
 
+# TODO: DELETE
 class HockeyBot(ScheduleBot):
     """Just a clone of ScheduleBot, with a different bot name"""
 
 
+# TODO: DELETE
 class Cat5Bot(ScheduleBot):
     """Just a clone of ScheduleBot, with a different bot name"""
 
