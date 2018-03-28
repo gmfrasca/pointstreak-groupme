@@ -4,7 +4,7 @@ import logging
 import thread
 
 
-logging.basicConfig(filename='psgroupme.log', level=logging.DEBUG)
+logging.basicConfig(filename='/var/log/psgroupme.log', level=logging.DEBUG)
 
 
 def main():
