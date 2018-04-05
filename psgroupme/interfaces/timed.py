@@ -1,4 +1,4 @@
-from timed_bots import GamedayReminderBot
+from bots.timed_bots import GamedayReminderBot
 import signal
 
 

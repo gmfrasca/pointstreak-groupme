@@ -1,5 +1,5 @@
-from rest import main as start_rest_bots
-from timed import main as start_timed_bots
+from interfaces.rest import main as start_rest_bots
+from interfaces.timed import main as start_timed_bots
 import logging
 import thread
 

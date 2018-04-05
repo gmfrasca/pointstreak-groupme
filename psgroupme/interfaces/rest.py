@@ -3,16 +3,16 @@ from flask_restful import Api
 from config_manager import ConfigManager
 import sys
 import logging
-import psgroupme # noqa: need this to subclass
+import bots  # noqa: need this to subclass
 
 
 def str_to_class(class_name):
-    print sys.module[__name__]
     return reduce(getattr, class_name.split("."), sys.modules[__name__])
 
 
 def main():
     """Start up a Flask REST API Frontend"""
+
     # Setup the Flask App
     app = Flask(__name__)
     api = Api(app)

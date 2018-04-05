@@ -1,4 +1,4 @@
-from psgroupme.rest import main as rest_main
+from psgroupme.interfaces.rest import main as rest_main
 import unittest
 import mock
 
@@ -25,8 +25,8 @@ class TestRest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    @mock.patch('psgroupme.rest.Flask.run')
-    @mock.patch('psgroupme.rest.ConfigManager')
+    @mock.patch('psgroupme.interfaces.rest.Flask.run')
+    @mock.patch('psgroupme.interfaces.rest.ConfigManager')
     def test_app_runs(self, mock_cm, mock_flask_runner):
         mock_cm.get_bots.return_value = MOCK_CFG['bots']
         rest_main()

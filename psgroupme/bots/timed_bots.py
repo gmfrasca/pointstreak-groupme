@@ -1,7 +1,7 @@
 from database import PointstreakDatabase
 from config_manager import ConfigManager
-from team_schedule import PointstreakSchedule
-from responder import Responder
+from factories import ScheduleFactory
+from interfaces.responder import Responder
 from time import sleep
 import datetime
 import threading
@@ -75,7 +75,7 @@ class GamedayReminderBot(TimedBot):
     def run(self):
         # Set up Database
         self.db = PointstreakDatabase()
-        self.sched = PointstreakSchedule()
+        self.sched = ScheduleFactory.create('pointstreak')
         self.db.load_schedule(self.sched)
         self.team_id = self.sched.team_id
         self.season_id = self.sched.season_id

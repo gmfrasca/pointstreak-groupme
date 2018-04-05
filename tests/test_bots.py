@@ -1,10 +1,14 @@
-import psgroupme
-from psgroupme.bots import BaseBot, ScheduleBot, HockeyBot
-from psgroupme.bot_responses import GLOBAL_RESPONSES, SCHEDULE_BOT_RESPONSES
-from psgroupme.team_schedule import PointstreakSchedule
 import unittest
 import mock
 import json
+import psgroupme  # noqa
+from psgroupme.config_manager import ConfigManager   # noqa
+from psgroupme.interfaces import responder  # noqa
+from psgroupme.bots import BaseBot, ScheduleBot, HockeyBot  # noqa
+from psgroupme.bots.bot_responses import GLOBAL_RESPONSES  # noqa
+from psgroupme.bots.bot_responses import SCHEDULE_BOT_RESPONSES  # noqa
+from psgroupme.parsers.schedules.pointstreak_schedule import \
+    PointstreakSchedule  # noqa
 
 
 BOTNAMES = {
@@ -86,14 +90,13 @@ class TeamLockerRoomMock(object):
 
 class TestBaseBot(unittest.TestCase):
 
-    @mock.patch.object(psgroupme.config_manager.ConfigManager,
+    @mock.patch.object(psgroupme.bots.base_bot.ConfigManager,
                        'get_bot_data_by_id')
-    @mock.patch.object(psgroupme.config_manager.ConfigManager, 'load_cfg')
+    @mock.patch.object(psgroupme.bots.base_bot.ConfigManager, 'load_cfg')
     def setUp(self, mock_load, mock_load_id):
         bot_id = 0
         mock_load_id.return_value = MOCK_CFG['bots'][bot_id]
         self.bot = BaseBot(bot_id)
-        print(self.bot.cfg_mgr.load_cfg().get('bots'))
 
     def tearDown(self):
         pass
@@ -102,7 +105,7 @@ class TestBaseBot(unittest.TestCase):
         expected = dict(bot_cfg=self.bot.bot_data)
         self.assertEqual(self.bot.get(), expected)
 
-    @mock.patch("psgroupme.bots.request")
+    @mock.patch("psgroupme.bots.base_bot.request")
     def test_post_request(self, mocked_data):
         mocked_data.data = '{"foo": "bar"}'
         loaded_dict = json.loads(mocked_data.data)
@@ -111,14 +114,14 @@ class TestBaseBot(unittest.TestCase):
         self.assertEqual(self.bot.post(), expected)
         self.bot.handle_msg.assert_called_once_with(loaded_dict)
 
-    @mock.patch("psgroupme.bots.request")
+    @mock.patch("psgroupme.bots.base_bot.request")
     def test_bad_post_request(self, mocked_data):
         mocked_data.data = '{"this_is_bad_json'
         self.bot.handle_msg = mock.MagicMock()
         self.assertEqual(self.bot.post(), None)
         self.bot.handle_msg.assert_not_called()
 
-    @mock.patch.object(psgroupme.responder.Responder, 'reply')
+    @mock.patch.object(psgroupme.bots.base_bot.Responder, 'reply')
     def test_respond(self, reply_fn):
         self.bot.respond("foobar")
         reply_fn.assert_called_once_with('Hello, this is {0}'.format(
@@ -207,9 +210,9 @@ class TestBaseBot(unittest.TestCase):
 
 class TestScheduleBot(TestBaseBot):
 
-    @mock.patch.object(psgroupme.config_manager.ConfigManager,
+    @mock.patch.object(psgroupme.bots.base_bot.ConfigManager,
                        'get_bot_data_by_id')
-    @mock.patch.object(psgroupme.config_manager.ConfigManager, 'load_cfg')
+    @mock.patch.object(psgroupme.bots.base_bot.ConfigManager, 'load_cfg')
     def setUp(self, mock_load, mock_load_id):
         bot_id = 1
         mock_load_id.return_value = MOCK_CFG['bots'][bot_id]
@@ -222,7 +225,7 @@ class TestScheduleBot(TestBaseBot):
         for resp_item in SCHEDULE_BOT_RESPONSES:
             assert resp_item in self.bot.responses
 
-    @mock.patch.object(psgroupme.responder.Responder, 'reply')
+    @mock.patch.object(psgroupme.bots.base_bot.Responder, 'reply')
     def test_respond(self, reply_fn):
         test_msg = 'foobar'
         self.bot.respond(test_msg)
@@ -278,9 +281,9 @@ class TestScheduleBot(TestBaseBot):
 class TestHockeyBot(TestScheduleBot):
     """Just a clone of ScheduleBot, with a different bot name"""
 
-    @mock.patch.object(psgroupme.config_manager.ConfigManager,
+    @mock.patch.object(psgroupme.bots.base_bot.ConfigManager,
                        'get_bot_data_by_id')
-    @mock.patch.object(psgroupme.config_manager.ConfigManager, 'load_cfg')
+    @mock.patch.object(psgroupme.bots.base_bot.ConfigManager, 'load_cfg')
     def setUp(self, mock_load, mock_load_id):
         bot_id = 2
         mock_load_id.return_value = MOCK_CFG['bots'][bot_id]
