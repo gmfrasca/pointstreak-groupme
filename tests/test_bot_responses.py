@@ -1,26 +1,24 @@
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
-#                                               '../psgroupme')))
-
 import unittest
-import psgroupme.bots.bot_responses as br # noqa
+from psgroupme.bots.bot_responses import BotResponseManager
 
 
 class TestBotResponses(unittest.TestCase):
 
     def setUp(self):
+        self.brm = BotResponseManager(cfg_path='config/responses.example.yaml')
         pass
 
     def tearDown(self):
         pass
 
     def test_standard_responses_exists(self):
-        assert br.GLOBAL_RESPONSES is not None
-        assert type(br.GLOBAL_RESPONSES) == list
+        global_responses = self.brm.get_global_responses()
+        assert global_responses is not None
+        assert type(global_responses) == list
 
     def test_standard_responses_matches_format(self):
-        for resp_item in br.GLOBAL_RESPONSES:
+        global_responses = self.brm.get_global_responses()
+        for resp_item in global_responses:
             assert len(resp_item.items()) == 2
             assert 'input' in resp_item
             assert 'reply' in resp_item

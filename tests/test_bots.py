@@ -1,15 +1,12 @@
 import unittest
 import mock
 import json
-import psgroupme  # noqa
-from psgroupme.config_manager import ConfigManager   # noqa
-from psgroupme.interfaces import responder  # noqa
-from psgroupme.bots import BaseBot, ScheduleBot, HockeyBot  # noqa
-from psgroupme.bots.bot_responses import GLOBAL_RESPONSES  # noqa
-from psgroupme.bots.bot_responses import SCHEDULE_BOT_RESPONSES  # noqa
+import psgroupme
+from psgroupme.bots import BaseBot, ScheduleBot, HockeyBot, BotResponseManager
 from psgroupme.parsers.schedules.pointstreak_schedule import \
-    PointstreakSchedule  # noqa
+    PointstreakSchedule
 
+EXAMPLE_RESP_YAML = 'config/responses.example.yaml'
 
 BOTNAMES = {
     'BaseBot': 'BaseBot',
@@ -129,12 +126,14 @@ class TestBaseBot(unittest.TestCase):
 
     def test_includes_standard_replies(self):
         self.bot.refresh_responses()
-        for resp_item in GLOBAL_RESPONSES:
+        brm = BotResponseManager(cfg_path=EXAMPLE_RESP_YAML)
+        for resp_item in brm.get_global_responses():
             assert resp_item in self.bot.responses
 
     def test_excludes_specialized_replies(self):
         self.bot.refresh_responses()
-        for resp_item in SCHEDULE_BOT_RESPONSES:
+        brm = BotResponseManager(cfg_path=EXAMPLE_RESP_YAML)
+        for resp_item in brm.get_responses().get('base', list()):
             assert resp_item not in self.bot.responses
 
     def test_handle_msg(self):
@@ -222,7 +221,9 @@ class TestScheduleBot(TestBaseBot):
                                tlr=self.mock_tlr)
 
     def test_includes_specialized_replies(self):
-        for resp_item in SCHEDULE_BOT_RESPONSES:
+        self.bot.refresh_responses()
+        brm = BotResponseManager(cfg_path=EXAMPLE_RESP_YAML)
+        for resp_item in brm.get_responses().get('schedulebot', []):
             assert resp_item in self.bot.responses
 
     @mock.patch.object(psgroupme.bots.base_bot.Responder, 'reply')

@@ -4,7 +4,7 @@ from hockey_bot import HockeyBot
 from test_bot import TestBot
 from cat5_bot import Cat5Bot
 from timed_bots import GamedayReminderBot
-import bot_responses
+from bot_responses import BotResponseManager
 
 __all__ = ['BaseBot', 'ScheduleBot', 'HockeyBot', 'TestBot', 'Cat5Bot',
-           'GamedayReminderBot', 'bot_responses']
+           'GamedayReminderBot', 'BotResponseManager']

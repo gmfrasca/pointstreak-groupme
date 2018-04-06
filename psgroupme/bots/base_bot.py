@@ -2,7 +2,7 @@ from flask import request
 from flask_restful import Resource
 from interfaces.responder import Responder
 from config_manager import ConfigManager
-import bot_responses
+from bot_responses import BotResponseManager
 import json
 import re
 
@@ -13,8 +13,6 @@ class BaseBot(Resource):
     found in bot_responses.py
     """
 
-    SPECIFIC_SET_RESPONSES = None
-
     @property
     def bot_type(self):
         return type(self).__name__
@@ -23,6 +21,7 @@ class BaseBot(Resource):
         """Load the config for this bot based on Name"""
         # Get the Bot Config
         self.cfg_mgr = ConfigManager(cfg_path)
+        self.brm = BotResponseManager()
         self.bot_id = bot_id
         self.bot_data = self.cfg_mgr.get_bot_data_by_id(self.bot_id)
         # self.bot_data = self.cfg_mgr.get_bot_data(self.bot_type)
@@ -39,11 +38,8 @@ class BaseBot(Resource):
         self.responder = Responder(self.bot_id)
 
     def refresh_responses(self):
-        self.responses = list(bot_responses.GLOBAL_RESPONSES)
+        self.responses = self.brm.get_global_responses()
         self.responses.extend(self.get_bot_specific_responses())
-
-        if self.SPECIFIC_SET_RESPONSES is not None:
-            self.responses.extend(self.SPECIFIC_SET_RESPONSES)
 
     def get_bot_specific_responses(self):
         """Override this method to add bot-specific responses"""
@@ -62,20 +58,21 @@ class BaseBot(Resource):
         return [x for x in self.responses if re.search(
                    x['input'].format(**context), msg['text'], re.I | re.U)]
 
+    def get_extra_context(self):
+        return self.brm.get_extra_context()
+
     def read_msg(self, msg):
         """
         Read a message's contents, and act on it if it matches a regex in
         self.responses.  Also updates the incoming message with the bot cfg for
         extra context (usefull in replies, such as {bot_name})
         """
-        if msg['text'] == '!ping':
-            self.respond('pong')
-            return
         if not hasattr(self, 'responses'):
             self.refresh_responses()
 
         context = msg.copy()
         context.update(self.bot_data)
+        context.update(self.get_extra_context())
         matches = self.get_matching_responses(msg)
         if len(matches) > 0:
             self.refresh_responses()
