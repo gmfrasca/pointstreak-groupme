@@ -36,7 +36,7 @@ class ScheduleBot(BaseBot):
                 tlr_kwargs = dict(username=self.tlr_username,
                                   password=self.tlr_password)
                 self.tlr = RsvpToolFactory.create(self.rsvp_tool_type,
-                                                  tlr_kwargs)
+                                                  **tlr_kwargs)
 
     def get_bot_specific_responses(self):
         self.schedule.refresh_schedule()
