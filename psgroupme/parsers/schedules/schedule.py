@@ -29,7 +29,8 @@ MAX_RESPONSES = FREE_REQUESTS if MAX_RESPONSES > FREE_REQUESTS else \
 
 class Schedule(object):
 
-    def __init__(self, team_id=TEAM_ID, season_id=SEASON_ID):
+    def __init__(self, team_id=TEAM_ID, season_id=SEASON_ID,
+                 company=COMPANY_ID):
         self.team_id = team_id
         self.season_id = season_id
         self.games = list()
