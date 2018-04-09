@@ -155,7 +155,7 @@ class TestPointstreakSchedule(unittest.TestCase):
     @mock.patch('psgroupme.parsers.schedules.schedule.get', side_effect=mocked_get)
     def test_retrieve_html_table(self, mocked_resp):
         tbody = self.schedule.retrieve_html_table('http://fakeurl.com')
-        mocked_resp.assert_called_once()
+        mocked_resp.assert_not_called()
         self.assertIsNotNone(tbody)
         self.assertIsNotNone(tbody.tr)
         self.assertIsNotNone(tbody.tr.td)

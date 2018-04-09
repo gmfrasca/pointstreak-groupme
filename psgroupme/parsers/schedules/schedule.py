@@ -29,13 +29,17 @@ MAX_RESPONSES = FREE_REQUESTS if MAX_RESPONSES > FREE_REQUESTS else \
 
 class Schedule(object):
 
+    STALE_TIME = 60
+
     def __init__(self, team_id=TEAM_ID, season_id=SEASON_ID,
                  company=COMPANY_ID):
+        self.html_doc = None
         self.team_id = team_id
         self.season_id = season_id
         self.games = list()
         self.url = self.get_schedule_url(team_id, season_id)
         self.refresh_schedule()
+        self.last_refresh = datetime.datetime.now()
 
     def __repr__(self):
         """Prints the list of games in order to form a schedule"""
@@ -43,6 +47,13 @@ class Schedule(object):
         for game in self.games:
             res += '{0}\n'.format(game)
         return res
+
+    @property
+    def schedule_is_stale(self):
+        if self.html_doc is None:
+            return True
+        now = datetime.datetime.now()
+        return (now - self.last_refresh).total_seconds() > self.STALE_TIME
 
     def get_schedule(self):
         """Get a string representation of the current schedule"""
@@ -102,6 +113,11 @@ class Schedule(object):
         self.html_table = self.retrieve_html_table(self.url)
         self.games = self.parse_table()
 
+    def send_get_request(self, url):
+            self.html_doc = get(url).text
+            print('GET')
+            self.last_refresh = datetime.datetime.now()
+
     def retrieve_html_table_with_class(self, url, table_class):
         """
         Retrieve the raw html for the table on a Poinstreak Team
@@ -113,8 +129,9 @@ class Schedule(object):
         Returns:
              a bs tbody element containing the team schedule
         """
-        html_doc = get(url).text
-        soup = BeautifulSoup(html_doc, 'html.parser')
+        if self.schedule_is_stale:
+            self.send_get_request(url)
+        soup = BeautifulSoup(self.html_doc, 'html.parser')
         table = soup.find("table", {'class': table_class})
         if table.tbody:
             return table.tbody

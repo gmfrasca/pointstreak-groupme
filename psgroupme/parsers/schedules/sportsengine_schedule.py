@@ -3,7 +3,6 @@ Quick and Dirty table parser to read a team schedule
 off of SportsEngine, a team stats-tracking website
 """
 from bs4 import BeautifulSoup
-from requests import get
 from schedule import Schedule
 from game import Game
 
@@ -33,8 +32,7 @@ class SportsEngineSchedule(Schedule):
         self.team_name = self.parse_team_name()
 
     def parse_team_name(self):
-        html_doc = get(self.url).text
-        soup = BeautifulSoup(html_doc, 'html.parser')
+        soup = BeautifulSoup(self.html_doc, 'html.parser')
         return soup.h2.a.text
 
     def get_schedule_url(self, team_id, season_id):
