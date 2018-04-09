@@ -34,7 +34,7 @@ MOCK_HTML = '''
                 <a href="players-team.html?teamid=666454&amp;seasonid=17266">away</a>
                 <b> 0</b>
               </td>
-              <td class="text-center">Fri, Aug 15 </td>
+              <td class="text-center">Wed, Aug 15 </td>
               <td>8:45 pm</td>
               <td class="text-right">
                 <a href="players-boxscore.html?gameid=3134292">final</a>
@@ -56,7 +56,7 @@ MOCK_HTML = '''
               <td class="text-left">
                 <a href="players-team.html?teamid=666454&amp;seasonid=17266">away</a>
               </td>
-              <td class="text-center">Fri, Aug 25 </td>
+              <td class="text-center">Sat, Aug 25 </td>
               <td>8:45 pm</td>
               <td class="text-right">
                 <a href="gamesheet_full.html?gameid=3134292" target="_blank">
@@ -90,7 +90,7 @@ class TestGame(unittest.TestCase):
             mck_dt.now.return_value = mock_now
             mck_dt.side_effect = lambda *args, **kw: mock_now
 
-        self.test_date = 'Thu, Aug 31'
+        self.test_date = 'Thu Aug 31'
         self.hour_time = '7:22 PM'
 
         self.game = Game(self.test_date, self.hour_time, 'home', None, 'away', None, year=2017)
@@ -109,7 +109,7 @@ class TestGame(unittest.TestCase):
                          datetime.datetime(this_year, 8, 31, 19, 22))
 
     def test_print(self):
-        date_str = 'Thu Aug 31 07:22PM'
+        date_str = 'Thu, Aug 31 07:22 PM'
         self.assertEqual(str(self.game),
                          "home vs away at {0}".format(date_str))
         self.assertEqual(str(self.done_game),
@@ -137,7 +137,7 @@ class TestPointstreakSchedule(unittest.TestCase):
         self.mock_postseason = datetime.datetime.strptime(
             '{0}-09-20 18:22:24.033246'.format(THIS_YEAR),
             '%Y-%m-%d %H:%M:%S.%f')
-        test_date = 'Thu, Aug 31'
+        test_date = 'Thu Aug 31'
         test_time = '6:22 PM'
         hour_before = '5:22 PM'
         hour_after = '7:22 PM'
@@ -165,8 +165,8 @@ class TestPointstreakSchedule(unittest.TestCase):
     def test_parse_table(self):
         games = self.schedule.parse_table()
         self.assertEqual(len(games), 2)
-        self.assertEqual(games[0].date, 'Fri, Aug 15')
-        self.assertEqual(games[1].date, 'Fri, Aug 25')
+        self.assertEqual(games[0].date, 'Wed, Aug 15')
+        self.assertEqual(games[1].date, 'Sat, Aug 25')
 
     def test_parse_team(self):
         test_html_score = '''<html>
@@ -206,8 +206,8 @@ class TestPointstreakSchedule(unittest.TestCase):
         self.assertEqual(score, None)
 
     def test_repr(self):
-        expected = '''home 6 : away 0 on \w\w\w Aug 15 08:45PM
-home vs away at \w\w\w Aug 25 08:45PM
+        expected = '''home 6 : away 0 on \w\w\w, Aug 15 08:45 PM
+home vs away at \w\w\w, Aug 25 08:45 PM
 '''
         print(str(self.schedule))
         self.assertRegexpMatches(str(self.schedule), expected)
@@ -218,8 +218,8 @@ home vs away at \w\w\w Aug 25 08:45PM
         mock_datetime.datetime.now = mock.MagicMock()
         mock_datetime.datetime.now.return_value = self.mock_now
         last_game = self.schedule.get_last_game()
-        self.assertEqual(last_game.date, 'Fri, Aug 15')
-        self.assertEqual(last_game.time, '8:45 pm')
+        self.assertEqual(last_game.date, 'Wed, Aug 15')
+        self.assertEqual(last_game.time, '08:45 PM')
         self.assertGreater(self.mock_now, last_game.full_gametime)
         self.assertEqual(last_game.hometeam, 'home')
         self.assertEqual(last_game.awayteam, 'away')
@@ -229,7 +229,7 @@ home vs away at \w\w\w Aug 25 08:45PM
     def test_last_game_before(self):
         last_game = self.schedule.get_last_game_before(self.mock_now)
         self.assertRegexpMatches(last_game.date, '\w\w\w, Aug 15')
-        self.assertEqual(last_game.time, '8:45 pm')
+        self.assertEqual(last_game.time, '08:45 PM')
         self.assertGreater(self.mock_now, last_game.full_gametime)
         self.assertEqual(last_game.hometeam, 'home')
         self.assertEqual(last_game.awayteam, 'away')
@@ -243,8 +243,8 @@ home vs away at \w\w\w Aug 25 08:45PM
         mock_datetime.datetime.now.return_value = self.mock_now
         next_game = self.schedule.get_next_game()
         self.assertLess(self.mock_now, next_game.full_gametime)
-        self.assertEqual(next_game.date, 'Fri, Aug 25')
-        self.assertEqual(next_game.time, '8:45 pm')
+        self.assertEqual(next_game.date, 'Sat, Aug 25')
+        self.assertEqual(next_game.time, '08:45 PM')
         self.assertEqual(next_game.hometeam, 'home')
         self.assertEqual(next_game.awayteam, 'away')
         self.assertIsNone(next_game.homescore)
@@ -253,8 +253,8 @@ home vs away at \w\w\w Aug 25 08:45PM
     def test_get_next_game_after(self):
         next_game = self.schedule.get_next_game_after(self.mock_now)
         self.assertLess(self.mock_now, next_game.full_gametime)
-        self.assertEqual(next_game.date, "Fri, Aug 25")
-        self.assertEqual(next_game.time, '8:45 pm')
+        self.assertEqual(next_game.date, "Sat, Aug 25")
+        self.assertEqual(next_game.time, '08:45 PM')
         self.assertEqual(next_game.hometeam, 'home')
         self.assertEqual(next_game.awayteam, 'away')
         self.assertIsNone(next_game.homescore)

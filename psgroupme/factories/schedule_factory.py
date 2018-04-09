@@ -20,11 +20,16 @@ class ScheduleFactory(object):
     create = staticmethod(create)
 
 
-def main(schedule_type='dash'):
+def main(schedule_type='sportsengine'):
     """
     This is more of a testing procedure.  Get all relevent info and print it
     """
-    schedule = ScheduleFactory.create(schedule_type)
+    sched_kwargs = {
+        'team_id': 3367048,
+        'season_id': 481539,
+        'company': 'dreamsports'
+    }
+    schedule = ScheduleFactory.create(schedule_type, **sched_kwargs)
     now = datetime.datetime.now()
     next_game = schedule.get_next_game()
     last_game = schedule.get_last_game()

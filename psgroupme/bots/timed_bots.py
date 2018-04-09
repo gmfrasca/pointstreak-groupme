@@ -85,13 +85,18 @@ class GamedayReminderBot(TimedBot):
         self.db.load_schedule(self.sched)
         self.team_id = self.sched.team_id
         self.season_id = self.sched.season_id
-
         while True:
             if self.db.is_game_today(self.team_id, self.season_id):
                 game_id = self.db.get_todays_game(self.team_id, self.season_id)
                 if not self.game_has_been_notified(game_id) and \
                         self.ok_time_to_send_msg():
                     self.send_game_notification(game_id)
+
+
+class TestGamedayReminderBot(GamedayReminderBot):
+
+    def send_msg(self, msg):
+        print(msg)
 
 
 def main():
