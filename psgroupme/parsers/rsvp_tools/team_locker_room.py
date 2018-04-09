@@ -1,20 +1,17 @@
-import requests
+from rsvp_tool import RsvpTool
 import logging
 import json
 import sys
 import re
 
-DEFAULT_TLR_URL = 'https://teamlockerroom.com'
+
+DEFAULT_URL = 'https://teamlockerroom.com'
 
 
-class TeamLockerRoom(object):
+class TeamLockerRoom(RsvpTool):
 
-    def __init__(self, username, password, url=DEFAULT_TLR_URL):
-        self.baseurl = url
-        self.session = requests.session()
-        self.username = username
-        self.password = password
-        self.login()
+    def __init__(self, username, password):
+        super(TeamLockerRoom, self).__init__(username, password, DEFAULT_URL)
 
     def get_csrf_token(self):
         response = self.session.get(self.baseurl)
@@ -97,7 +94,8 @@ class TeamLockerRoom(object):
 def main():
     assert len(sys.argv) > 2
     tlr = TeamLockerRoom(sys.argv[1], sys.argv[2])
-    logging.info(tlr.get_next_game_attendees())
+    logging.debug(tlr.get_next_game_attendees())
+    logging.debug(tlr.get_next_game_attendance())
 
 
 if __name__ == '__main__':

@@ -11,11 +11,10 @@ class ScheduleBot(BaseBot):
     DEFAULT_TEAM_ID = 3367048
     DEFAULT_SEASON_ID = 481539
 
-    def __init__(self, bot_id, cfg_path=None, schedule=None, tlr=None):
+    def __init__(self, bot_id, cfg_path=None, schedule=None, rsvp=None):
         """Initialize the bot, and add ScheduleBot-specific responses"""
         super(ScheduleBot, self).__init__(bot_id, cfg_path=cfg_path)
         self.schedule_type = self.bot_data.get('schedule_type', 'sportsengine')
-        self.rsvp_tool_type = self.bot_data.get('rsvp_tool_type', 'tlr')
 
         # Setup Pointstreak or SportsEngine Schedule
         team_id = self.bot_data.get('team_id', self.DEFAULT_TEAM_ID)
@@ -25,16 +24,18 @@ class ScheduleBot(BaseBot):
                                                **sched_kwargs) \
             if schedule is None else schedule
 
-        # Set up TeamLockerRoom
-        self.tlr = tlr
-        if tlr is None:
-            self.tlr_username = self.bot_data.get('tlr_username', None)
-            self.tlr_password = self.bot_data.get('tlr_password', None)
-            if self.tlr_username is not None and self.tlr_password is not None:
-                tlr_kwargs = dict(username=self.tlr_username,
-                                  password=self.tlr_password)
-                self.tlr = RsvpToolFactory.create(self.rsvp_tool_type,
-                                                  **tlr_kwargs)
+        # Set up RsvpTool
+        self.rsvp = rsvp
+        if rsvp is None and 'rsvp_tool_type' in self.bot_data:
+            self.rsvp_tool_type = self.bot_data.get('rsvp_tool_type', 'tlr')
+            self.rsvp_username = self.bot_data.get('rsvp_username', None)
+            self.rsvp_password = self.bot_data.get('rsvp_password', None)
+            if self.rsvp_username is not None and self.rsvp_password is \
+                    not None:
+                rsvp_kwargs = dict(username=self.rsvp_username,
+                                   password=self.rsvp_password)
+                self.rsvp = RsvpToolFactory.create(self.rsvp_tool_type,
+                                                   **rsvp_kwargs)
 
     def get_extra_context(self):
         extra_context = super(ScheduleBot, self).get_extra_context()
@@ -43,7 +44,9 @@ class ScheduleBot(BaseBot):
         last_game = self.schedule.get_last_game()
         schedule = self.schedule.get_schedule()
         today = datetime.datetime.now().strftime("%a %b %d %I:%M.%S%p")
-        attendance = self.tlr.get_next_game_attendance() if self.tlr else None
+        attendance = self.rsvp.get_next_game_attendance() if self.rsvp \
+            else None
+        attendees = self.rsvp.get_next_game_attendees() if self.rsvp else None
 
         nextgame_resp = self.NEXTGAME_RESPONSE.format(str(next_game))
         lastgame_resp = self.LASTGAME_RESPONSE.format(str(last_game))
@@ -64,7 +67,9 @@ class ScheduleBot(BaseBot):
                                   today=today,
                                   next_game=next_game,
                                   last_game=last_game,
-                                  schedule=schedule))
+                                  schedule=schedule,
+                                  attendance=attendance,
+                                  attendees=attendees))
         return extra_context
 
     def get_bot_specific_responses(self):
