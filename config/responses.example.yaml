@@ -1,0 +1,39 @@
+extra_context:
+   github_url: 'https://github.com/gmfrasca/pointstreak-groupme'
+responses:
+  global:
+    - input: '(hi|hello|greetings|salutations|sup),? {bot_name}'
+      reply: 'Hello, {name}'
+    - input: 'show me the (source|sauce|src|code)'
+      reply: 'You can find it at {github_url}'
+    - input: '(what|who) is (a )? {bot_name}'
+      reply: 'I am a GroupMe helper bot, beep boop. More info at {github_url}'
+  schedulebot:
+    - input: 'when.*next game([\?\!\.( is)].*)??$'
+      reply: '{nextgame_resp}'
+    - input: 'what was the score\??'
+      reply: '{lastgame_resp}'
+    - input: "^how('d| did)? we do([\\?\\!\\.].*)??$"
+      reply: '{lastgame_resp}'
+    - input: 'what is.* schedule([\?\!\.].*)??$'
+      reply: '{schedule_resp}'
+    - input: '^how many do we have'
+      reply: '{attendance_resp}'
+    - input: 'what is today'
+      reply: '{today}'
+    - input: '!nextgame'
+      reply: '{next_game}'
+    - input: '!lastgame'
+      reply: '{last_game}'
+    - input: '!schedule'
+      reply: '{schedule}'
+    - input: '!attendance'
+      reply: '{attendance}'
+    - input: '!source'
+      reply: '{github_url}'
+    - input: '!today'
+      reply: '{today}'
+    - input: '!help'
+      reply: >
+              Available Commands - !nextgame, !lastgame, !schedule, !attendance,
+              !source, !today, !help

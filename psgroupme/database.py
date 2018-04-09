@@ -1,4 +1,4 @@
-from team_schedule import PointstreakSchedule
+from factories import ScheduleFactory
 import datetime
 import sqlite3
 
@@ -203,7 +203,7 @@ class PointstreakDatabase(object):
 
 def main():
     pd = PointstreakDatabase()
-    sched = PointstreakSchedule()
+    sched = ScheduleFactory.create('pointstreak')
     pd.load_schedule(sched)
     pd.disconnect()
 

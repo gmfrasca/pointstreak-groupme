@@ -1,4 +1,4 @@
-from psgroupme.responder import Responder, GROUPME_BOT_URL
+from psgroupme.interfaces.responder import Responder, GROUPME_BOT_URL
 import unittest
 import mock
 
@@ -21,14 +21,14 @@ class TestConfigManager(unittest.TestCase):
     def tearDown(self):
         pass
 
-    @mock.patch('psgroupme.responder.post', side_effect=mocked_post)
+    @mock.patch('psgroupme.interfaces.responder.post', side_effect=mocked_post)
     def test_reply(self, mock_post):
         reply_text = 'foo'
         expected_data = dict(text=reply_text, bot_id=self.bot_id)
         self.responder.reply(reply_text)
         mock_post.assert_called_once_with(GROUPME_BOT_URL, data=expected_data)
 
-    @mock.patch('psgroupme.responder.post', side_effect=mocked_post)
+    @mock.patch('psgroupme.interfaces.responder.post', side_effect=mocked_post)
     def test_blank_reply(self, mock_post):
         reply_text = ''
         self.responder.reply(reply_text)

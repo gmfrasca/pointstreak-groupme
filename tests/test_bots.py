@@ -1,11 +1,13 @@
-import psgroupme
-from psgroupme.bots import BaseBot, ScheduleBot, HockeyBot
-from psgroupme.bot_responses import GLOBAL_RESPONSES, SCHEDULE_BOT_RESPONSES
-from psgroupme.team_schedule import PointstreakSchedule
 import unittest
 import mock
 import json
+import psgroupme
+import yaml
+from psgroupme.bots import BaseBot, ScheduleBot, HockeyBot, BotResponseManager
+from psgroupme.parsers.schedules.pointstreak_schedule import \
+    PointstreakSchedule
 
+EXAMPLE_RESP_YAML = 'config/responses.example.yaml'
 
 BOTNAMES = {
     'BaseBot': 'BaseBot',
@@ -16,27 +18,30 @@ BOTNAMES = {
 MOCK_CFG = {
             'bots': [
                 {
-                     'class_name': 'BaseBot',
+                     'class_name': 'bots.BaseBot',
                      'bot_name': BOTNAMES['BaseBot'],
-                     'bot_id': '1',
+                     'bot_id': '0',
+                     'bot_url': '/basebot',
                      'group_name': 'foo',
                      'group_id': '12345',
                      'callback_url': 'http://foo.bar',
                      'avatar_url': 'http://funny.jpg'
                 },
                 {
-                     'class_name': 'ScheduleBot',
+                     'class_name': 'bots.ScheduleBot',
                      'bot_name': BOTNAMES['ScheduleBot'],
-                     'bot_id': '2',
+                     'bot_id': '1',
+                     'bot_url': '/schedulebot',
                      'group_name': 'foo',
                      'group_id': '12345',
                      'callback_url': 'http://foo.bar',
                      'avatar_url': 'http://funny.jpg'
                 },
                 {
-                      'class_name': 'HockeyBot',
+                      'class_name': 'bots.HockeyBot',
                       'bot_name': BOTNAMES['HockeyBot'],
-                      'bot_id': '3',
+                      'bot_id': '2',
+                      'bot_url': '/hockeybot',
                       'group_name': 'foo',
                       'group_id': '12345',
                       'callback_url': 'http://foo.bar',
@@ -44,6 +49,56 @@ MOCK_CFG = {
                 }
             ]
         }
+
+MOCK_RESP_CFG = '''
+extra_context:
+       github_url: 'https://github.com/gmfrasca/pointstreak-groupme'
+responses:
+  global:
+    - input: '(hi|hello|greetings|salutations|sup),? {bot_name}'
+      reply: 'Hello, {name}'
+    - input: 'show me the (source|sauce|src|code)'
+      reply: 'You can find it at {github_url}'
+    - input: '(what|who) is (a )? {bot_name}'
+      reply: 'I am a GroupMe helper bot, beep boop. More info at {github_url}'
+  schedulebot:
+    - input: 'when.*next game([\?\!\.( is)].*)??$'
+      reply: '{nextgame_resp}'
+    - input: 'what was the score\??'
+      reply: '{lastgame_resp}'
+    - input: "^how('d| did)? we do([\\\?\\\!\\\.].*)??$"
+      reply: '{lastgame_resp}'
+    - input: 'what is.* schedule([\?\!\.].*)??$'
+      reply: '{schedule_resp}'
+    - input: '^how many do we have'
+      reply: '{attendance_resp}'
+    - input: 'what is today'
+      reply: '{today}'
+    - input: '!nextgame'
+      reply: '{next_game}'
+    - input: '!lastgame'
+      reply: '{last_game}'
+    - input: '!schedule'
+      reply: '{schedule}'
+    - input: '!attendance'
+      reply: '{attendance}'
+    - input: '!source'
+      reply: '{github_url}'
+    - input: '!today'
+      reply: '{today}'
+    - input: '!help'
+      reply: >
+              Available Commands - !nextgame, !lastgame, !schedule, !attendance,
+              !source, !today, !help
+
+'''  # noqa
+
+
+class BotResponseManagerMock(BotResponseManager):
+
+    def reload_data(self):
+        self.data = yaml.load(MOCK_RESP_CFG)
+        return MOCK_RESP_CFG
 
 
 class PointstreakScheduleMock(PointstreakSchedule):
@@ -80,13 +135,24 @@ class TeamLockerRoomMock(object):
     def get_next_game_attendance(self):
         return "NextGameAttendance"
 
+    def get_next_game_attendees(self):
+        return "NextGameAttendees"
+
 
 class TestBaseBot(unittest.TestCase):
 
-    @mock.patch.object(psgroupme.config_manager.ConfigManager, 'load_cfg')
-    def setUp(self, mock_cfg_mgr_load):
-        mock_cfg_mgr_load.return_value = MOCK_CFG
-        self.bot = BaseBot()
+    @mock.patch.object(psgroupme.bots.base_bot.ConfigManager,
+                       'get_bot_data_by_id')
+    @mock.patch.object(psgroupme.bots.base_bot.ConfigManager, 'load_cfg')
+    @mock.patch('psgroupme.bots.base_bot.BotResponseManager')
+    def setUp(self, mock_brm, mock_load, mock_load_id):
+        bot_id = 0
+        mock_load_id.return_value = MOCK_CFG['bots'][bot_id]
+        with mock.patch('__builtin__.open',
+                        mock.mock_open(read_data=MOCK_RESP_CFG)):
+            assert open('/fake/config.yaml').read() == MOCK_RESP_CFG
+            self.bot = BaseBot(bot_id)
+            self.bot.brm = BotResponseManagerMock()
 
     def tearDown(self):
         pass
@@ -95,7 +161,7 @@ class TestBaseBot(unittest.TestCase):
         expected = dict(bot_cfg=self.bot.bot_data)
         self.assertEqual(self.bot.get(), expected)
 
-    @mock.patch("psgroupme.bots.request")
+    @mock.patch("psgroupme.bots.base_bot.request")
     def test_post_request(self, mocked_data):
         mocked_data.data = '{"foo": "bar"}'
         loaded_dict = json.loads(mocked_data.data)
@@ -104,14 +170,14 @@ class TestBaseBot(unittest.TestCase):
         self.assertEqual(self.bot.post(), expected)
         self.bot.handle_msg.assert_called_once_with(loaded_dict)
 
-    @mock.patch("psgroupme.bots.request")
+    @mock.patch("psgroupme.bots.base_bot.request")
     def test_bad_post_request(self, mocked_data):
         mocked_data.data = '{"this_is_bad_json'
         self.bot.handle_msg = mock.MagicMock()
         self.assertEqual(self.bot.post(), None)
         self.bot.handle_msg.assert_not_called()
 
-    @mock.patch.object(psgroupme.responder.Responder, 'reply')
+    @mock.patch.object(psgroupme.bots.base_bot.Responder, 'reply')
     def test_respond(self, reply_fn):
         self.bot.respond("foobar")
         reply_fn.assert_called_once_with('Hello, this is {0}'.format(
@@ -119,12 +185,14 @@ class TestBaseBot(unittest.TestCase):
 
     def test_includes_standard_replies(self):
         self.bot.refresh_responses()
-        for resp_item in GLOBAL_RESPONSES:
+        brm = BotResponseManager(cfg_path=EXAMPLE_RESP_YAML)
+        for resp_item in brm.get_global_responses():
             assert resp_item in self.bot.responses
 
     def test_excludes_specialized_replies(self):
         self.bot.refresh_responses()
-        for resp_item in SCHEDULE_BOT_RESPONSES:
+        brm = BotResponseManager(cfg_path=EXAMPLE_RESP_YAML)
+        for resp_item in brm.get_responses().get('base', list()):
             assert resp_item not in self.bot.responses
 
     def test_handle_msg(self):
@@ -190,6 +258,7 @@ class TestBaseBot(unittest.TestCase):
         self.bot.respond.assert_called_with('testregex')
         self.bot.refresh_responses.assert_called()
 
+        print(self.bot.bot_data)
         test_msg = dict(text='format_test')
         self.bot.read_msg(test_msg)
         self.bot.respond.assert_called_with('{}'.format(
@@ -199,18 +268,29 @@ class TestBaseBot(unittest.TestCase):
 
 class TestScheduleBot(TestBaseBot):
 
-    @mock.patch.object(psgroupme.config_manager.ConfigManager, 'load_cfg')
-    def setUp(self, mock_cfg_mgr_load):
-        mock_cfg_mgr_load.return_value = MOCK_CFG
+    @mock.patch.object(psgroupme.bots.base_bot.ConfigManager,
+                       'get_bot_data_by_id')
+    @mock.patch.object(psgroupme.bots.base_bot.ConfigManager, 'load_cfg')
+    @mock.patch('psgroupme.bots.base_bot.BotResponseManager')
+    def setUp(self, mock_brm, mock_load, mock_load_id):
+        bot_id = 1
+        mock_load_id.return_value = MOCK_CFG['bots'][bot_id]
         self.mock_tlr = TeamLockerRoomMock()
         self.mock_sched = PointstreakScheduleMock()
-        self.bot = ScheduleBot(schedule=self.mock_sched, tlr=self.mock_tlr)
+        with mock.patch('__builtin__.open',
+                        mock.mock_open(read_data=MOCK_RESP_CFG)):
+            assert open('/fake/config.yaml').read() == MOCK_RESP_CFG
+            self.bot = ScheduleBot(bot_id, schedule=self.mock_sched,
+                                   rsvp=self.mock_tlr)
+            self.bot.brm = BotResponseManagerMock()
 
     def test_includes_specialized_replies(self):
-        for resp_item in SCHEDULE_BOT_RESPONSES:
+        self.bot.refresh_responses()
+        brm = BotResponseManager(cfg_path=EXAMPLE_RESP_YAML)
+        for resp_item in brm.get_responses().get('schedulebot', []):
             assert resp_item in self.bot.responses
 
-    @mock.patch.object(psgroupme.responder.Responder, 'reply')
+    @mock.patch.object(psgroupme.bots.base_bot.Responder, 'reply')
     def test_respond(self, reply_fn):
         test_msg = 'foobar'
         self.bot.respond(test_msg)
@@ -266,12 +346,21 @@ class TestScheduleBot(TestBaseBot):
 class TestHockeyBot(TestScheduleBot):
     """Just a clone of ScheduleBot, with a different bot name"""
 
-    @mock.patch.object(psgroupme.config_manager.ConfigManager, 'load_cfg')
-    def setUp(self, mock_cfg_mgr_load):
-        mock_cfg_mgr_load.return_value = MOCK_CFG
+    @mock.patch.object(psgroupme.bots.base_bot.ConfigManager,
+                       'get_bot_data_by_id')
+    @mock.patch.object(psgroupme.bots.base_bot.ConfigManager, 'load_cfg')
+    @mock.patch('psgroupme.bots.base_bot.BotResponseManager')
+    def setUp(self, mock_brm, mock_load, mock_load_id):
+        bot_id = 2
+        mock_load_id.return_value = MOCK_CFG['bots'][bot_id]
         self.mock_sched = PointstreakScheduleMock()
         self.mock_tlr = TeamLockerRoomMock()
-        self.bot = HockeyBot(schedule=self.mock_sched, tlr=self.mock_tlr)
+        with mock.patch('__builtin__.open',
+                        mock.mock_open(read_data=MOCK_RESP_CFG)):
+            assert open('/fake/config.yaml').read() == MOCK_RESP_CFG
+            self.bot = HockeyBot(bot_id, schedule=self.mock_sched,
+                                 rsvp=self.mock_tlr)
+            self.bot.brm = BotResponseManagerMock()
 
     def test_bot_name(self):
         self.assertNotEqual(self.bot.bot_type, ScheduleBot.__name__)

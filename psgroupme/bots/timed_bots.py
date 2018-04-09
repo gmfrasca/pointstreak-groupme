@@ -1,30 +1,27 @@
 from database import PointstreakDatabase
-from config_manager import ConfigManager
-from team_schedule import PointstreakSchedule
-from responder import Responder
+from factories import ScheduleFactory
+from interfaces.responder import Responder
 from time import sleep
 import datetime
 import threading
+import logging
 
 
 class TimedBot(threading.Thread):
 
-    def __init__(self, cfg_path=None):
+    def __init__(self, **kwargs):
         """Load the config for this bot based on Name"""
         super(TimedBot, self).__init__()
         self._stop_event = threading.Event()
         self.daemon = True
 
         # Get the Bot Config
-        self.cfg_mgr = ConfigManager(cfg_path)
-        self.bot_data = self.cfg_mgr.get_bot_data(self.bot_type)
-        self.bot_id = self.cfg_mgr.get_bot_id(self.bot_type)
-        self.bot_id = self.bot_data.get('bot_id')
-        self.bot_name = self.bot_data.get('bot_name', 'UnknownBot')
-        self.group_id = self.bot_data.get('group_id', 'UnknownGroup')
-        self.group_name = self.bot_data.get('group_name', 'UnknownGroup')
-        self.callback_url = self.bot_data.get('callback_url', None)
-        self.avatar_url = self.bot_data.get('avatar_url', None)
+        self.bot_id = kwargs.get('bot_id')
+        self.bot_name = kwargs.get('bot_name', 'UnknownBot')
+        self.group_id = kwargs.get('group_id', 'UnknownGroup')
+        self.group_name = kwargs.get('group_name', 'UnknownGroup')
+        self.callback_url = kwargs.get('callback_url', None)
+        self.avatar_url = kwargs.get('avatar_url', None)
         assert self.bot_id is not None
 
         # Set up the Responder
@@ -39,7 +36,7 @@ class TimedBot(threading.Thread):
         return True
 
     def stop(self):
-        print "\nStopping Bot {0}".format(self.bot_type)
+        logging.info("Stopping Bot {0}".format(self.bot_type))
         self._stop_event.set()
 
     def stopped(self):
@@ -54,6 +51,13 @@ class GamedayReminderBot(TimedBot):
     MORNING_CUTOFF = datetime.time(10, 00)
     NIGHT_CUTOFF = datetime.time(22, 00)
 
+    def __init__(self, **kwargs):
+        super(GamedayReminderBot, self).__init__(**kwargs)
+        self.schedule_type = kwargs.get('schedule_type', 'pointstreak')
+        self.team_id = kwargs.get('team_id')
+        self.season_id = kwargs.get('schedule_id', 0)
+        self.company_id = kwargs.get('company_id', 'UnknownCompany')
+
     def game_has_been_notified(self, game_id):
         return self.db.game_has_been_notified(game_id)
 
@@ -62,7 +66,7 @@ class GamedayReminderBot(TimedBot):
         msg = "Its Gameday! {0} vs {1} at {2}".format(game['hometeam'],
                                                       game['awayteam'],
                                                       game['time'])
-        print(msg)
+        logging.info(msg)
         self.send_msg(msg)
         self.db.set_notified(game_id, True)
         sleep(1)
@@ -73,18 +77,26 @@ class GamedayReminderBot(TimedBot):
 
     def run(self):
         # Set up Database
+        sched_kwargs = dict(team_id=self.team_id, season_id=self.season_id,
+                            company=self.company_id)
         self.db = PointstreakDatabase()
-        self.sched = PointstreakSchedule()
+        self.sched = ScheduleFactory.create(self.schedule_type, **sched_kwargs)
+        self.sched.refresh_schedule()
         self.db.load_schedule(self.sched)
         self.team_id = self.sched.team_id
         self.season_id = self.sched.season_id
-
         while True:
             if self.db.is_game_today(self.team_id, self.season_id):
                 game_id = self.db.get_todays_game(self.team_id, self.season_id)
                 if not self.game_has_been_notified(game_id) and \
                         self.ok_time_to_send_msg():
                     self.send_game_notification(game_id)
+
+
+class TestGamedayReminderBot(GamedayReminderBot):
+
+    def send_msg(self, msg):
+        print(msg)
 
 
 def main():
