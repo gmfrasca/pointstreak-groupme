@@ -115,7 +115,6 @@ class Schedule(object):
 
     def send_get_request(self, url):
             self.html_doc = get(url).text
-            print('GET')
             self.last_refresh = datetime.datetime.now()
 
     def retrieve_html_table_with_class(self, url, table_class):

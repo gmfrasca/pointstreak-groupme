@@ -67,7 +67,7 @@ class BaseBot(Resource):
         self.responses.  Also updates the incoming message with the bot cfg for
         extra context (usefull in replies, such as {bot_name})
         """
-        if msg == '!ping':
+        if msg['text'] == '!ping':
             self.respond('pong')
 
         if not hasattr(self, 'responses'):
