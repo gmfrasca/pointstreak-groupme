@@ -2,7 +2,7 @@ from requests import post
 from argparse import ArgumentParser
 import json
 
-DEFAULT_MSG = 'Hello, TestBot.'
+DEFAULT_MSG = '!ping'
 DEFAULT_URL = 'http://127.0.0.1:5002/testbot'
 
 parser = ArgumentParser()
