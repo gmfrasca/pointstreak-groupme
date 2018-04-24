@@ -24,6 +24,9 @@ class RsvpTool(object):
     def get_next_game_attendees(self):
         return 'NextGameAttendees'
 
+    def try_checkin(self, name, status):
+        print("NOTIMPLEMENTED")
+
 
 def main():
     assert len(sys.argv) > 2

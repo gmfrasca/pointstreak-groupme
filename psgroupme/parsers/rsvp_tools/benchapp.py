@@ -1,12 +1,19 @@
 from bs4 import BeautifulSoup
 from rsvp_tool import RsvpTool
 import logging
+import requests
 import sys
+import re
 
 
 DEFAULT_URL = 'https://benchapp.com'
 LOGIN_URL = '/player-area/ajax/login.php'
 NEXT_GAME_URL = '/schedule/next-event'
+CHECKIN_URL = '/schedule-area/ajax/setAttendance.php'
+
+
+class CheckinException(Exception):
+    pass
 
 
 class BenchApp(RsvpTool):
@@ -124,6 +131,46 @@ class BenchApp(RsvpTool):
                 in_str, out_str, wait_str, unkn_str)
         else:
             return "No upcoming games found."
+
+    def try_checkin(self, name, status='in'):
+        if self.has_upcoming_game is False:
+            return
+        page = self.get_next_game_page().text
+        soup = BeautifulSoup(page, 'html.parser')
+        players = soup.find_all('li',
+                                id=lambda x: x and x.startswith('player-'))
+        found = False
+        playeritem = None
+        for player in players:
+            # Checkin By ID, exact match
+            if player.get('id').endswith(name) or \
+                    re.search(name.lower(), player.text.lower()) is not None:
+                # Multiple results, too ambigous so can't continue
+                if found:
+                    raise CheckinException(
+                        "Multiple Players with name same name found")
+                else:
+                    found = True
+                    playeritem = player
+        if found:
+            try:
+                checkin = playeritem.find("a", {"href": "#IN"})
+                checkin_fn = checkin.get('onclick', '')
+                params = checkin_fn.split(';')[0].split(')')[0].split('(')[1]
+                (teamID, seasonID, gameID, gameKey, playerID,
+                 ignore, refresh) = params.split(',')
+                data = dict(teamID=int(teamID),
+                            gameID=int(gameID),
+                            seasonID=int(seasonID),
+                            playerID=int(playerID),
+                            status=str(status),
+                            gameKey=gameKey.encode('ascii',
+                                                   'ignore').strip("'"))
+                requests.get('{0}{1}'.format(DEFAULT_URL, CHECKIN_URL),
+                             params=data)
+            except:
+                raise CheckinException(
+                    "ERROR::Could not check in {0}".format(name))
 
 
 def main():

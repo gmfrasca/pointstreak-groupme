@@ -72,6 +72,21 @@ class ScheduleBot(BaseBot):
                                   attendees=attendees))
         return extra_context
 
+    def read_msg(self, msg):
+        super(ScheduleBot, self).read_msg(msg)
+        if self.rsvp is not None:
+            self.check_rsvp(msg.get('name', None), msg.get('text', ''))
+
+    def check_rsvp(self, sender, msg):
+        name = sender if len(msg.split()) < 2 else msg.split(' ', 1)[1]
+        try:
+            if msg.startswith('!in'):
+                self.rsvp.try_checkin(name, 'in')
+            elif msg.startswith('!out'):
+                self.rsvp.try_checkin(name, 'out')
+        except Exception as e:
+            self.respond("ERROR::{0}".format(str(e)))
+
     def get_bot_specific_responses(self):
         return self.brm.get_responses().get('schedulebot', list())
 
