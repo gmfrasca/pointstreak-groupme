@@ -5,8 +5,8 @@ from test_bot import TestBot
 from cat5_bot import Cat5Bot
 from timed_bots import GamedayReminderBot, TestGamedayReminderBot
 from bot_responses import BotResponseManager
-from ping_bot import PingBot
+from ping_bot import PingBot, LivePingBot
 
 __all__ = ['BaseBot', 'ScheduleBot', 'HockeyBot', 'TestBot', 'Cat5Bot',
            'GamedayReminderBot', 'BotResponseManager',
-           'TestGamedayReminderBot', 'PingBot']
+           'TestGamedayReminderBot', 'PingBot', 'LivePingBot']

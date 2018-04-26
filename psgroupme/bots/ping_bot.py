@@ -1,4 +1,5 @@
 from flask_restful import Resource
+from interfaces.responder import Responder
 
 
 class PingBot(Resource):
@@ -11,12 +12,12 @@ class PingBot(Resource):
     def bot_type(self):
         return type(self).__name__
 
-    def __init__(self, **kwargs):
-        pass
+    def __init__(self, bot_id, **kwargs):
+        self.bot_id = bot_id
 
     def respond(self, msg):
         """Have the bot post a message to it's group"""
-        print("PONG")
+        print("pong")
 
     def get(self):
         """React to a GET call"""
@@ -25,7 +26,13 @@ class PingBot(Resource):
     def post(self):
         """React to a POST call"""
         try:
-            self.respond("PING")
+            self.respond("ping")
         except ValueError:
             pass
         return None
+
+
+class LivePingBot(PingBot):
+
+    def respond(self, msg):
+        Responder(self.bot_id).reply("pong")
