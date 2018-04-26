@@ -246,7 +246,7 @@ class TestBaseBot(unittest.TestCase):
         test_msg = dict(text='ignore_me')
         self.bot.read_msg(test_msg)
         self.bot.respond.assert_not_called()
-        self.bot.refresh_responses.assert_not_called()
+        self.bot.refresh_responses.assert_called_once()
 
         test_msg = dict(text='foobar')
         self.bot.read_msg(test_msg)

@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 from rsvp_tool import RsvpTool
 import logging
-import requests
 import sys
 import re
 
@@ -102,7 +101,6 @@ class BenchApp(RsvpTool):
         return len(self.get_list_of_unknown_status_players())
 
     def get_next_game_attendance(self):
-        self.retrieve_next_game_page()
         if self.has_upcoming_game:
             return "In: {0}, Out: {1}, Waitlist: {2}, No Status: {3}".format(
                 self.get_number_checked_in(),
@@ -113,7 +111,6 @@ class BenchApp(RsvpTool):
             return "No upcoming games found."
 
     def get_next_game_attendees(self):
-        self.retrieve_next_game_page()
         if self.has_upcoming_game:
             in_list = self.get_list_of_attending_players()
             out_list = self.get_list_of_not_attending_players()
@@ -166,8 +163,8 @@ class BenchApp(RsvpTool):
                             status=str(status),
                             gameKey=gameKey.encode('ascii',
                                                    'ignore').strip("'"))
-                requests.get('{0}{1}'.format(DEFAULT_URL, CHECKIN_URL),
-                             params=data)
+                self.session.get('{0}{1}'.format(DEFAULT_URL, CHECKIN_URL),
+                                 params=data)
             except:
                 raise CheckinException(
                     "ERROR::Could not check in {0}".format(name))
