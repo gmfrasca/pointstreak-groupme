@@ -11,9 +11,9 @@ class ScheduleBot(BaseBot):
     DEFAULT_TEAM_ID = 3367048
     DEFAULT_SEASON_ID = 481539
 
-    def __init__(self, bot_id, cfg_path=None, schedule=None, rsvp=None):
+    def __init__(self, bot_cfg, schedule=None, rsvp=None):
         """Initialize the bot, and add ScheduleBot-specific responses"""
-        super(ScheduleBot, self).__init__(bot_id, cfg_path=cfg_path)
+        super(ScheduleBot, self).__init__(bot_cfg)
         self.schedule = schedule
         self.rsvp = rsvp
 

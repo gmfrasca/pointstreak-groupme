@@ -1,7 +1,6 @@
 from flask import request
 from flask_restful import Resource
 from interfaces.responder import Responder
-from config_manager import ConfigManager
 from bot_responses import BotResponseManager
 import json
 import re
@@ -17,22 +16,13 @@ class BaseBot(Resource):
     def bot_type(self):
         return type(self).__name__
 
-    def __init__(self, bot_id, cfg_path=None):
+    def __init__(self, bot_cfg):
         """Load the config for this bot based on Name"""
-        # Get the Bot Config
-        # TODO: Remove ConfigManger and get all config from constructor
-        self.cfg_mgr = ConfigManager(cfg_path)
         self.brm = BotResponseManager()
-        self.bot_id = bot_id
-        self.bot_data = self.cfg_mgr.get_bot_data_by_id(self.bot_id)
+        self.bot_data = bot_cfg
+        self.bot_id = self.bot_data.get('bot_id')
         self.bot_name = self.bot_data.get('bot_name', 'UnknownBot')
-        self.group_id = self.bot_data.get('group_id', 'UnknownGroup')
-        self.group_name = self.bot_data.get('group_name', 'UnknownGroup')
-        self.callback_url = self.bot_data.get('callback_url', None)
-        self.avatar_url = self.bot_data.get('avatar_url', None)
         assert self.bot_id is not None
-
-        # Set up the Responder
         self.responder = Responder(self.bot_id)
 
     def refresh_responses(self):
