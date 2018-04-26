@@ -124,8 +124,9 @@ class BenchApp(RsvpTool):
                               wait_list) if len(wait_list) > 0 else "None"
             unkn_str = reduce((lambda x, y: '{0}, {1}'.format(x, y)),
                               unkn_list) if len(unkn_list) > 0 else "None"
-            return "In: {0}, Out: {1}, Waitlist: {2}, No Status: {3}".format(
-                in_str, out_str, wait_str, unkn_str)
+            return ("In: {0},\r\n Out: {1},\r\n Waitlist: {2}," +
+                    "\r\n No Status: {3}").format(in_str, out_str,
+                                                  wait_str, unkn_str)
         else:
             return "No upcoming games found."
 
