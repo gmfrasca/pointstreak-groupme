@@ -20,13 +20,11 @@ class BaseBot(Resource):
     def __init__(self, bot_id, cfg_path=None):
         """Load the config for this bot based on Name"""
         # Get the Bot Config
+        # TODO: Remove ConfigManger and get all config from constructor
         self.cfg_mgr = ConfigManager(cfg_path)
         self.brm = BotResponseManager()
         self.bot_id = bot_id
         self.bot_data = self.cfg_mgr.get_bot_data_by_id(self.bot_id)
-        # self.bot_data = self.cfg_mgr.get_bot_data(self.bot_type)
-        # self.bot_id = self.cfg_mgr.get_bot_id(self.bot_type)
-        # self.bot_id = self.bot_data.get('bot_id')
         self.bot_name = self.bot_data.get('bot_name', 'UnknownBot')
         self.group_id = self.bot_data.get('group_id', 'UnknownGroup')
         self.group_name = self.bot_data.get('group_name', 'UnknownGroup')
@@ -69,17 +67,13 @@ class BaseBot(Resource):
         """
         if msg['text'] == '!ping':
             self.respond('pong')
-
-        if not hasattr(self, 'responses'):
-            self.refresh_responses()
-
-        context = msg.copy()
-        context.update(self.bot_data)
-        context.update(self.get_extra_context())
+        self.refresh_responses()
         matches = self.get_matching_responses(msg)
         if len(matches) > 0:
-            self.refresh_responses()
             matches = self.get_matching_responses(msg)
+            context = msg.copy()
+            context.update(self.bot_data)
+            context.update(self.get_extra_context())
             try:
                 self.respond(matches[0]['reply'].format(**context))
             except KeyError:
