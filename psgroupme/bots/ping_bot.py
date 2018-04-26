@@ -1,5 +1,7 @@
 from flask_restful import Resource
+from flask import request
 from interfaces.responder import Responder
+import json
 
 
 class PingBot(Resource):
@@ -36,3 +38,16 @@ class LivePingBot(PingBot):
 
     def respond(self, msg):
         Responder(self.bot_id).reply("pong")
+
+    def post(self):
+        data_str = request.data
+        try:
+            msg = json.loads(data_str)
+            system = msg.get('system', True)
+            sender_type = msg.get('sender_type', 'user')
+            if not system and sender_type != 'bot':
+                self.respond(msg)
+            return {'post': msg}
+        except ValueError:
+            pass
+        return None
