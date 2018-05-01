@@ -1,9 +1,9 @@
-from hockey_bot import HockeyBot
+from schedule_bot import ScheduleBot
 import logging
 import sys
 
 
-class TestBot(HockeyBot):
+class TestBot(ScheduleBot):
     """Debug"""
     def respond(self, msg):
         """Respond using the matched message reply"""

@@ -14,17 +14,8 @@ class TimedBot(threading.Thread):
         super(TimedBot, self).__init__()
         self._stop_event = threading.Event()
         self.daemon = True
-
-        # Get the Bot Config
         self.bot_id = kwargs.get('bot_id')
-        self.bot_name = kwargs.get('bot_name', 'UnknownBot')
-        self.group_id = kwargs.get('group_id', 'UnknownGroup')
-        self.group_name = kwargs.get('group_name', 'UnknownGroup')
-        self.callback_url = kwargs.get('callback_url', None)
-        self.avatar_url = kwargs.get('avatar_url', None)
         assert self.bot_id is not None
-
-        # Set up the Responder
         self.responder = Responder(self.bot_id)
 
     @property

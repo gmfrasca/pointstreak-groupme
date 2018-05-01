@@ -27,7 +27,7 @@ def main():
         bot_class = str_to_class(class_name)
         logging.info("Adding {0}".format(subclass_name))
         api.add_resource(type(subclass_name, (bot_class,), {}), bot_url,
-                         resource_class_kwargs=dict(bot_id=bot_id))
+                         resource_class_kwargs=dict(bot_cfg=bot))
 
     # Start up the REST API
     app.run(host='0.0.0.0', port=cm.get_flask_port())

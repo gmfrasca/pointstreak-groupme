@@ -1,8 +1,13 @@
 bots:
-    - class_name: '<add class name from psgroupme.bots.py here>'
+    - class_name: '<add class name here, like bots.ScheduleBot>'
       bot_name: '<add bot name here>'
       bot_id: '<add bot id hash here>'
-      group_name: '<add bot group name here>'
-      group_id: '<add bot group id here>'
-      avatar_url: '<add URL to bot avatar here>'
-      callback_url: '<add URL to bot callback here>'
+      bot_url: "<add bot url to recieve POST requests from groupme on>"
+      schedule_type: '(Optional)<Type of schedule to parse for ScheduleBot>'
+      team_id: '(Optional)<Team ID for schedule>'
+      schedule_id: '(Optional)<Schedule/Season ID for schedule>'
+      company_id: '(Optional)<Company ID required for some schedule types>'
+      rsvp_tool_type: '(Optional)<rsvp tool type, benchapp|tlr>'
+      rsvp_username: '(Optional)<login username for rsvp tool>'
+      rsvp_password: '(Optional)<login password for rsvp tool>'
+ 
