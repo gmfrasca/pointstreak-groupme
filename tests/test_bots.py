@@ -119,6 +119,9 @@ class TeamLockerRoomMock(object):
     def get_next_game_attendees(self):
         return "NextGameAttendees"
 
+    def get_next_game_lines(self):
+        return "NextGameLines"
+
 
 class TestBaseBot(unittest.TestCase):
 
