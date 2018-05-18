@@ -75,9 +75,11 @@ class ScheduleBot(BaseBot):
             attendance = self.rsvp.get_next_game_attendance()
             attendance_resp = attendance
             attendees = self.rsvp.get_next_game_attendees()
+            lines = self.rsvp.get_next_game_lines()
             extra_context.update(dict(attendance=attendance,
                                       attendance_resp=attendance_resp,
-                                      attendees=attendees))
+                                      attendees=attendees,
+                                      lines=lines))
         return extra_context
 
     def read_msg(self, msg):

@@ -19,6 +19,7 @@ class BenchApp(RsvpTool):
 
     def __init__(self, username, password):
         super(BenchApp, self).__init__(username, password, DEFAULT_URL)
+        self.next_game_data = None
         self.retrieve_next_game_page()
 
     def login(self):
@@ -37,9 +38,7 @@ class BenchApp(RsvpTool):
         page = self.get_next_game_page().text
         soup = BeautifulSoup(page, 'html.parser')
         no_results_div = soup.find_all("div", {"class": "noResults"})
-        if len(no_results_div) == 0:
-            return True
-        return False
+        return len(no_results_div) == 0
 
     def get_next_game_page(self):
         return self.next_game
@@ -49,6 +48,8 @@ class BenchApp(RsvpTool):
                                                           NEXT_GAME_URL))
 
     def get_next_game_data(self):
+        if self.next_game_data is not None:
+            return self.next_game_data
         if self.has_upcoming_game is False:
             return dict()
         page = self.get_next_game_page().text
@@ -65,6 +66,7 @@ class BenchApp(RsvpTool):
                 player, date = self.parse_playeritem(playeritem)
                 player_list.append(dict(player=player, date=date))
             data.update({checkin_type: player_list})
+        self.next_game_data = data
         return data
 
     def get_list_of_player_names(self, list_type):
@@ -124,11 +126,103 @@ class BenchApp(RsvpTool):
                               wait_list) if len(wait_list) > 0 else "None"
             unkn_str = reduce((lambda x, y: '{0}, {1}'.format(x, y)),
                               unkn_list) if len(unkn_list) > 0 else "None"
-            return ("In: {0},\r\n Out: {1},\r\n Waitlist: {2}," +
-                    "\r\n No Status: {3}").format(in_str, out_str,
-                                                  wait_str, unkn_str)
+            return ("In: {0}\r\nOut: {1}\r\nWaitlist: {2}" +
+                    "\r\nNo Status: {3}").format(in_str, out_str,
+                                                 wait_str, unkn_str)
         else:
             return "No upcoming games found."
+
+    def get_next_game_lines(self):
+        if self.has_upcoming_game is False:
+            return "No upcoming games found."
+        page = self.get_next_game_page().text
+        soup = BeautifulSoup(page, 'html.parser')
+        controls = soup.find('div', {'class': 'mainControls'}).find_all('a')
+        line_url = None
+        for control in controls:
+            line_url = control.get('href') if \
+                control.get('href').startswith('/schedule/lines') else line_url
+        response = self.session.get('{0}{1}'.format(self.baseurl, line_url))
+        soup = BeautifulSoup(response.text, 'html.parser')
+        lines = {
+            'forwards': [
+                {
+                    'leftwing': self.get_player_in_line_pos(soup, 'fl1-lw'),
+                    'center': self.get_player_in_line_pos(soup, 'fl1-c'),
+                    'rightwing': self.get_player_in_line_pos(soup, 'fl1-rw')
+                },
+                {
+                    'leftwing': self.get_player_in_line_pos(soup, 'fl2-lw'),
+                    'center': self.get_player_in_line_pos(soup, 'fl2-c'),
+                    'rightwing': self.get_player_in_line_pos(soup, 'fl2-rw')
+                },
+                {
+                    'leftwing': self.get_player_in_line_pos(soup, 'fl3-lw'),
+                    'center': self.get_player_in_line_pos(soup, 'fl3-c'),
+                    'rightwing': self.get_player_in_line_pos(soup, 'fl3-rw')
+                },
+                {
+                    'leftwing': self.get_player_in_line_pos(soup, 'fl4-lw'),
+                    'center': self.get_player_in_line_pos(soup, 'fl4-c'),
+                    'rightwing': self.get_player_in_line_pos(soup, 'fl4-rw')
+                },
+            ],
+            'defense': [
+                {
+                    'left': self.get_player_in_line_pos(soup, 'dl1-ld'),
+                    'right': self.get_player_in_line_pos(soup, 'dl1-rd')
+                },
+                {
+                    'left': self.get_player_in_line_pos(soup, 'dl2-ld'),
+                    'right': self.get_player_in_line_pos(soup, 'dl2-rd')
+                },
+                {
+                    'left': self.get_player_in_line_pos(soup, 'dl3-ld'),
+                    'right': self.get_player_in_line_pos(soup, 'dl3-rd')
+                }
+            ],
+            'goalies': [
+                self.get_player_in_line_pos(soup, 'gl-1'),
+                self.get_player_in_line_pos(soup, 'gl-2'),
+            ]
+
+        }
+        return self.construct_line_str(lines)
+
+    def construct_line_str(self, lines):
+        line_str = '---FORWARDS---'
+        for line in lines.get('forwards'):
+            lw = line.get('leftwing', None)
+            rw = line.get('rightwing', None)
+            center = line.get('center', None)
+            lw = '' if lw is None else lw
+            rw = '' if rw is None else rw
+            center = '' if center is None else center
+            if all(v is None for v in line.values()) is False:
+                line_str = '{0}\r\n{1} - {2} - {3}'.format(line_str, lw,
+                                                           center, rw)
+        line_str = '{0}\r\n---DEFENSE---'.format(line_str)
+        for line in lines.get('defense'):
+            ld = line.get('left', None)
+            rd = line.get('right', None)
+            ld = '' if ld is None else ld
+            rd = '' if rd is None else rd
+            if all(v is None for v in line.values()) is False:
+                line_str = '{0}\r\n{1} - {2}'.format(line_str, ld, rd)
+        line_str = '{0}\r\n---GOALIES---'.format(line_str)
+        for goalie in lines.get('goalies'):
+            if goalie is not None:
+                line_str = '{0}\r\n{1}'.format(line_str, goalie)
+        return line_str
+
+    def get_player_in_line_pos(self, soup, pos):
+        pos_item = soup.find('div', {'data-position': pos})
+        if pos_item is None:
+            return None
+        player_item = pos_item.find('span', {'class': 'playerName'})
+        player_num = player_item.span
+        player_name = player_num.previous_sibling
+        return player_name.strip()
 
     def try_checkin(self, name, status='in'):
         if self.has_upcoming_game is False:
@@ -166,7 +260,7 @@ class BenchApp(RsvpTool):
                                                    'ignore').strip("'"))
                 self.session.get('{0}{1}'.format(DEFAULT_URL, CHECKIN_URL),
                                  params=data)
-            except:
+            except Exception:
                 raise CheckinException(
                     "ERROR::Could not check in {0}".format(name))
 
@@ -176,6 +270,7 @@ def main():
     ba = BenchApp(sys.argv[1], sys.argv[2])
     logging.debug(ba.get_next_game_attendees())
     logging.debug(ba.get_next_game_attendance())
+    logging.debug(ba.get_next_game_lines())
 
 
 if __name__ == '__main__':
