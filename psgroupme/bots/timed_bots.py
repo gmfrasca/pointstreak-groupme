@@ -1,5 +1,5 @@
 from database import PointstreakDatabase
-from factories import ScheduleFactory
+from factories import ScheduleFactory, RsvpToolFactory
 from interfaces.responder import Responder
 from time import sleep
 import datetime
@@ -44,10 +44,28 @@ class GamedayReminderBot(TimedBot):
 
     def __init__(self, **kwargs):
         super(GamedayReminderBot, self).__init__(**kwargs)
+        self.bot_data = kwargs
         self.schedule_type = kwargs.get('schedule_type', 'pointstreak')
         self.team_id = kwargs.get('team_id')
         self.season_id = kwargs.get('schedule_id', 0)
         self.company_id = kwargs.get('company_id', 'UnknownCompany')
+        self.rsvp = None
+        self.load_rsvp()
+
+    def load_rsvp(self):
+        # Set up RsvpTool
+        if self.rsvp is not None:
+            return
+        if 'rsvp_tool_type' in self.bot_data:
+            self.rsvp_tool_type = self.bot_data.get('rsvp_tool_type', 'tlr')
+            self.rsvp_username = self.bot_data.get('rsvp_username', None)
+            self.rsvp_password = self.bot_data.get('rsvp_password', None)
+            if self.rsvp_username is not None and self.rsvp_password is \
+                    not None:
+                rsvp_kwargs = dict(username=self.rsvp_username,
+                                   password=self.rsvp_password)
+                self.rsvp = RsvpToolFactory.create(self.rsvp_tool_type,
+                                                   **rsvp_kwargs)
 
     def game_has_been_notified(self, game_id):
         return self.db.game_has_been_notified(game_id)
@@ -57,6 +75,9 @@ class GamedayReminderBot(TimedBot):
         msg = "Its Gameday! {0} vs {1} at {2}".format(game['hometeam'],
                                                       game['awayteam'],
                                                       game['time'])
+        if self.rsvp is not None:
+            msg = "{0}\r\n{1}".format(msg,
+                                      self.rsvp.get_next_game_attendance())
         logging.info(msg)
         self.send_msg(msg)
         self.db.set_notified(game_id, True)
