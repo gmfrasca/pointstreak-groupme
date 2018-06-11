@@ -70,9 +70,12 @@ class SportsEngineSchedule(Schedule):
         return "12:01 AM EST"
 
     def parse_teams(self, opponent):
+        opp_name = opponent.div.text if opponent.div.a is None else \
+            opponent.div.a.text
+        opp_name = opp_name.strip()
         if self.is_home_team(opponent):
-            return self.team_name, opponent.div.a.text
-        return opponent.div.a.text, self.team_name
+            return self.team_name, opp_name
+        return opp_name, self.team_name
 
     def parse_score(self, score, opponent):
         if score.div is None or score.div.a is None:
