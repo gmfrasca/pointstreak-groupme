@@ -76,6 +76,7 @@ class GamedayReminderBot(TimedBot):
                                                       game['awayteam'],
                                                       game['time'])
         if self.rsvp is not None:
+            self.load_rsvp()
             msg = "{0}\r\n{1}".format(msg,
                                       self.rsvp.get_next_game_attendance())
         logging.info(msg)
