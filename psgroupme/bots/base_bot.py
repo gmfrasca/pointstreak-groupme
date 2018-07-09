@@ -65,10 +65,15 @@ class BaseBot(Resource):
             context.update(self.bot_data)
             context.update(self.get_extra_context())
             try:
-                self.respond(matches[0]['reply'].format(**context))
+                if 'reply' in matches[0]:
+                    self.respond(matches[0]['reply'].format(**context))
+                self.react(msg, context)
             except KeyError:
                 # message requires undefined context variable
                 self.respond('Sorry, that command is not available.')
+
+    def react(self, msg, context):
+        pass
 
     def respond(self, msg):
         """Have the bot post a message to it's group"""

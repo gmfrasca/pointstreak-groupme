@@ -55,6 +55,19 @@ class Schedule(object):
         now = datetime.datetime.now()
         return (now - self.last_refresh).total_seconds() > self.STALE_TIME
 
+    @property
+    def length(self):
+        return len(self.games)
+
+    @property
+    def games_remaining(self):
+        val = 0
+        now = datetime.datetime.now()
+        for game in self.games:
+            if game.full_gametime > now:
+                val += 1
+        return val
+
     def get_schedule(self):
         """Get a string representation of the current schedule"""
         return str(self)
