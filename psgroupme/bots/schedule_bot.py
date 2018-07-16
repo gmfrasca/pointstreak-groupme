@@ -127,52 +127,63 @@ class ScheduleBot(BaseBot):
                 name = sender if len(params) < 3 else params[1]
                 stat = params[2]
                 self.load_player_stats()
-                player = self.player_stats.get_player(name)
-                if player is not None:
+                players = self.player_stats.get_player(name)
+                if len(players) < 1:
+                    self.respond(
+                        "ERROR::Cound not find player: {0}".format(name))
+                    return
+                for player in players:
                     val = player.get_stat(stat.lower())
                     if val is not None:
                         if isinstance(val, float):
-                            self.respond("{0:.3f}".format(val))
+                            self.respond("{0}: {1:.3f} {2}".format(player.name,
+                                                                   val,
+                                                                   stat))
                         else:
-                            self.respond(val)
+                            self.respond('{0}: {1} {2}'.format(player.name,
+                                                               val,
+                                                               stat))
                     else:
                         self.respond(
                             "ERROR::Could not find stat: {0}".format(stat))
-                else:
-                    self.respond(
-                        "ERROR::Cound not find player: {0}".format(name))
+
             elif text.startswith('!playoff'):
                 self.load_player_stats()
                 self.load_schedule()
                 name = sender if len(params) < 2 else params[1]
-                player = self.player_stats.get_player(name)
-                if player is not None:
+                players = self.player_stats.get_player(name)
+                if len(players) < 1:
+                    self.respond(
+                        "ERROR::Cound not find player: {0}".format(name))
+                    return
+                for player in players:
                     sched_length = self.schedule.length
                     games_remaining = self.schedule.games_remaining
                     el_pars = dict(sched_length=sched_length,
                                    games_remaining=games_remaining)
-                    print(el_pars)
                     elligible = player.is_playoff_eligible(sched_length)
                     possible = player.can_be_elligible(**el_pars)
                     in_danger = player.in_danger_of_inelligibility(**el_pars)
                     missable = player.get_missable_games(**el_pars)
                     if elligible:
-                        self.respond(
-                            "{0} is elligible for playoffs".format(name))
+                        if name.lower() != 'all':
+                            self.respond(
+                                "{0} is elligible for playoffs".format(
+                                    player.name))
                     elif possible:
                         if in_danger:
                             self.respond(("{0} is in danger of missing " +
                                           "playoffs.  They can miss {1} more" +
-                                          " games").format(name, missable))
-                        else:
+                                          " games").format(player.name,
+                                                           missable))
+                        elif name.lower() != 'all':
                             self.respond(("{0} is not in danger of missing " +
-                                          "playoffs").format(name))
-                    else:
+                                          "playoffs").format(player.name))
+                    elif name.lower() != 'all':
                         self.respond(("It is not possible for {0} to be" +
-                                      " elligible for playoffs").format(name))
-                else:
-                    self.respond(
-                        "ERROR::Cound not find player: {0}".format(name))
+                                      " elligible for playoffs").format(
+                                          player.name))
+
         except Exception as e:
             self.respond("ERROR::{0}".format(str(e)))
 
