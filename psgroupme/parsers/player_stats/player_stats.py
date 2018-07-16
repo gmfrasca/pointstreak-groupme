@@ -47,13 +47,16 @@ class PlayerStats(object):
         return (now - self.last_refresh).total_seconds() > self.STALE_TIME
 
     def get_player(self, search_name):
+        found = list()
         for player_name, player in self.players.get('players').iteritems():
-            if search_name.lower() in player_name.lower():
-                return player
+            if search_name.lower() in player_name.lower() or \
+                    search_name.lower() == 'all':
+                found.append(player)
         for player_name, player in self.players.get('goalies').iteritems():
-            if search_name.lower() in player_name.lower():
-                return player
-        return None
+            if search_name.lower() in player_name.lower() or \
+                    search_name.lower() == 'all':
+                found.append(player)
+        return found
 
     def get_player_stats(self):
         """Get a string representation of the current stats"""
