@@ -46,17 +46,31 @@ class PlayerStats(object):
         now = datetime.datetime.now()
         return (now - self.last_refresh).total_seconds() > self.STALE_TIME
 
+    @property
+    def roster_list(self):
+        roster = self.players.get('players').values()
+        roster.extend(self.players.get('goalies').values())
+        return roster
+
     def get_player(self, search_name):
+        if search_name.lower() == 'all':
+            return self.roster_list
         found = list()
         for player_name, player in self.players.get('players').iteritems():
-            if search_name.lower() in player_name.lower() or \
-                    search_name.lower() == 'all':
+            if search_name.lower() in player_name.lower():
                 found.append(player)
         for player_name, player in self.players.get('goalies').iteritems():
-            if search_name.lower() in player_name.lower() or \
-                    search_name.lower() == 'all':
+            if search_name.lower() in player_name.lower():
                 found.append(player)
         return found
+
+    def get_playoff_danger(self, sched_length, games_remaining):
+        el_pars = dict(sched_length=sched_length,
+                       games_remaining=games_remaining)
+        for player in self.roster_list:
+            if player.in_danger_of_inelligibility(**el_pars) and \
+                    not player.is_playoff_eligible(sched_length):
+                yield player
 
     def get_player_stats(self):
         """Get a string representation of the current stats"""
