@@ -1,5 +1,5 @@
 from database import PointstreakDatabase
-from factories import ScheduleFactory, RsvpToolFactory
+from factories import ScheduleFactory, RsvpToolFactory, PlayerStatsFactory
 from interfaces.responder import Responder
 from time import sleep
 import datetime
@@ -41,6 +41,7 @@ class GamedayReminderBot(TimedBot):
 
     MORNING_CUTOFF = datetime.time(10, 00)
     NIGHT_CUTOFF = datetime.time(22, 00)
+    DEFAULT_STATS_TYPE = 'sportsengine'
 
     def __init__(self, **kwargs):
         super(GamedayReminderBot, self).__init__(**kwargs)
@@ -49,6 +50,7 @@ class GamedayReminderBot(TimedBot):
         self.team_id = kwargs.get('team_id')
         self.season_id = kwargs.get('schedule_id', 0)
         self.company_id = kwargs.get('company_id', 'UnknownCompany')
+        self.playoff_check = kwargs.get('playoff_check', False)
         self.rsvp = None
         self.load_rsvp()
 
@@ -67,6 +69,15 @@ class GamedayReminderBot(TimedBot):
                 self.rsvp = RsvpToolFactory.create(self.rsvp_tool_type,
                                                    **rsvp_kwargs)
 
+    def load_stats(self):
+        self.stats_type = self.bot_data.get(
+            'stats_type',
+            self.bot_data.get('schedule_type', self.DEFAULT_STATS_TYPE)
+        )
+        stats_kwargs = dict(team_id=self.team_id, season_id=self.season_id)
+        self.player_stats = PlayerStatsFactory.create(self.stats_type,
+                                                      **stats_kwargs)
+
     def game_has_been_notified(self, game_id):
         return self.db.game_has_been_notified(game_id)
 
@@ -79,6 +90,21 @@ class GamedayReminderBot(TimedBot):
             self.load_rsvp()
             msg = "{0}\r\n{1}".format(msg,
                                       self.rsvp.get_next_game_attendance())
+        if self.playoff_check:
+            self.load_stats()
+            sched_length = self.sched.length
+            games_remaining = self.sched.games_remaining
+            danger_str = 'Playoff elligibility:'
+            danger_exists = False
+            for player in self.player_stats.get_playoff_danger(
+                    sched_length, games_remaining):
+                danger_exists = True
+                missable = player.get_missable_games(sched_length,
+                                                     games_remaining)
+                danger_str += '\r\n{0} can only miss {1} more games'.format(
+                   player.name, missable)
+            if danger_exists:
+                msg = "{0}\r\n{1}".format(msg, danger_str)
         logging.info(msg)
         self.send_msg(msg)
         self.db.set_notified(game_id, True)
