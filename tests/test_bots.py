@@ -122,6 +122,9 @@ class TeamLockerRoomMock(object):
     def get_next_game_lines(self):
         return "NextGameLines"
 
+    def get_team_fee_progress(self):
+        return "TeamFeeProgress"
+
 
 class TestBaseBot(unittest.TestCase):
 
