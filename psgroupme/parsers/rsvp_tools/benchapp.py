@@ -13,7 +13,7 @@ NEXT_GAME_URL = '/schedule/next-event'
 CHECKIN_URL = '/schedule-area/ajax/setAttendance.php'
 FINANCES_URL = '/team/finances/fees/index.html'
 
-PROGRESS_BAR_CHARS = 40
+PROGRESS_BAR_CHARS = 20
 
 
 class CheckinException(Exception):
@@ -103,9 +103,9 @@ class BenchApp(RsvpTool):
             pass
         num_x = int(PROGRESS_BAR_CHARS * percent)
         num_rem = PROGRESS_BAR_CHARS - num_x
-        x_string = 'X' * num_x
+        x_string = '#' * num_x
         rem_string = '-' * num_rem
-        return "[{}{}] {:.2f}% (${:.2f} / ${:.2f})".format(
+        return "[{}{}] {:.2f}%\r\n (${:.2f} / ${:.2f})".format(
             x_string, rem_string, 100 * percent, paid, fee)
 
     def get_list_of_player_names(self, list_type):
