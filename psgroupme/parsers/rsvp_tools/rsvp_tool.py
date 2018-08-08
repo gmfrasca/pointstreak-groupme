@@ -30,6 +30,9 @@ class RsvpTool(object):
     def get_next_game_lines(self):
         print("NOTIMPLEMENTED")
 
+    def get_team_fee_progress(self):
+        print("NOTIMPLEMENTED")
+
 
 def main():
     assert len(sys.argv) > 2
