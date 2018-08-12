@@ -14,23 +14,30 @@ class Game(object):
     """Represents a game parsed from a Pointstreak schedule"""
 
     def __init__(self, date, time, hometeam, homescore, awayteam, awayscore,
-                 year=None):
+                 year=None, prevgame=None):
         """ Store this game's relevant data """
-        self.date = self.normalize_date(date.strip())
-        self.time = self.normalize_time(time.strip())
-        self.full_gametime = self.assemble_full_gametime(date, time, year)
-        self.full_gametime_str = self.full_gametime.strftime(FULL_DESCRIPTOR)
+        self.parse_date(date, time, year, prevgame)
         self.hometeam = hometeam
         self.homescore = homescore
         self.awayteam = awayteam
         self.awayscore = awayscore
 
+    def parse_date(self, date, time, year, prevgame=None):
+        self.date = self.normalize_date(date.strip())
+        self.time = self.normalize_time(time.strip())
+        self.full_gametime = self.assemble_full_gametime(date, time, year)
+        self.full_gametime_str = self.full_gametime.strftime(FULL_DESCRIPTOR)
+        if prevgame is not None:
+            if prevgame.full_gametime > self.full_gametime:
+                next_year = str(int(self.year) + 1)
+                self.parse_date(date, time, next_year, prevgame)
+
     def determine_year(self, date, year=None):
-        now = datetime.datetime.now()
-        year = str(year if year else now.year)
-        full_gametime = date.split()[1:]
-        if full_gametime[0] in ['Jan', 'Feb', 'Mar'] and now.month > 7:
-            year = str(now.year + 1)
+        if year is None:
+            now = datetime.datetime.now()
+            year = str(now.year)
+        year = str(year)
+        self.year = year
         return year
 
     def normalize_date(self, date, year=None):
