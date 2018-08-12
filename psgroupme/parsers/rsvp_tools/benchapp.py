@@ -1,5 +1,7 @@
 from bs4 import BeautifulSoup
 from rsvp_tool import RsvpTool
+from re import sub
+from decimal import Decimal
 import logging
 import sys
 import re
@@ -9,6 +11,9 @@ DEFAULT_URL = 'https://benchapp.com'
 LOGIN_URL = '/player-area/ajax/login.php'
 NEXT_GAME_URL = '/schedule/next-event'
 CHECKIN_URL = '/schedule-area/ajax/setAttendance.php'
+FINANCES_URL = '/team/finances/fees/index.html'
+
+PROGRESS_BAR_CHARS = 20
 
 
 class CheckinException(Exception):
@@ -21,6 +26,7 @@ class BenchApp(RsvpTool):
         super(BenchApp, self).__init__(username, password, DEFAULT_URL)
         self.next_game_data = None
         self.retrieve_next_game_page()
+        self.retrieve_finances_page()
 
     def login(self):
         data = dict(email=self.username, password=self.password)
@@ -47,6 +53,13 @@ class BenchApp(RsvpTool):
         self.next_game = self.session.get('{0}{1}'.format(self.baseurl,
                                                           NEXT_GAME_URL))
 
+    def retrieve_finances_page(self):
+        self.finances = self.session.get('{0}{1}'.format(self.baseurl,
+                                                         FINANCES_URL))
+
+    def get_finances_page(self):
+        return self.finances
+
     def get_next_game_data(self):
         if self.next_game_data is not None:
             return self.next_game_data
@@ -68,6 +81,32 @@ class BenchApp(RsvpTool):
             data.update({checkin_type: player_list})
         self.next_game_data = data
         return data
+
+    def moneytext_to_float(self, moneytext):
+        return float(Decimal(sub(r'[^\d.-]', '', moneytext)))
+
+    def get_team_fee_progress(self):
+        page = self.get_finances_page().text
+        soup = BeautifulSoup(page, 'html.parser')
+        rosterlist = soup.find("table", {"id": "rosterList"})
+        footer = rosterlist.find("tfoot")
+        items = footer.find_all("td")
+
+        paid = self.moneytext_to_float(items[2].text)
+        fee = self.moneytext_to_float(items[1].text)
+
+        # Do calculations here
+        percent = 1.0
+        try:
+            percent = paid / fee
+        except ZeroDivisionError:
+            pass
+        num_x = int(PROGRESS_BAR_CHARS * percent)
+        num_rem = PROGRESS_BAR_CHARS - num_x
+        x_string = '#' * num_x
+        rem_string = '-' * num_rem
+        return "[{}{}] {:.2f}%\r\n (${:.2f} / ${:.2f})".format(
+            x_string, rem_string, 100 * percent, paid, fee)
 
     def get_list_of_player_names(self, list_type):
         data = self.get_next_game_data()

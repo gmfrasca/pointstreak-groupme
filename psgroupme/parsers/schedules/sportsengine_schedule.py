@@ -46,6 +46,7 @@ class SportsEngineSchedule(Schedule):
 
     def parse_table(self):
         games = []
+        prevgame = None
         for game_row in self.html_table.find_all('tr'):
             cells = game_row.find_all('td')
             gamedate = cells[self.COLUMNS['gameday']].text
@@ -56,8 +57,9 @@ class SportsEngineSchedule(Schedule):
                 cells[self.COLUMNS['result']],
                 cells[self.COLUMNS['awayteam']])
             game = Game(gamedate, gametime, hometeam, homescore, awayteam,
-                        awayscore)
+                        awayscore, prevgame=prevgame)
             games.append(game)
+            prevgame = game
         return games
 
     def is_home_team(self, opponent):

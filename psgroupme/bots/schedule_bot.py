@@ -92,10 +92,12 @@ class ScheduleBot(BaseBot):
             attendance_resp = attendance
             attendees = self.rsvp.get_next_game_attendees()
             lines = self.rsvp.get_next_game_lines()
+            teamfee_progress = self.rsvp.get_team_fee_progress()
             extra_context.update(dict(attendance=attendance,
                                       attendance_resp=attendance_resp,
                                       attendees=attendees,
-                                      lines=lines))
+                                      lines=lines,
+                                      teamfee_progress=teamfee_progress))
 
         if self.player_stats is not None:
             roster = str(self.player_stats)
