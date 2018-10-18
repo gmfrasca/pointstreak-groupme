@@ -161,8 +161,7 @@ class TestBaseBot(unittest.TestCase):
     @mock.patch.object(psgroupme.bots.base_bot.Responder, 'reply')
     def test_respond(self, reply_fn):
         self.bot.respond("foobar")
-        reply_fn.assert_called_once_with('Hello, this is {0}'.format(
-            type(self.bot).__name__))
+        reply_fn.assert_called_once_with('foobar')
 
     def test_includes_standard_replies(self):
         self.bot.refresh_responses()
@@ -209,6 +208,7 @@ class TestBaseBot(unittest.TestCase):
     def test_read_msg(self):
         self.bot.respond = mock.MagicMock()
         self.bot.refresh_responses = mock.MagicMock()
+        self.bot.get_params = mock.MagicMock()
         self.bot.responses = [
             {
                 'input': r'foobar',
