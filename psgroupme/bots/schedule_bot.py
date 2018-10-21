@@ -104,7 +104,8 @@ class ScheduleBot(BaseBot):
             extra_context.update(dict(roster=roster))
         return extra_context
 
-    def react(self, msg, context):
+    def react(self, msg, context, params):
+        super(ScheduleBot, self).react(msg, context, params)
         self.check_rsvp(msg.get('name', None), msg.get('text', ''))
         self.check_stat(msg, context)
 
@@ -195,6 +196,14 @@ class ScheduleBot(BaseBot):
     def respond(self, msg):
         """Respond using the matched message reply"""
         self.responder.reply(msg)
+
+    def get_params(self, match, msg):
+        parameterized = match.get('parameterized', False)
+        cut_amt = len(match.get('input', '').split())
+        words = msg.get('text', '').split()
+        if not parameterized or len(words) <= cut_amt:
+            return list()
+        return words[cut_amt:]
 
     def get_matching_responses(self, msg):
         matches = super(ScheduleBot, self).get_matching_responses(msg)

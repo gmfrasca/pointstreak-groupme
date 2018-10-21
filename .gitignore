@@ -105,6 +105,7 @@ ENV/
 *.local.yaml
 *.local.json
 *.local.xml
+img/
 
 # local dev
 localdev/

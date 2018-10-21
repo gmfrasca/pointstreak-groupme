@@ -4,6 +4,7 @@ import os
 CONFIG_PATH = 'config/bots.local.yaml'
 PACKAGE_PATH = os.path.dirname(os.path.dirname(__file__))
 DEFAULT_CONFIG = os.path.join(PACKAGE_PATH, CONFIG_PATH)
+IMG_PATH = os.path.join(PACKAGE_PATH, 'img')
 DEFAULT_FLASK_PORT = 5002
 
 
@@ -47,3 +48,10 @@ class ConfigManager(object):
         if 'flask' in self.cfg:
             return self.cfg['flask'].get('port', DEFAULT_FLASK_PORT)
         return DEFAULT_FLASK_PORT
+
+    def get_img_server_config(self):
+        return dict(path=self.cfg.get('img', dict()).get('path', IMG_PATH),
+                    dest=self.cfg.get('img', dict()).get('dest', '/img'))
+
+    def get_public_url(self):
+        return self.cfg.get('public_url', 'http://localhost:5000')

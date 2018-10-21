@@ -4,6 +4,7 @@ from interfaces.responder import Responder
 from bot_responses import BotResponseManager
 import json
 import re
+import os
 
 
 class BaseBot(Resource):
@@ -64,20 +65,42 @@ class BaseBot(Resource):
             context = msg.copy()
             context.update(self.bot_data)
             context.update(self.get_extra_context())
-            try:
-                if 'reply' in matches[0]:
-                    self.respond(matches[0]['reply'].format(**context))
-                self.react(msg, context)
-            except KeyError:
-                # message requires undefined context variable
-                self.respond('Sorry, that command is not available.')
+            for match in matches:
+                params = self.get_params(match, msg)
+                try:
+                    self.react(msg, context, params)
+                    if 'reply' in matches[0]:
+                        self.respond(matches[0]['reply'].format(**context))
+                except KeyError:
+                    # message requires undefined context variable
+                    self.respond('Sorry, that command is not available.')
 
-    def react(self, msg, context):
-        pass
+    def respond_image(self, searchfor):
+        searchfor = os.path.basename(searchfor)
+        public_url = self.bot_data.get('public_url').strip('/')
+        img_cfg = self.bot_data.get('img_cfg')
+        searchdir = img_cfg.get('path')
+        dest = img_cfg.get('dest').strip('/')
+        file_exts = ['.jpg', '.jpeg', '.gif', '.png', '.bmp']
+        if img_cfg and searchdir and dest:
+            # This is for ACL reasons
+            found_files = [x for x in os.listdir(searchdir) if
+                           os.path.isfile(os.path.join(searchdir, x))]
+            for file_type in file_exts:
+                filename = '{}{}'.format(searchfor, file_type)
+                if filename in found_files:
+                    url = '{}/{}/{}'.format(public_url, dest, filename)
+                    self.respond(url)
+                    return
+
+    def react(self, msg, context, params):
+        if msg.get('text', '').startswith("!img"):
+            for param in params:
+                self.respond_image(param)
 
     def respond(self, msg):
         """Have the bot post a message to it's group"""
-        self.responder.reply('Hello, this is {0}'.format(self.bot_name))
+        self.responder.reply(msg)
 
     def get(self):
         """React to a GET call"""
