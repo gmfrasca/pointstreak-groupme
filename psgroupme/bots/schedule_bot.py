@@ -12,7 +12,8 @@ class ScheduleBot(BaseBot):
     DEFAULT_SEASON_ID = 481539
     DEFAULT_TYPE = 'sportsengine'
 
-    def __init__(self, bot_cfg, schedule=None, rsvp=None, player_stats=None):
+    def __init__(self, bot_cfg, schedule=None, rsvp=None, player_stats=None,
+                 *args, **kwargs):
         """Initialize the bot, and add ScheduleBot-specific responses"""
         super(ScheduleBot, self).__init__(bot_cfg)
         self.schedule = schedule
