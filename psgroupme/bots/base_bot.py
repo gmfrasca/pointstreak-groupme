@@ -6,6 +6,8 @@ import json
 import re
 import os
 
+IMG_EXTENSIONS = ['jpg', 'jpeg', 'gif', 'png', 'bmp']
+
 
 class BaseBot(Resource):
     """
@@ -68,35 +70,58 @@ class BaseBot(Resource):
             for match in matches:
                 params = self.get_params(match, msg)
                 try:
-                    self.react(msg, context, params)
-                    if 'reply' in matches[0]:
-                        self.respond(matches[0]['reply'].format(**context))
+                    for action in match.get('actions', list()):
+                        action_type = action
+                        if isinstance(action, dict):
+                            action_type = action.get('type', 'pass')
+
+                        self.react(action_type, msg, context, params)
+                    if 'reply' in match:
+                        print(context)
+                        self.respond(match['reply'].format(**context))
                 except KeyError:
                     # message requires undefined context variable
                     self.respond('Sorry, that command is not available.')
 
-    def respond_image(self, searchfor):
+    def get_params(self, match, msg):
+        cut_amt = len(match.get('input', '').split())
+        words = msg.get('text', '').split()
+        if len(words) <= cut_amt:
+            return list()
+        return words[cut_amt:]
+
+    def list_images(self, *args, **kwargs):
+        searchdir = self.bot_data.get('img_cfg', dict()).get('path')
+        files = self._list_of_files_in_dir(searchdir) if searchdir else []
+        self.respond(' '.join(['.'.join(x.split('.')[:-1]) for x in files if
+                               x.split('.')[-1] in IMG_EXTENSIONS]))
+
+    def _list_of_files_in_dir(self, searchdir, show_all=False):
+        files = [x for x in os.listdir(searchdir) if
+                 os.path.isfile(os.path.join(searchdir, x))]
+        if show_all is False:
+            files = [x for x in files if x.startswith("0000") is False]
+        return files
+
+    def _respond_image(self, searchfor):
         searchfor = os.path.basename(searchfor)
         public_url = self.bot_data.get('public_url').strip('/')
         img_cfg = self.bot_data.get('img_cfg')
         searchdir = img_cfg.get('path')
         dest = img_cfg.get('dest').strip('/')
-        file_exts = ['.jpg', '.jpeg', '.gif', '.png', '.bmp']
         if img_cfg and searchdir and dest:
             # This is for ACL reasons
-            found_files = [x for x in os.listdir(searchdir) if
-                           os.path.isfile(os.path.join(searchdir, x))]
-            for file_type in file_exts:
-                filename = '{}{}'.format(searchfor, file_type)
+            found_files = self._list_of_files_in_dir(searchdir, show_all=True)
+            for file_type in IMG_EXTENSIONS:
+                filename = '{}.{}'.format(searchfor, file_type)
                 if filename in found_files:
                     url = '{}/{}/{}'.format(public_url, dest, filename)
                     self.respond(url)
                     return
 
-    def react(self, msg, context, params):
-        if msg.get('text', '').startswith("!img"):
-            for param in params:
-                self.respond_image(param)
+    def react(self, action_type, msg, context, params):
+        if callable(getattr(self, action_type, None)):
+            getattr(self, action_type)(msg=msg, context=context, params=params)
 
     def respond(self, msg):
         """Have the bot post a message to it's group"""
@@ -116,3 +141,11 @@ class BaseBot(Resource):
         except ValueError:
             pass
         return None
+
+    def respond_image(self, *args, **kwargs):
+        params = kwargs.get('params', list())
+        for param in params:
+            self._respond_image(param)
+
+    def testcallable(self, *args, **kwargs):
+        self.respond('{}'.format(kwargs))
