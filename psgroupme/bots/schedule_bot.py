@@ -92,31 +92,27 @@ class ScheduleBot(BaseBot):
             extra_context.update(dict(roster=roster))
         return extra_context
 
-    def react(self, msg, context, params):
-        super(ScheduleBot, self).react(msg, context, params)
-        self.check_rsvp(msg.get('name', None), msg.get('text', ''))
-        self.check_stat(msg, context)
+    def react(self, action_type, msg, context, params):
+        super(ScheduleBot, self).react(action_type, msg, context, params)
+        # self.check_stat(msg, context)
 
-    def check_rsvp(self, sender, msg):
-        name = sender if len(msg.split()) < 2 else msg.split(' ', 1)[1]
+    def checkin_player(self, *args, **kwargs):
+        msg = kwargs.get('msg', dict())
+        params = kwargs.get('params', list())
+        name = msg.get('name', None) if len(params) < 1 else ' '.join(params)
         try:
-            if msg.startswith('!in'):
-                self.load_rsvp()
-                self.rsvp.try_checkin(name, 'in')
-            elif msg.startswith('!out'):
-                self.load_rsvp()
-                self.rsvp.try_checkin(name, 'out')
+            self.load_rsvp()
+            self.rsvp.try_checkin(name, kwargs.get('checkin_type', 'in'))
         except Exception as e:
             self.respond("ERROR::{0}".format(str(e)))
 
-    def check_stat(self, msg, context):
-        sender = msg.get('name', None)
-        text = msg.get('text', '')
-        params = text.split()
+    def check_stat(self, msg, params, **kwargs):
+        name = msg.get('name', None)
         try:
-            if text.startswith('!stat') and len(params) > 1:
-                name = sender if len(params) < 3 else params[1]
-                stat = params[2]
+            if len(params) > 0:
+                stat = params[-1]
+                if len(params) > 1:
+                    name = ' '.join(params[:-1])
                 self.load_player_stats()
                 players = self.player_stats.get_player(name)
                 if len(players) < 1:
@@ -137,11 +133,15 @@ class ScheduleBot(BaseBot):
                     else:
                         self.respond(
                             "ERROR::Could not find stat: {0}".format(stat))
+        except Exception as e:
+            self.respond("ERROR::{0}".format(str(e)))
 
-            elif text.startswith('!playoff'):
+    def check_playoff(self, msg, params, *args, **kwargs):
+        name = msg.get('name', None) if len(params) < 0 else ' '.join(params)
+        try:
+            if len(params) > 0:
                 self.load_player_stats()
                 self.load_schedule()
-                name = sender if len(params) < 2 else params[1]
                 players = self.player_stats.get_player(name)
                 if len(players) < 1:
                     self.respond(
@@ -180,18 +180,6 @@ class ScheduleBot(BaseBot):
 
     def get_bot_specific_responses(self):
         return self.brm.get_responses().get('schedulebot', list())
-
-    def respond(self, msg):
-        """Respond using the matched message reply"""
-        self.responder.reply(msg)
-
-    def get_params(self, match, msg):
-        parameterized = match.get('parameterized', False)
-        cut_amt = len(match.get('input', '').split())
-        words = msg.get('text', '').split()
-        if not parameterized or len(words) <= cut_amt:
-            return list()
-        return words[cut_amt:]
 
     def get_matching_responses(self, msg):
         matches = super(ScheduleBot, self).get_matching_responses(msg)
