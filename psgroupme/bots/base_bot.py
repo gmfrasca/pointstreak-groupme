@@ -4,9 +4,6 @@ from interfaces.responder import Responder
 from bot_responses import BotResponseManager
 import json
 import re
-import os
-
-IMG_EXTENSIONS = ['jpg', 'jpeg', 'gif', 'png', 'bmp']
 
 
 class BaseBot(Resource):
@@ -19,7 +16,7 @@ class BaseBot(Resource):
     def bot_type(self):
         return type(self).__name__
 
-    def __init__(self, bot_cfg):
+    def __init__(self, bot_cfg, *args, **kwargs):
         """Load the config for this bot based on Name"""
         self.brm = BotResponseManager()
         self.bot_data = bot_cfg
@@ -90,35 +87,6 @@ class BaseBot(Resource):
             return list()
         return words[cut_amt:]
 
-    def list_images(self, *args, **kwargs):
-        searchdir = self.bot_data.get('img_cfg', dict()).get('path')
-        files = self._list_of_files_in_dir(searchdir) if searchdir else []
-        self.respond(' '.join(['.'.join(x.split('.')[:-1]) for x in files if
-                               x.split('.')[-1] in IMG_EXTENSIONS]))
-
-    def _list_of_files_in_dir(self, searchdir, show_all=False):
-        files = [x for x in os.listdir(searchdir) if
-                 os.path.isfile(os.path.join(searchdir, x))]
-        if show_all is False:
-            files = [x for x in files if x.startswith("0000") is False]
-        return files
-
-    def _respond_image(self, searchfor):
-        searchfor = os.path.basename(searchfor)
-        public_url = self.bot_data.get('public_url').strip('/')
-        img_cfg = self.bot_data.get('img_cfg')
-        searchdir = img_cfg.get('path')
-        dest = img_cfg.get('dest').strip('/')
-        if img_cfg and searchdir and dest:
-            # This is for ACL reasons
-            found_files = self._list_of_files_in_dir(searchdir, show_all=True)
-            for file_type in IMG_EXTENSIONS:
-                filename = '{}.{}'.format(searchfor, file_type)
-                if filename in found_files:
-                    url = '{}/{}/{}'.format(public_url, dest, filename)
-                    self.respond(url)
-                    return
-
     def react(self, action_type, msg, context, params):
         if callable(getattr(self, action_type, None)):
             getattr(self, action_type)(msg=msg, context=context, params=params)
@@ -141,11 +109,3 @@ class BaseBot(Resource):
         except ValueError:
             pass
         return None
-
-    def respond_image(self, *args, **kwargs):
-        params = kwargs.get('params', list())
-        for param in params:
-            self._respond_image(param)
-
-    def testcallable(self, *args, **kwargs):
-        self.respond('{}'.format(kwargs))
