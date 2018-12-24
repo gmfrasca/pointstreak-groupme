@@ -2,6 +2,7 @@ from flask import request
 from flask_restful import Resource
 from interfaces.responder import Responder
 from bot_responses import BotResponseManager
+import datetime
 import json
 import re
 
@@ -24,6 +25,7 @@ class BaseBot(Resource):
         self.bot_name = self.bot_data.get('bot_name', 'UnknownBot')
         assert self.bot_id is not None
         self.responder = Responder(self.bot_id)
+        self.context = dict()
 
     def refresh_responses(self):
         self.responses = self.brm.get_global_responses()
@@ -47,13 +49,15 @@ class BaseBot(Resource):
                    x['input'].format(**context), msg['text'], re.I | re.U)]
 
     def get_extra_context(self):
-        return self.brm.get_extra_context()
+        self.context.update(self.brm.get_extra_context())
+        self.context.update(dict(today=datetime.datetime.now().strftime(
+            "%a %b %d %I:%M.%S%p")))
 
     def read_msg(self, msg):
         """
         Read a message's contents, and act on it if it matches a regex in
         self.responses.  Also updates the incoming message with the bot cfg for
-        extra context (usefull in replies, such as {bot_name})
+        extra context (useful in replies, such as {bot_name})
         """
         if msg['text'] == '!ping':
             self.respond('pong')
@@ -61,21 +65,20 @@ class BaseBot(Resource):
         matches = self.get_matching_responses(msg)
         if len(matches) > 0:
             matches = self.get_matching_responses(msg)
-            context = msg.copy()
-            context.update(self.bot_data)
-            context.update(self.get_extra_context())
+            self.context = msg.copy()
+            self.context.update(self.bot_data)
+            self.get_extra_context()
             for match in matches:
                 params = self.get_params(match, msg)
                 try:
-                    for action in match.get('actions', list()):
+                    for action in self._get_actions(match):
                         action_type = action
                         if isinstance(action, dict):
                             action_type = action.get('type', 'pass')
 
-                        self.react(action_type, msg, context, params)
+                        self.react(action_type, msg, params)
                     if 'reply' in match:
-                        print(context)
-                        self.respond(match['reply'].format(**context))
+                        self.respond(match['reply'].format(**self.context))
                 except KeyError:
                     # message requires undefined context variable
                     self.respond('Sorry, that command is not available.')
@@ -87,13 +90,27 @@ class BaseBot(Resource):
             return list()
         return words[cut_amt:]
 
-    def react(self, action_type, msg, context, params):
+    def react(self, action_type, msg, params):
         if callable(getattr(self, action_type, None)):
-            getattr(self, action_type)(msg=msg, context=context, params=params)
+            getattr(self, action_type)(msg=msg, params=params)
 
     def respond(self, msg):
         """Have the bot post a message to it's group"""
         self.responder.reply(msg)
+
+    def _get_actions(self, match):
+        actions = list()
+        single_action = match.get('action', list())
+        multi_actions = match.get('actions', list())
+        if isinstance(single_action, basestring):
+            actions.extend([single_action])
+        if isinstance(single_action, list):
+            actions.extend(single_action)
+        if isinstance(multi_actions, basestring):
+            actions.extend([multi_actions])
+        if isinstance(multi_actions, list):
+            actions.extend(multi_actions)
+        return actions
 
     def get(self):
         """React to a GET call"""
