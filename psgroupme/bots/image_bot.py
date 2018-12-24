@@ -12,6 +12,11 @@ class ImageBot(BaseBot):
         self.respond(' '.join(['.'.join(x.split('.')[:-1]) for x in files if
                                x.split('.')[-1] in IMG_EXTENSIONS]))
 
+    def respond_image(self, *args, **kwargs):
+        params = kwargs.get('params', list())
+        for param in params:
+            self._respond_image(param)
+
     def _list_of_files_in_dir(self, searchdir, show_all=False):
         files = [x for x in os.listdir(searchdir) if
                  os.path.isfile(os.path.join(searchdir, x))]
@@ -34,8 +39,3 @@ class ImageBot(BaseBot):
                     url = '{}/{}/{}'.format(public_url, dest, filename)
                     self.respond(url)
                     return
-
-    def respond_image(self, *args, **kwargs):
-        params = kwargs.get('params', list())
-        for param in params:
-            self._respond_image(param)
