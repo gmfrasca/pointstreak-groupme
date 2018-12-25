@@ -46,11 +46,10 @@ class GamedayReminderBot(TimedBot):
     def __init__(self, **kwargs):
         super(GamedayReminderBot, self).__init__(**kwargs)
         self.bot_data = kwargs
-        self.schedule_type = kwargs.get('schedule_type', 'pointstreak')
-        self.team_id = kwargs.get('team_id')
-        self.season_id = kwargs.get('schedule_id', 0)
-        self.company_id = kwargs.get('company_id', 'UnknownCompany')
-        self.playoff_check = kwargs.get('playoff_check', False)
+        self.stats_cfg = kwargs.get('stats', dict())
+        schedule_cfg = kwargs.get('schedule', dict())
+        self.schedule_cfg = schedule_cfg
+        self.schedule_type = self.schedule_cfg.get('type', 'pointstreak')
         self.rsvp = None
         self.load_rsvp()
 
@@ -58,23 +57,21 @@ class GamedayReminderBot(TimedBot):
         # Set up RsvpTool
         if self.rsvp is not None:
             return
-        if 'rsvp_tool_type' in self.bot_data:
-            self.rsvp_tool_type = self.bot_data.get('rsvp_tool_type', 'tlr')
-            self.rsvp_username = self.bot_data.get('rsvp_username', None)
-            self.rsvp_password = self.bot_data.get('rsvp_password', None)
-            if self.rsvp_username is not None and self.rsvp_password is \
-                    not None:
-                rsvp_kwargs = dict(username=self.rsvp_username,
-                                   password=self.rsvp_password)
-                self.rsvp = RsvpToolFactory.create(self.rsvp_tool_type,
-                                                   **rsvp_kwargs)
+        if 'rsvp' in self.bot_data:
+            rsvp_cfg = self.bot_data.get('rsvp')
+            if 'username' in rsvp_cfg and 'password' in rsvp_cfg:
+                rsvp_type = rsvp_cfg.get('type')
+                rsvp_cfg.update(dict(rsvp_tool_type=rsvp_type))
+                self.rsvp = RsvpToolFactory.create(**rsvp_cfg)
 
     def load_stats(self):
         self.stats_type = self.bot_data.get(
             'stats_type',
             self.bot_data.get('schedule_type', self.DEFAULT_STATS_TYPE)
         )
-        stats_kwargs = dict(team_id=self.team_id, season_id=self.season_id)
+        # TODO: remove
+        stats_kwargs = dict(team_id=self.schedule_cfg.get('team_id'),
+                            season_id=self.schedule_cfg.get('season_id'))
         self.player_stats = PlayerStatsFactory.create(self.stats_type,
                                                       **stats_kwargs)
 
@@ -116,17 +113,16 @@ class GamedayReminderBot(TimedBot):
 
     def run(self):
         # Set up Database
-        sched_kwargs = dict(team_id=self.team_id, season_id=self.season_id,
-                            company=self.company_id)
         self.db = PointstreakDatabase()
-        self.sched = ScheduleFactory.create(self.schedule_type, **sched_kwargs)
+        self.sched = ScheduleFactory.create(self.schedule_type,
+                                            **self.schedule_cfg)
         self.sched.refresh_schedule()
         self.db.load_schedule(self.sched)
-        self.team_id = self.sched.team_id
-        self.season_id = self.sched.season_id
+        team_id = self.sched.team_id
+        season_id = self.sched.season_id
         while True:
-            if self.db.is_game_today(self.team_id, self.season_id):
-                game_id = self.db.get_todays_game(self.team_id, self.season_id)
+            if self.db.is_game_today(team_id, season_id):
+                game_id = self.db.get_todays_game(team_id, season_id)
                 if not self.game_has_been_notified(game_id) and \
                         self.ok_time_to_send_msg():
                     self.send_game_notification(game_id)

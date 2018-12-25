@@ -10,8 +10,9 @@ DEFAULT_URL = 'https://teamlockerroom.com'
 
 class TeamLockerRoom(RsvpTool):
 
-    def __init__(self, username, password):
-        super(TeamLockerRoom, self).__init__(username, password, DEFAULT_URL)
+    def __init__(self, username, password, **kwargs):
+        super(TeamLockerRoom, self).__init__(username, password, DEFAULT_URL,
+                                             **kwargs)
 
     def get_csrf_token(self):
         response = self.session.get(self.baseurl)

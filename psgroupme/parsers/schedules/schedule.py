@@ -30,13 +30,17 @@ MAX_RESPONSES = FREE_REQUESTS if MAX_RESPONSES > FREE_REQUESTS else \
 class Schedule(object):
 
     STALE_TIME = 60
+    DEFAULT_COLUMNS = {}
 
     def __init__(self, team_id=TEAM_ID, season_id=SEASON_ID,
-                 company=COMPANY_ID):
+                 company=COMPANY_ID, columns=None, **kwargs):
         self.html_doc = None
         self.team_id = team_id
         self.season_id = season_id
         self.games = list()
+        self.columns = self.DEFAULT_COLUMNS
+        if columns and isinstance(columns, dict):
+            self.columns.update(columns)
         self.url = self.get_schedule_url(team_id, season_id)
         self.refresh_schedule()
         self.last_refresh = datetime.datetime.now()
@@ -127,8 +131,8 @@ class Schedule(object):
         self.games = self.parse_table()
 
     def send_get_request(self, url):
-            self.html_doc = get(url).text
-            self.last_refresh = datetime.datetime.now()
+        self.html_doc = get(url).text
+        self.last_refresh = datetime.datetime.now()
 
     def retrieve_html_table_with_class(self, url, table_class):
         """

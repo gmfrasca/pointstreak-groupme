@@ -3,11 +3,24 @@ bots:
       bot_name: '<add bot name here>'
       bot_id: '<add bot id hash here>'
       bot_url: "<add bot url to recieve POST requests from groupme on>"
-      schedule_type: '(Optional)<Type of schedule to parse for ScheduleBot>'
-      team_id: '(Optional)<Team ID for schedule>'
-      schedule_id: '(Optional)<Schedule/Season ID for schedule>'
-      company_id: '(Optional)<Company ID required for some schedule types>'
-      rsvp_tool_type: '(Optional)<rsvp tool type, benchapp|tlr>'
-      rsvp_username: '(Optional)<login username for rsvp tool>'
-      rsvp_password: '(Optional)<login password for rsvp tool>'
+      schedule:  # Optional
+        type: '<Type of schedule parser to use>'
+        team_id: '<Team ID for schedule>'
+        season_id: '<Schedule/Season ID for schedule>'
+        company_id: '(Optional)<Company ID required for some schedule types>'
+        columns:  # Optional, maps schedule fields to cell order for parsing 
+          awayteam: 2
+          gameday: 0
+          gametime: 4
+          result: 1
+          location: 3
+      stats:  # Optional, defaults to schedule dict above if undefined
+        type: '<Type of stats parser to use>'
+        team_id: '<Team ID for stats>'
+        season_id: '<Schedule/Season ID for stats>'
+        company_id: '(Optional)<Company ID required for some stats types>'
+      rsvp:  # Optional
+        type: '<rsvp tool type, benchapp|tlr>'
+        username: '<login username for rsvp tool>'
+        password: '<login password for rsvp tool>'
  

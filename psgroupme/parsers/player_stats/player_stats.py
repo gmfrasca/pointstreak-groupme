@@ -21,7 +21,7 @@ class PlayerStats(object):
     STALE_TIME = 60
 
     def __init__(self, team_id=TEAM_ID, season_id=SEASON_ID,
-                 company=COMPANY_ID):
+                 company=COMPANY_ID, **kwargs):
         self.html_doc = None
         self.team_id = team_id
         self.season_id = season_id
