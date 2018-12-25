@@ -7,7 +7,7 @@ class RsvpTool(object):
 
     DEFAULT_URL = 'https://teamlockerroom.com'
 
-    def __init__(self, username, password, url=DEFAULT_URL):
+    def __init__(self, username, password, url=DEFAULT_URL, **kwargs):
         self.baseurl = url
         self.session = requests.session()
         self.username = username
@@ -25,13 +25,13 @@ class RsvpTool(object):
         return 'NextGameAttendees'
 
     def try_checkin(self, name, status):
-        print("NOTIMPLEMENTED")
+        raise NotImplementedError
 
     def get_next_game_lines(self):
-        print("NOTIMPLEMENTED")
+        raise NotImplementedError
 
     def get_team_fee_progress(self):
-        print("NOTIMPLEMENTED")
+        raise NotImplementedError
 
 
 def main():
