@@ -16,7 +16,7 @@ class PointstreakSchedule(Schedule):
     a Poinstreak Team Schedule page
     """
     # Expected Column Data Contents
-    COLUMNS = {
+    DEFAULT_COLUMNS = {
         'homelogo': 0,
         'hometeam': 1,
         'awaylogo': 2,
@@ -44,10 +44,10 @@ class PointstreakSchedule(Schedule):
         if self.html_table:
             for game_row in self.html_table.find_all('tr'):
                 cells = game_row.find_all('td')
-                gamedate = cells[self.COLUMNS['gameday']].string
-                gametime = cells[self.COLUMNS['gametime']].string
-                home, hscore = self.parse_team(cells[self.COLUMNS['hometeam']])
-                away, ascore = self.parse_team(cells[self.COLUMNS['awayteam']])
+                gamedate = cells[self.columns['gameday']].string
+                gametime = cells[self.columns['gametime']].string
+                home, hscore = self.parse_team(cells[self.columns['hometeam']])
+                away, ascore = self.parse_team(cells[self.columns['awayteam']])
                 games.append(Game(gamedate,
                                   gametime,
                                   home,

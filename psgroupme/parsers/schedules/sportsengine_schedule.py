@@ -14,7 +14,7 @@ SE_SCHED_EXT = 'schedule/team_instance'
 class SportsEngineSchedule(Schedule):
 
     # Expected Column Data Contents
-    COLUMNS = {
+    DEFAULT_COLUMNS = {
         'homelogo': None,
         'hometeam': None,
         'awaylogo': None,
@@ -49,13 +49,13 @@ class SportsEngineSchedule(Schedule):
         prevgame = None
         for game_row in self.html_table.find_all('tr'):
             cells = game_row.find_all('td')
-            gamedate = cells[self.COLUMNS['gameday']].text
-            gametime = self.get_game_time(cells[self.COLUMNS['gametime']])
+            gamedate = cells[self.columns['gameday']].text
+            gametime = self.get_game_time(cells[self.columns['gametime']])
             hometeam, awayteam = self.parse_teams(
-                cells[self.COLUMNS['awayteam']])
+                cells[self.columns['awayteam']])
             homescore, awayscore = self.parse_score(
-                cells[self.COLUMNS['result']],
-                cells[self.COLUMNS['awayteam']])
+                cells[self.columns['result']],
+                cells[self.columns['awayteam']])
             game = Game(gamedate, gametime, hometeam, homescore, awayteam,
                         awayscore, prevgame=prevgame)
             games.append(game)

@@ -21,14 +21,15 @@ class DashPlatformSchedule(Schedule):
     SCHEDULE_URL = '/dash/index.php?Action=Team/index'
 
     # TODO
-    COLUMNS = {
+    DEFAULT_COLUMNS = {
         'gamedatetime': 0,
         'gametype': 1,
         'description': 2,
         'results': 3
     }
 
-    def __init__(self, team_id=TEAM_ID, company=COMPANY_ID, **kwargs):
+    def __init__(self, team_id=TEAM_ID, company=COMPANY_ID,
+                 columns=None, **kwargs):
         self.html_doc = None
         self.team_id = team_id
         self.company = company
@@ -43,7 +44,6 @@ class DashPlatformSchedule(Schedule):
     def retrieve_html_table(self, url):
         # As of 2018-04-10, this is no longer a table but a list
         # Leaving in incase this is undone
-        # print(url)
         # table_classes = 'table table-condensed table-striped'
         # return self.retrieve_html_table_with_class(url, table_classes)
         table_class = 'list-group'

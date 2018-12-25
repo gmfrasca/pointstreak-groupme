@@ -22,8 +22,9 @@ class CheckinException(Exception):
 
 class BenchApp(RsvpTool):
 
-    def __init__(self, username, password):
-        super(BenchApp, self).__init__(username, password, DEFAULT_URL)
+    def __init__(self, username, password, **kwargs):
+        super(BenchApp, self).__init__(username, password, DEFAULT_URL,
+                                       **kwargs)
         self.next_game_data = None
         self.retrieve_next_game_page()
         self.retrieve_finances_page()

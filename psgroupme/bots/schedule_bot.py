@@ -22,43 +22,31 @@ class ScheduleBot(BaseBot):
     def load_schedule(self):
         if self.schedule is not None:
             return
-        self.schedule_type = self.bot_data.get('schedule_type',
-                                               self.DEFAULT_TYPE)
-
-        # Setup Pointstreak or SportsEngine Schedule
-        team_id = self.bot_data.get('team_id', self.DEFAULT_TEAM_ID)
-        season_id = self.bot_data.get('schedule_id', self.DEFAULT_SEASON_ID)
-        sched_kwargs = dict(team_id=team_id, season_id=season_id)
-        self.schedule = ScheduleFactory.create(self.schedule_type,
-                                               **sched_kwargs)
+        if 'schedule' in self.bot_data:
+            schedule_cfg = self.bot_data.get('schedule', dict())
+            schedule_type = schedule_cfg.get('type', self.DEFAULT_TYPE)
+            schedule_cfg.update(dict(schedule_type=schedule_type))
+            self.schedule = ScheduleFactory.create(**schedule_cfg)
 
     def load_rsvp(self):
         # Set up RsvpTool
         if self.rsvp is not None:
             return
-        if 'rsvp_tool_type' in self.bot_data:
-            self.rsvp_tool_type = self.bot_data.get('rsvp_tool_type', 'tlr')
-            self.rsvp_username = self.bot_data.get('rsvp_username', None)
-            self.rsvp_password = self.bot_data.get('rsvp_password', None)
-            if self.rsvp_username is not None and self.rsvp_password is \
-                    not None:
-                rsvp_kwargs = dict(username=self.rsvp_username,
-                                   password=self.rsvp_password)
-                self.rsvp = RsvpToolFactory.create(self.rsvp_tool_type,
-                                                   **rsvp_kwargs)
+        if 'rsvp' in self.bot_data:
+            rsvp_cfg = self.bot_data.get('rsvp')
+            if 'username' in rsvp_cfg and 'password' in rsvp_cfg:
+                rsvp_type = rsvp_cfg.get('type')
+                rsvp_cfg.update(dict(rsvp_tool_type=rsvp_type))
+                self.rsvp = RsvpToolFactory.create(**rsvp_cfg)
 
     def load_player_stats(self):
         if self.player_stats is not None:
             return
-        self.stats_type = self.bot_data.get(
-            'stats_type',
-            self.bot_data.get('schedule_type', self.DEFAULT_TYPE)
-        )
-        team_id = self.bot_data.get('team_id', self.DEFAULT_TEAM_ID)
-        season_id = self.bot_data.get('schedule_id', self.DEFAULT_SEASON_ID)
-        stats_kwargs = dict(team_id=team_id, season_id=season_id)
-        self.player_stats = PlayerStatsFactory.create(self.stats_type,
-                                                      **stats_kwargs)
+        stats_cfg = self.bot_data.get('stats', self.bot_data.get('schedule'))
+        if stats_cfg is not None:
+            stats_type = stats_cfg.get('type', self.DEFAULT_TYPE)
+            stats_cfg.update(dict(stats_type=stats_type))
+            self.player_stats = PlayerStatsFactory.create(**stats_cfg)
 
     def get_extra_context(self):
         extra_context = super(ScheduleBot, self).get_extra_context()
