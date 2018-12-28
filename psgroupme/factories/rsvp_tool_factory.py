@@ -10,7 +10,7 @@ class RsvpToolFactory(object):
         if rsvp_tool_type == 'benchapp':
             return BenchApp(**kwargs)
         else:
-            raise ValueError("Schedule Type '{0}' not found"
+            raise ValueError("RSVP Tool Type '{0}' not found"
                              .format(rsvp_tool_type))
 
     create = staticmethod(create)
