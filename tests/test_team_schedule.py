@@ -111,7 +111,6 @@ class TestGame(unittest.TestCase):
 
     def test_print(self):
         date_str = 'Thu, Aug 31 07:22 PM'
-        print(self.game)
         self.assertEqual(str(self.game),
                          "home vs away at {0}".format(date_str))
         self.assertEqual(str(self.done_game),
@@ -211,7 +210,6 @@ class TestPointstreakSchedule(unittest.TestCase):
         expected = '''home 6 : away 0 on \w\w\w, Aug 15 08:45 PM
 home vs away at \w\w\w, Aug 25 08:45 PM
 '''
-        print(str(self.schedule))
         self.assertRegexpMatches(str(self.schedule), expected)
 
     @mock.patch('psgroupme.parsers.schedules.schedule.datetime')

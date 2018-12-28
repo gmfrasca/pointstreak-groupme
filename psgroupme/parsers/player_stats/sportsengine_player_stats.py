@@ -72,12 +72,3 @@ class SportsEnginePlayerStats(PlayerStats):
                                                         'goals_against'))
             goalies.update({goalie_name: goalie})
         return dict(players=players, goalies=goalies)
-
-
-def main():
-    stats = SportsEnginePlayerStats()
-    print(stats)
-
-
-if __name__ == '__main__':
-    main()

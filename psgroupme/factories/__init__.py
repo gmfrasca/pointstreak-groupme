@@ -1,5 +1,7 @@
 from schedule_factory import ScheduleFactory
 from rsvp_tool_factory import RsvpToolFactory
 from player_stats_factory import PlayerStatsFactory
+from finance_tool_factory import FinanceToolFactory
 
-__all__ = ['ScheduleFactory', 'RsvpToolFactory', 'PlayerStatsFactory']
+__all__ = ['ScheduleFactory', 'RsvpToolFactory', 'PlayerStatsFactory',
+           'FinanceToolFactory']
