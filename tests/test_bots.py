@@ -248,7 +248,6 @@ class TestBaseBot(unittest.TestCase):
         self.bot.respond.assert_called_with('testregex')
         self.bot.refresh_responses.assert_called()
 
-        print(self.bot.bot_data)
         test_msg = dict(text='format_test')
         self.bot.read_msg(test_msg)
         self.bot.respond.assert_called_with('{}'.format(
@@ -325,7 +324,6 @@ class TestScheduleBot(TestBaseBot):
                                    'respond') as mock_resp:
                 test_msg = dict(text=dialog[0])
                 test_msg.update(context)
-                print(test_msg)
                 self.bot.read_msg(test_msg)
                 if dialog[1]:
                     mock_resp.assert_called_with(dialog[1])

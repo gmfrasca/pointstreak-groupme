@@ -1,4 +1,5 @@
 from factories import ScheduleFactory, RsvpToolFactory, PlayerStatsFactory
+from factories import FinanceToolFactory
 from interfaces.responder import Responder
 from database import PointstreakDatabase
 from util import parsetime as pt
@@ -64,8 +65,8 @@ class TeamFeeReminderBot(TimedBot):
         if finance_cfg:
             if 'username' in finance_cfg and 'password' in finance_cfg:
                 finance_type = finance_cfg.get('type')
-                finance_cfg.update(dict(rsvp_tool_type=finance_type))
-                return RsvpToolFactory.create(**finance_cfg)
+                finance_cfg.update(dict(finance_tool_type=finance_type))
+                return FinanceToolFactory.create(**finance_cfg)
         return None
 
     def post_msg(self):
