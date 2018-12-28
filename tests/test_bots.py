@@ -44,24 +44,33 @@ responses:
       reply: 'I am a GroupMe helper bot, beep boop. More info at {github_url}'
   schedulebot:
     - input: 'when.*next game([\?\!\.( is)].*)??$'
+      action: load_schedule
       reply: '{nextgame_resp}'
     - input: 'what was the score\??'
+      action: load_schedule
       reply: '{lastgame_resp}'
     - input: "^how('d| did)? we do([\\\?\\\!\\\.].*)??$"
+      action: load_schedule
       reply: '{lastgame_resp}'
     - input: 'what is.* schedule([\?\!\.].*)??$'
+      action: load_schedule
       reply: '{schedule_resp}'
     - input: '^how many do we have'
+      action: load_rsvp
       reply: '{attendance_resp}'
     - input: 'what is today'
       reply: '{today}'
     - input: '!nextgame'
+      action: load_schedule
       reply: '{next_game}'
     - input: '!lastgame'
+      action: load_schedule
       reply: '{last_game}'
     - input: '!schedule'
+      action: load_schedule
       reply: '{schedule}'
     - input: '!attendance'
+      action: load_rsvp
       reply: '{attendance}'
     - input: '!source'
       reply: '{github_url}'
@@ -262,8 +271,14 @@ class TestScheduleBot(TestBaseBot):
     def test_includes_specialized_replies(self):
         self.bot.refresh_responses()
         brm = BotResponseManager(cfg_path=EXAMPLE_RESP_YAML)
-        for resp_item in brm.get_responses().get('schedulebot', []):
-            assert resp_item in self.bot.responses
+        for resp in brm.get_responses().get('schedulebot', []):
+            found = False
+            for actual in self.bot.responses:
+                if actual.get('input') == resp.get('input') and \
+                   resp.get('reply') == actual.get('reply'):
+                    found = True
+                    break
+            assert found
 
     @mock.patch.object(psgroupme.bots.base_bot.Responder, 'reply')
     def test_respond(self, reply_fn):
