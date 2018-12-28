@@ -5,6 +5,7 @@ from time import sleep
 import datetime
 import threading
 import logging
+import croniter
 
 
 class TimedBot(threading.Thread):
@@ -30,11 +31,51 @@ class TimedBot(threading.Thread):
         logging.info("Stopping Bot {0}".format(self.bot_type))
         self._stop_event.set()
 
+    @property
     def stopped(self):
         return self._stop_event.is_set()
 
     def send_msg(self, msg):
         self.responder.reply(msg)
+
+
+class TeamFeeReminderBot(TimedBot):
+
+    DEFAULT_CRON = "0 12 * * 0"
+
+    def __init__(self, **kwargs):
+        super(TeamFeeReminderBot, self).__init__(**kwargs)
+        self.bot_data = kwargs
+        self.finance_cfg = self.bot_data.get('finance')
+        self.schedule = self.finance_cfg.get('schedule', self.DEFAULT_CRON)
+
+    def get_finance_tool(self):
+        # Set up RsvpTool
+        finance_cfg = self.finance_cfg.copy()
+        if finance_cfg:
+            if 'username' in finance_cfg and 'password' in finance_cfg:
+                finance_type = finance_cfg.get('type')
+                finance_cfg.update(dict(rsvp_tool_type=finance_type))
+                return RsvpToolFactory.create(**finance_cfg)
+        return None
+
+    def post_msg(self):
+        finance_tool = self.get_finance_tool()
+        progress_bar = finance_tool.get_team_fee_progress()
+        msg = "Current Team Fee Progress:\r\n\r\n{}".format(progress_bar)
+        self.send_msg(msg)
+
+    def run(self):
+        while not self.stopped:
+            now = datetime.datetime.utcnow()
+            cron = croniter.croniter(self.schedule, now)
+            next_run = cron.get_next(datetime.datetime)
+            delta = next_run - now
+            t = threading.Timer(delta.total_seconds(), self.post_msg)
+            t.daemon = True
+            t.start()
+            while t.is_alive():
+                sleep(1)
 
 
 class GamedayReminderBot(TimedBot):
@@ -129,6 +170,12 @@ class GamedayReminderBot(TimedBot):
 
 
 class TestGamedayReminderBot(GamedayReminderBot):
+
+    def send_msg(self, msg):
+        print(msg)
+
+
+class TestTeamFeeReminderBot(TeamFeeReminderBot):
 
     def send_msg(self, msg):
         print(msg)
