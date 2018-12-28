@@ -2,7 +2,7 @@
 Quick and Dirty table parser to read a team schedule
 off of DashPlatform, a team stats-tracking website
 """
-from game import DATE_DESCRIPTOR, TIME_DESCRIPTOR
+from util.parsetime import DATE_DESCRIPTOR, TIME_DESCRIPTOR
 from bs4 import BeautifulSoup
 from schedule import Schedule
 import parsedatetime as pdt

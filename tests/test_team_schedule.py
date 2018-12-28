@@ -82,7 +82,7 @@ def mocked_get(*args, **kwargs):
 class TestGame(unittest.TestCase):
 
     def setUp(self):
-        with mock.patch('psgroupme.parsers.schedules.game.datetime.datetime') as mck_dt:
+        with mock.patch('psgroupme.util.parsetime.datetime.datetime') as mck_dt:
             # TODO mock now instead of using real time (i.e. get this to work)
             date_str = '{0}-08-31 18:22:24.033246'.format(THIS_YEAR)
             mock_now = datetime.datetime.strptime(date_str,
@@ -99,17 +99,19 @@ class TestGame(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_assemble_full_gametime(self):
-        this_year = 2017
-        date = 'Wed, Aug 5'
-        time = '8:45 PM'
-        parsed = self.game.assemble_full_gametime(date, time, this_year)
-        self.assertEqual(parsed, datetime.datetime(this_year, 8, 5, 20, 45))
-        self.assertEqual(self.game.full_gametime,
-                         datetime.datetime(this_year, 8, 31, 19, 22))
+    # TODO: Test this in test_parsetime.py
+    # def test_assemble_full_gametime(self):
+    #     this_year = 2017
+    #     date = 'Wed, Aug 5'
+    #     time = '8:45 PM'
+    #     parsed = self.game.assemble_full_gametime(date, time, this_year)
+    #     self.assertEqual(parsed, datetime.datetime(this_year, 8, 5, 20, 45))
+    #     self.assertEqual(self.game.full_gametime,
+    #                      datetime.datetime(this_year, 8, 31, 19, 22))
 
     def test_print(self):
         date_str = 'Thu, Aug 31 07:22 PM'
+        print(self.game)
         self.assertEqual(str(self.game),
                          "home vs away at {0}".format(date_str))
         self.assertEqual(str(self.done_game),

@@ -1,13 +1,4 @@
-import parsedatetime as pdt
-import datetime
-
-DATE_DESCRIPTOR = "%a, %b %d"
-# TIME_DESCRIPTOR = "%H:%M"  # 24-hour
-TIME_DESCRIPTOR = "%I:%M %p"  # 12-hour
-FULL_DESCRIPTOR = "{0} {1}".format(DATE_DESCRIPTOR, TIME_DESCRIPTOR)
-
-# TIME_DESCRIPTOR = "%a %b %d %H:%M"  # 24-hour
-# TIME_DESCRIPTOR = "%a %b %d %I:%M%p"  # 12-hour
+from util import parsetime as pt
 
 
 class Game(object):
@@ -16,63 +7,24 @@ class Game(object):
     def __init__(self, date, time, hometeam, homescore, awayteam, awayscore,
                  year=None, prevgame=None):
         """ Store this game's relevant data """
-        self.parse_date(date, time, year, prevgame)
+        self.year = pt.determine_year(year)
+        self.parse_date(date, time, self.year, prevgame)
         self.hometeam = hometeam
         self.homescore = homescore
         self.awayteam = awayteam
         self.awayscore = awayscore
 
     def parse_date(self, date, time, year, prevgame=None):
-        self.date = self.normalize_date(date.strip())
-        self.time = self.normalize_time(time.strip())
-        self.full_gametime = self.assemble_full_gametime(date, time, year)
-        self.full_gametime_str = self.full_gametime.strftime(FULL_DESCRIPTOR)
+        # TODO: Determine if we should actually set includes_day
+        self.date = pt.normalize_date(date.strip(), includes_day=True)
+        self.time = pt.normalize_time(time.strip())
+        self.full_gametime = pt.assemble_full_datetime(date, time, year)
+        self.full_gametime_str = self.full_gametime.strftime(
+            pt.FULL_DESCRIPTOR)
         if prevgame is not None:
             if prevgame.full_gametime > self.full_gametime:
                 next_year = str(int(self.year) + 1)
                 self.parse_date(date, time, next_year, prevgame)
-
-    def determine_year(self, date, year=None):
-        if year is None:
-            now = datetime.datetime.now()
-            year = str(now.year)
-        year = str(year)
-        self.year = year
-        return year
-
-    def normalize_date(self, date, year=None):
-        year = self.determine_year(date, year)
-        gamedate = date.split()[1:]
-        gamedate.extend([year])
-        gamedate = '{} {} {}'.format(*gamedate)
-        parsed, status = pdt.Calendar().parseDT(str(gamedate))
-        return parsed.strftime(DATE_DESCRIPTOR)
-
-    def normalize_time(self, time):
-        parsed, status = pdt.Calendar().parseDT(str(time))
-        return parsed.strftime(TIME_DESCRIPTOR)
-
-    def assemble_full_gametime(self, date, time, year=None):
-        """
-        Get a parsable full gametime (date + time) based on a
-        human-readable date (ex: Wed, Aug 5) and Time
-
-        Args:
-            date (str): A human-readable date string, like 'Wed, Aug 5'
-            time (str): A human-readable time string, like '8:45 PM'
-
-        Returns:
-            a parsed pdt object representing the input date and time
-        """
-        year = self.determine_year(date, year)
-        full_gametime = date.split()[1:]
-        full_gametime.extend([year])
-        full_gametime.extend(time.split())
-        full_gametime = ' '.join(full_gametime)
-
-        # TODO: act on bad status from parseDT
-        parsed, status = pdt.Calendar().parseDT(str(full_gametime))
-        return parsed
 
     def __repr__(self):
         """Print this game's most relevant info all together"""
