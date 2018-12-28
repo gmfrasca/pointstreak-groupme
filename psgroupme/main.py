@@ -1,5 +1,6 @@
 from interfaces.rest import main as start_rest_bots
 from interfaces.timed import main as start_timed_bots
+from time import sleep
 import logging
 import thread
 
@@ -22,8 +23,12 @@ def main():
         logging.error("Unable to start thread")
         logging.error(e)
 
-    while 1:
-        pass
+    running = True
+    while running:
+        try:
+            sleep(1)
+        except KeyboardInterrupt:
+            running = False
 
 
 if __name__ == '__main__':
