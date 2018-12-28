@@ -1,6 +1,7 @@
-from database import PointstreakDatabase
 from factories import ScheduleFactory, RsvpToolFactory, PlayerStatsFactory
 from interfaces.responder import Responder
+from database import PointstreakDatabase
+from util import parsetime as pt
 from time import sleep
 import datetime
 import threading
@@ -49,6 +50,14 @@ class TeamFeeReminderBot(TimedBot):
         self.finance_cfg = self.bot_data.get('finance')
         self.schedule = self.finance_cfg.get('schedule', self.DEFAULT_CRON)
 
+    @property
+    def season_start_date(self):
+        start_date = self.finance_cfg.get('season_start')
+        if start_date:
+            date = pt.normalize_date(start_date, return_type=datetime.datetime)
+            return date.replace(minute=0, hour=0, second=0, microsecond=0)
+        return None
+
     def get_finance_tool(self):
         # Set up RsvpTool
         finance_cfg = self.finance_cfg.copy()
@@ -61,9 +70,23 @@ class TeamFeeReminderBot(TimedBot):
 
     def post_msg(self):
         finance_tool = self.get_finance_tool()
-        progress_bar = finance_tool.get_team_fee_progress()
-        msg = "Current Team Fee Progress:\r\n\r\n{}".format(progress_bar)
-        self.send_msg(msg)
+        fee, paid, percent = finance_tool.get_team_fee_stats()
+        # Run only if fee isn't fully paid
+        if fee != paid:
+            prog_bar = finance_tool.get_team_fee_progress()
+            msg = ''
+            if self.season_start_date:
+                midnight = datetime.datetime.now().replace(
+                    hour=0, minute=0, second=0, microsecond=0)
+                days = (self.season_start_date - midnight).days
+                msg += 'The season starts today'
+                if days < 0:
+                    msg = 'The season started {} days ago'.format(-days)
+                if days > 0:
+                    msg = 'The season starts in {} days'.format(days)
+                msg += ' and the team fee is not yet paid in full!\r\n\r\n'
+            msg = "{}Current Team Fee Progress:\r\n{}".format(msg, prog_bar)
+            self.send_msg(msg)
 
     def run(self):
         while not self.stopped:

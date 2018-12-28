@@ -86,7 +86,7 @@ class BenchApp(RsvpTool):
     def moneytext_to_float(self, moneytext):
         return float(Decimal(sub(r'[^\d.-]', '', moneytext)))
 
-    def get_team_fee_progress(self):
+    def get_team_fee_stats(self):
         page = self.get_finances_page().text
         soup = BeautifulSoup(page, 'html.parser')
         rosterlist = soup.find("table", {"id": "rosterList"})
@@ -97,11 +97,15 @@ class BenchApp(RsvpTool):
         fee = self.moneytext_to_float(items[1].text)
 
         # Do calculations here
-        percent = 1.0
+        percent = 100.0
         try:
             percent = paid / fee
         except ZeroDivisionError:
             pass
+        return fee, paid, percent
+
+    def get_team_fee_progress(self):
+        fee, paid, percent = self.get_team_fee_stats()
         num_x = int(PROGRESS_BAR_CHARS * percent)
         num_rem = PROGRESS_BAR_CHARS - num_x
         x_string = '#' * num_x
