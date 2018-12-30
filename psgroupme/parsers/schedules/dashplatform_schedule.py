@@ -80,6 +80,7 @@ class DashPlatformSchedule(Schedule):
         now = datetime.datetime.now()
         year = now.year
         if self.html_table:
+            prevgame = None
             for game_row in self.html_table.find_all('li'):
                 gamedate_cell = game_row.find(
                     'h4', {'class': 'list-group-item-heading'}).text
@@ -94,12 +95,10 @@ class DashPlatformSchedule(Schedule):
                 hteam = score_cells[1].a.text
                 ascore = score_cells[2].text
                 ateam = score_cells[3].a.text
-                games.append(Game(gamedate,
-                                  gametime,
-                                  hteam,
-                                  hscore,
-                                  ateam,
-                                  ascore))
+                game = Game(gamedate, gametime, hteam, hscore,
+                            ateam, ascore, prevgame=prevgame)
+                games.append(game)
+                prevgame = game
         return games
 
     def parse_game(self, game_cell):

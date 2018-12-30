@@ -112,8 +112,7 @@ class GamedayReminderBot(TimedBot):
         super(GamedayReminderBot, self).__init__(**kwargs)
         self.bot_data = kwargs
         self.stats_cfg = kwargs.get('stats', dict())
-        schedule_cfg = kwargs.get('schedule', dict())
-        self.schedule_cfg = schedule_cfg
+        self.schedule_cfg = kwargs.get('schedule', dict())
         self.schedule_type = self.schedule_cfg.get('type', 'pointstreak')
         self.rsvp = None
         self.load_rsvp()
@@ -178,6 +177,7 @@ class GamedayReminderBot(TimedBot):
 
     def run(self):
         # Set up Database
+        # TODO: Can we move this inside run loop?
         self.db = PointstreakDatabase()
         self.sched = ScheduleFactory.create(self.schedule_type,
                                             **self.schedule_cfg)
@@ -193,6 +193,61 @@ class GamedayReminderBot(TimedBot):
                     self.send_game_notification(game_id)
 
 
+class UpdatedGameNotifierBot(TimedBot):
+    def __init__(self, **kwargs):
+        super(UpdatedGameNotifierBot, self).__init__(**kwargs)
+        self.bot_data = kwargs
+        self.schedule_cfg = self.bot_data.get('schedule', dict())
+        self.sleep_time = self.schedule_cfg.get('sleep_time', 1)
+        self.schedule_type = self.schedule_cfg.get('type', 'pointstreak')
+        self.sched = ScheduleFactory.create(self.schedule_type,
+                                            **self.schedule_cfg)
+
+    def store_old_games(self):
+        self.old_games = list()
+        for game in self.sched.games:
+            self.old_games.append(game.data)
+
+    def refresh_schedule(self):
+        self.store_old_games()
+        self.sched.refresh_schedule()
+
+    def scores_are_different(self, old_dict, new_game):
+        return (old_dict['homescore'] != new_game.homescore or
+                old_dict['awayscore'] != new_game.awayscore)
+
+    def time_is_different(self, old_dict, new_game):
+        return old_dict['full_gametime_str'] != new_game.full_gametime_str
+
+    def check_and_notify_schedule_changes(self):
+        # TODO: Determine *WHICH* games were added or deleted
+        # TODO: Check that game ids all match instead of assuming based on len
+        if len(self.old_games) < len(self.sched.games):
+            self.send_msg("Schedule Change Detected: New Games Added!")
+        elif len(self.old_games) > len(self.sched.games):
+            self.send_msg("Schedule Change Detected: Games Removed!")
+        else:
+            msg = ''
+            for x in range(0, len(self.old_games)):
+                old = self.old_games[x]
+                new = self.sched.games[x]
+                if self.scores_are_different(old, new):
+                    msg += "Score Updated:\r\n{}\r\n".format(new)
+                if self.time_is_different(old, new) and new.future:
+                    # Only notify if game hasn't already occurred
+                    msg += ("Game Time Updated:\r\n"
+                            "Game on {} is now: {}\r\n".format(
+                                old['full_gametime_str'], new))
+            if msg != '':
+                self.send_msg(msg)
+
+    def run(self):
+        while not self.stopped:
+            self.refresh_schedule()
+            self.check_and_notify_schedule_changes()
+            sleep(self.sleep_time)
+
+
 class TestGamedayReminderBot(GamedayReminderBot):
 
     def send_msg(self, msg):
@@ -200,6 +255,12 @@ class TestGamedayReminderBot(GamedayReminderBot):
 
 
 class TestTeamFeeReminderBot(TeamFeeReminderBot):
+
+    def send_msg(self, msg):
+        print(msg)
+
+
+class TestUpdatedGameNotifierBot(UpdatedGameNotifierBot):
 
     def send_msg(self, msg):
         print(msg)
