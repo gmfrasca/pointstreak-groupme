@@ -113,9 +113,14 @@ class GamedayReminderBot(TimedBot):
         self.bot_data = kwargs
         self.stats_cfg = kwargs.get('stats', dict())
         self.schedule_cfg = kwargs.get('schedule', dict())
+        self.stats_cfg = kwargs.get('stats', self.schedule_cfg)
         self.schedule_type = self.schedule_cfg.get('type', 'pointstreak')
         self.rsvp = None
         self.load_rsvp()
+
+    @property
+    def playoff_check(self):
+        return self.bot_data.get('playoff_check', False)
 
     def load_rsvp(self):
         # Set up RsvpTool
@@ -129,15 +134,9 @@ class GamedayReminderBot(TimedBot):
                 self.rsvp = RsvpToolFactory.create(**rsvp_cfg)
 
     def load_stats(self):
-        self.stats_type = self.bot_data.get(
-            'stats_type',
-            self.bot_data.get('schedule_type', self.DEFAULT_STATS_TYPE)
-        )
-        # TODO: remove
-        stats_kwargs = dict(team_id=self.schedule_cfg.get('team_id'),
-                            season_id=self.schedule_cfg.get('season_id'))
-        self.player_stats = PlayerStatsFactory.create(self.stats_type,
-                                                      **stats_kwargs)
+        stats_type = self.stats_cfg.get('type', 'pointstreak')
+        self.player_stats = PlayerStatsFactory.create(stats_type,
+                                                      **self.stats_cfg)
 
     def game_has_been_notified(self, game_id):
         return self.db.game_has_been_notified(game_id)
