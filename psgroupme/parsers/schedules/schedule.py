@@ -72,6 +72,9 @@ class Schedule(object):
                 val += 1
         return val
 
+    def get_schedule_url(self, team_id, season_id):
+        raise NotImplementedError
+
     def get_schedule(self):
         """Get a string representation of the current schedule"""
         return str(self)
@@ -124,6 +127,9 @@ class Schedule(object):
             the last game before right now
         """
         return self.get_last_game_before(datetime.datetime.now())
+
+    def parse_table(self):
+        raise NotImplementedError
 
     def refresh_schedule(self):
         """Reload the schedule from pointstreak"""

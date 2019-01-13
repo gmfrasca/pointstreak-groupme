@@ -20,20 +20,22 @@ class DashPlatformSchedule(Schedule):
     DASH_URL = 'https://apps.dashplatform.com/'
     SCHEDULE_URL = '/dash/index.php?Action=Team/index'
 
-    # TODO
     DEFAULT_COLUMNS = {
-        'gamedatetime': 0,
-        'gametype': 1,
-        'description': 2,
-        'results': 3
+        'homescore': 2,
+        'hometeam': 3,
+        'awayscore': 4,
+        'awayteam': 5,
     }
 
-    def __init__(self, team_id=TEAM_ID, company=COMPANY_ID,
+    def __init__(self, team_id=TEAM_ID, company_id=COMPANY_ID,
                  columns=None, **kwargs):
+        super(DashPlatformSchedule, self).__init__(team_id=team_id,
+                                                   company_id=company_id,
+                                                   columns=columns, **kwargs)
         self.html_doc = None
         self.team_id = team_id
-        self.company = company
-        self.url = self.get_schedule_url(self.team_id, self.company)
+        self.company_id = company_id
+        self.url = self.get_schedule_url(self.team_id, self.company_id)
         self.refresh_schedule()
 
     def get_schedule_url(self, team_id, company):
@@ -80,6 +82,7 @@ class DashPlatformSchedule(Schedule):
         now = datetime.datetime.now()
         year = now.year
         if self.html_table:
+            prevgame = None
             for game_row in self.html_table.find_all('li'):
                 gamedate_cell = game_row.find(
                     'h4', {'class': 'list-group-item-heading'}).text
@@ -90,16 +93,14 @@ class DashPlatformSchedule(Schedule):
                 gamedate = parsed.strftime(DATE_DESCRIPTOR)
                 gametime = parsed.strftime(TIME_DESCRIPTOR)
                 score_cells = game_row.find_all('td')
-                hscore = score_cells[0].text
-                hteam = score_cells[1].a.text
-                ascore = score_cells[2].text
-                ateam = score_cells[3].a.text
-                games.append(Game(gamedate,
-                                  gametime,
-                                  hteam,
-                                  hscore,
-                                  ateam,
-                                  ascore))
+                hscore = score_cells[self.columns['homescore']].text
+                hteam = score_cells[self.columns['hometeam']].a.text
+                ascore = score_cells[self.columns['awayscore']].text
+                ateam = score_cells[self.columns['awayteam']].a.text
+                game = Game(gamedate, gametime, hteam, hscore,
+                            ateam, ascore, prevgame=prevgame)
+                games.append(game)
+                prevgame = game
         return games
 
     def parse_game(self, game_cell):

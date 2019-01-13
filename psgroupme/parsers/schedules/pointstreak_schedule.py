@@ -42,18 +42,17 @@ class PointstreakSchedule(Schedule):
         """
         games = []
         if self.html_table:
+            prevgame = None
             for game_row in self.html_table.find_all('tr'):
                 cells = game_row.find_all('td')
                 gamedate = cells[self.columns['gameday']].string
                 gametime = cells[self.columns['gametime']].string
                 home, hscore = self.parse_team(cells[self.columns['hometeam']])
                 away, ascore = self.parse_team(cells[self.columns['awayteam']])
-                games.append(Game(gamedate,
-                                  gametime,
-                                  home,
-                                  hscore,
-                                  away,
-                                  ascore))
+                game = Game(gamedate, gametime, home, hscore,
+                            away, ascore, prevgame=prevgame)
+                games.append(game)
+                prevgame = game
         return games
 
     def parse_team(self, team_cell):

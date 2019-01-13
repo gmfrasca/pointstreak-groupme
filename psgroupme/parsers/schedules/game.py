@@ -1,4 +1,5 @@
 from util import parsetime as pt
+import datetime
 
 
 class Game(object):
@@ -8,11 +9,27 @@ class Game(object):
                  year=None, prevgame=None):
         """ Store this game's relevant data """
         self.year = pt.determine_year(year)
+        self.prevgame = prevgame
         self.parse_date(date, time, self.year, prevgame)
         self.hometeam = hometeam
         self.homescore = homescore
         self.awayteam = awayteam
         self.awayscore = awayscore
+
+    @property
+    def data(self):
+        return dict(year=self.year,
+                    date=self.date,
+                    time=self.time,
+                    full_gametime_str=self.full_gametime_str,
+                    hometeam=self.hometeam,
+                    homescore=self.homescore,
+                    awayteam=self.awayteam,
+                    awayscore=self.awayscore)
+
+    @property
+    def future(self):
+        return datetime.datetime.now() < self.full_gametime
 
     def parse_date(self, date, time, year, prevgame=None):
         # TODO: Determine if we should actually set includes_day

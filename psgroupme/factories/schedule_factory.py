@@ -1,6 +1,11 @@
 from parsers.schedules.pointstreak_schedule import PointstreakSchedule
 from parsers.schedules.sportsengine_schedule import SportsEngineSchedule
 from parsers.schedules.dashplatform_schedule import DashPlatformSchedule
+from parsers.schedules.debug_schedule import DebugSchedule
+from parsers.schedules.debug_schedule import ScoreUpdateDebugSchedule
+from parsers.schedules.debug_schedule import TimeUpdateDebugSchedule
+from parsers.schedules.debug_schedule import GameAddDebugSchedule
+from parsers.schedules.debug_schedule import GameRemoveDebugSchedule
 import datetime
 
 
@@ -13,6 +18,16 @@ class ScheduleFactory(object):
             return SportsEngineSchedule(**kwargs)
         elif schedule_type == 'dash':
             return DashPlatformSchedule(**kwargs)
+        elif schedule_type == 'debug':
+            return DebugSchedule(**kwargs)
+        elif schedule_type == 'debug_scoreupdate':
+            return ScoreUpdateDebugSchedule(**kwargs)
+        elif schedule_type == 'debug_timeupdate':
+            return TimeUpdateDebugSchedule(**kwargs)
+        elif schedule_type == 'debug_gameadd':
+            return GameAddDebugSchedule(**kwargs)
+        elif schedule_type == 'debug_gameremove':
+            return GameRemoveDebugSchedule(**kwargs)
         else:
             raise ValueError("Schedule Type '{0}' not found"
                              .format(schedule_type))
