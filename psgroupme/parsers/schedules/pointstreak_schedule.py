@@ -49,11 +49,15 @@ class PointstreakSchedule(Schedule):
                 gametime = cells[self.columns['gametime']].string
                 home, hscore = self.parse_team(cells[self.columns['hometeam']])
                 away, ascore = self.parse_team(cells[self.columns['awayteam']])
+                final = self.is_score_final(None)
                 game = Game(gamedate, gametime, home, hscore,
-                            away, ascore, prevgame=prevgame)
+                            away, ascore, prevgame=prevgame, final=final)
                 games.append(game)
                 prevgame = game
         return games
+
+    def is_score_final(self, score):
+        return False  # TODO: Implement
 
     def parse_team(self, team_cell):
         """

@@ -56,14 +56,20 @@ class SportsEngineSchedule(Schedule):
             homescore, awayscore = self.parse_score(
                 cells[self.columns['result']],
                 cells[self.columns['awayteam']])
+            final = self.is_score_final(cells[self.columns['result']])
             game = Game(gamedate, gametime, hometeam, homescore, awayteam,
-                        awayscore, prevgame=prevgame)
+                        awayscore, prevgame=prevgame, final=final)
             games.append(game)
             prevgame = game
         return games
 
     def is_home_team(self, opponent):
         return True if opponent.div.text.strip()[:1] == '@' else False
+
+    def is_score_final(self, score):
+        # TODO: Should probably parse the "Status" column instead
+        divs = score.find_all("div")
+        return divs is not None and len(divs) > 1
 
     def get_game_time(self, gametime_cell):
         gametime = gametime_cell.a if gametime_cell.a is not None else None
@@ -80,10 +86,12 @@ class SportsEngineSchedule(Schedule):
         return opp_name, self.team_name
 
     def parse_score(self, score, opponent):
-        if score.div is None or score.div.a is None:
+        divs = score.find_all("div")
+        if len(divs) < 1:
             return None, None
-        scoretext = score.div.a.text
-        scores = scoretext.split('-')
+        score_link = 1 if divs[0].a is not None else divs[1].a
+        scoretext = score_link.text
+        scores = [x.strip() for x in scoretext.split('-')]
         if self.is_home_team(opponent):
             return scores[0], scores[1]
         return scores[1], scores[0]
