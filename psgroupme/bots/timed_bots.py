@@ -38,7 +38,8 @@ class TimedBot(threading.Thread):
         return self._stop_event.is_set()
 
     def send_msg(self, msg):
-        self.responder.reply(msg)
+        if msg and msg != '':
+            self.responder.reply(msg)
 
 
 class TeamFeeReminderBot(TimedBot):
@@ -102,36 +103,30 @@ class TeamFeeReminderBot(TimedBot):
                 sleep(1)
 
 
-class GamedayReminderBot(TimedBot):
+class BaseGamedayReminderBot(TimedBot):
 
-    MORNING_CUTOFF = datetime.time(10, 00)
-    NIGHT_CUTOFF = datetime.time(22, 00)
     DEFAULT_STATS_TYPE = 'sportsengine'
 
     def __init__(self, **kwargs):
-        super(GamedayReminderBot, self).__init__(**kwargs)
+        super(BaseGamedayReminderBot, self).__init__(**kwargs)
         self.bot_data = kwargs
-        self.stats_cfg = kwargs.get('stats', dict())
-        self.schedule_cfg = kwargs.get('schedule', dict())
-        self.stats_cfg = kwargs.get('stats', self.schedule_cfg)
+        self.schedule_cfg = self.bot_data.get('schedule', dict())
+        self.stats_cfg = self.bot_data.get('stats', self.schedule_cfg)
+        self.rsvp_cfg = self.bot_data.get('rsvp')
+        self.playoff_check = self.bot_data.get('playoff_check', False)
         self.schedule_type = self.schedule_cfg.get('type', 'pointstreak')
         self.rsvp = None
         self.load_rsvp()
-
-    @property
-    def playoff_check(self):
-        return self.bot_data.get('playoff_check', False)
 
     def load_rsvp(self):
         # Set up RsvpTool
         if self.rsvp is not None:
             return
-        if 'rsvp' in self.bot_data:
-            rsvp_cfg = self.bot_data.get('rsvp')
-            if 'username' in rsvp_cfg and 'password' in rsvp_cfg:
-                rsvp_type = rsvp_cfg.get('type')
-                rsvp_cfg.update(dict(rsvp_tool_type=rsvp_type))
-                self.rsvp = RsvpToolFactory.create(**rsvp_cfg)
+        if self.rsvp_cfg:
+            if 'username' in self.rsvp_cfg and 'password' in self.rsvp_cfg:
+                rsvp_type = self.rsvp_cfg.get('type')
+                self.rsvp_cfg.update(dict(rsvp_tool_type=rsvp_type))
+                self.rsvp = RsvpToolFactory.create(**self.rsvp_cfg)
 
     def load_player_stats(self):
         stats_type = self.stats_cfg.get('type', 'pointstreak')
@@ -143,18 +138,7 @@ class GamedayReminderBot(TimedBot):
         self.team_stats = TeamStatsFactory.create(stats_type,
                                                   **self.stats_cfg)
 
-    def game_has_been_notified(self, game_id):
-        return self.db.game_has_been_notified(game_id)
-
-    def send_game_notification(self, game_id):
-        game = self.db.get_game(game_id)
-        msg = "Its Gameday! {0} vs {1} at {2}".format(game['hometeam'],
-                                                      game['awayteam'],
-                                                      game['time'])
-        if self.rsvp is not None:
-            self.load_rsvp()
-            msg = "{0}\r\n{1}".format(msg,
-                                      self.rsvp.get_next_game_attendance())
+    def get_playoff_danger_str(self):
         if self.playoff_check:
             self.load_player_stats()
             sched_length = self.sched.length
@@ -169,15 +153,94 @@ class GamedayReminderBot(TimedBot):
                 danger_str += '\r\n{0} can only miss {1} more games'.format(
                    player.name, missable)
             if danger_exists:
-                msg = "{0}\r\n{1}".format(msg, danger_str)
-        logging.info(msg)
+                return "\r\n{0}".format(danger_str)
+        return ''
+
+    def send_game_notification(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def _send_game_notification(self, game, days=0):
+        game_str = "{0} vs {1} at {2}".format(game['hometeam'],
+                                              game['awayteam'],
+                                              game['time'])
+        msg = ''
+        if days > 0:
+            days_str = 'tomorrow' if days == 1 else 'in {} days'.format(days)
+            msg = "Game Reminder - There is a game {}: {}!".format(days_str,
+                                                                   game_str)
+        else:
+            msg = "It's Gameday!"
+            msg = "{0} {1}".format(msg, game_str)
+            if self.rsvp is not None and days == 0:
+                self.load_rsvp()
+                attendance = self.rsvp.get_next_game_attendance()
+                msg = "{0}\r\n{1}".format(msg, attendance)
+            msg = '{}{}'.format(msg, self.get_playoff_danger_str())
         self.send_msg(msg)
-        self.db.set_notified(game_id, True)
         sleep(1)
+
+    def run(self):
+        raise NotImplementedError
+
+
+class CronGamedayReminderBot(BaseGamedayReminderBot):
+
+    DEFAULT_CRON = "0 12 * * *"
+
+    def __init__(self, *args, **kwargs):
+        super(CronGamedayReminderBot, self).__init__(*args, **kwargs)
+        self.debug = self.bot_data.get('debug')
+        self.cron = self.bot_data.get('cron', self.DEFAULT_CRON)
+        self.notify_days = self.bot_data.get('notify_days', 0)
+        if not isinstance(self.notify_days, list):
+            self.notify_days = [self.notify_days]
+        self.notify_days = [int(x) for x in self.notify_days]
+
+    def gametime_diff(self, from_date, to_date):
+        return (to_date.replace(hour=0, minute=0) -
+                from_date.replace(hour=0, minute=0)).days + 1
+
+    def check_for_game_and_notify(self):
+        self.sched = ScheduleFactory.create(self.schedule_type,
+                                            **self.schedule_cfg)
+        self.sched.refresh_schedule()
+        now = datetime.datetime.utcnow()
+        for game in reversed(self.sched.games):
+            days_til_game = self.gametime_diff(now, game.full_gametime)
+            if days_til_game in self.notify_days:
+                super(CronGamedayReminderBot, self)._send_game_notification(
+                    game.data, days=days_til_game)
+
+    def run(self):
+        while not self.stopped:
+            now = datetime.datetime.utcnow()
+
+            cron = croniter.croniter(self.cron, now)
+            next_run = cron.get_next(datetime.datetime)
+            if self.debug:
+                next_run = now + datetime.timedelta(0, 2)
+            delta = (next_run - now).total_seconds()
+            t = threading.Timer(delta, self.check_for_game_and_notify)
+            t.daemon = True
+            t.start()
+            while t.is_alive():
+                sleep(1)
+
+
+class DatabaseGamedayReminderBot(BaseGamedayReminderBot):
+
+    MORNING_CUTOFF = datetime.time(10, 00)
+    NIGHT_CUTOFF = datetime.time(22, 00)
 
     def ok_time_to_send_msg(self):
         now = datetime.datetime.now().time()
         return self.MORNING_CUTOFF <= now <= self.NIGHT_CUTOFF
+
+    def game_has_been_notified(self, game_id):
+        return self.db.game_has_been_notified(game_id)
+
+    def get_game(self, game_id):
+        return self.db.get_game(game_id)
 
     def run(self):
         # Set up Database
@@ -192,9 +255,24 @@ class GamedayReminderBot(TimedBot):
         while True:
             if self.db.is_game_today(team_id, season_id):
                 game_id = self.db.get_todays_game(team_id, season_id)
-                if not self.game_has_been_notified(game_id) and \
-                        self.ok_time_to_send_msg():
-                    self.send_game_notification(game_id)
+                self._check_and_notify_game(game_id)
+
+    def _check_and_notify_game(self, game_id):
+        if not self.game_has_been_notified(game_id) and \
+                self.ok_time_to_send_msg():
+            game = self.db.get_game(game_id)
+            self._send_game_notification(game)
+            self.db.set_notified(game_id, True)
+
+
+class GamedayReminderBot(CronGamedayReminderBot, DatabaseGamedayReminderBot):
+
+    def __init__(self, **kwargs):
+        self.bot_data = kwargs
+        if 'database' in self.bot_data:
+            DatabaseGamedayReminderBot.__init__(self, **kwargs)
+        else:
+            CronGamedayReminderBot.__init__(self, **kwargs)
 
 
 class UpdatedGameNotifierBot(TimedBot):
