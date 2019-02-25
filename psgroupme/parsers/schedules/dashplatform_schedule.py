@@ -97,11 +97,15 @@ class DashPlatformSchedule(Schedule):
                 hteam = score_cells[self.columns['hometeam']].a.text
                 ascore = score_cells[self.columns['awayscore']].text
                 ateam = score_cells[self.columns['awayteam']].a.text
+                final = self.is_score_final(None)
                 game = Game(gamedate, gametime, hteam, hscore,
-                            ateam, ascore, prevgame=prevgame)
+                            ateam, ascore, prevgame=prevgame, final=final)
                 games.append(game)
                 prevgame = game
         return games
+
+    def is_score_final(self, score):
+        return False  # TODO: Implement
 
     def parse_game(self, game_cell):
         if game_cell.div:
