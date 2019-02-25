@@ -6,8 +6,9 @@ class Game(object):
     """Represents a game parsed from a Pointstreak schedule"""
 
     def __init__(self, date, time, hometeam, homescore, awayteam, awayscore,
-                 year=None, prevgame=None):
+                 year=None, prevgame=None, final=False):
         """ Store this game's relevant data """
+        self.final = final
         self.year = pt.determine_year(year)
         self.prevgame = prevgame
         self.parse_date(date, time, self.year, prevgame)
@@ -25,7 +26,8 @@ class Game(object):
                     hometeam=self.hometeam,
                     homescore=self.homescore,
                     awayteam=self.awayteam,
-                    awayscore=self.awayscore)
+                    awayscore=self.awayscore,
+                    final=self.final)
 
     @property
     def future(self):
@@ -38,7 +40,7 @@ class Game(object):
         self.time = pt.normalize_time(time.strip())
         self.full_gametime = pt.assemble_full_datetime(date, time, year)
 
-        descriptor = pt.FULL_DESCRIPTOR if self.future else pt.FINAL_DESCRIPTOR
+        descriptor = pt.FINAL_DESCRIPTOR if self.final else pt.FULL_DESCRIPTOR
         self.full_gametime_str = self.full_gametime.strftime(descriptor)
         if prevgame is not None:
             if prevgame.full_gametime > self.full_gametime:
