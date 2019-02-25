@@ -6,6 +6,7 @@ DATE_DESCRIPTOR = "%a, %b %d"
 # TIME_DESCRIPTOR = "%H:%M"  # 24-hour
 TIME_DESCRIPTOR = "%I:%M %p"  # 12-hour
 FULL_DESCRIPTOR = "{0} {1}".format(DATE_DESCRIPTOR, TIME_DESCRIPTOR)
+FINAL_DESCRIPTOR = "{0} (FINAL)".format(DATE_DESCRIPTOR)
 
 # TIME_DESCRIPTOR = "%a %b %d %H:%M"  # 24-hour
 # TIME_DESCRIPTOR = "%a %b %d %I:%M%p"  # 12-hour
