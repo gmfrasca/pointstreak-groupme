@@ -19,7 +19,7 @@ class Player(object):
         self.goals_against = goals_against
 
     def __repr__(self):
-        return '{0} {1} {2}'.format(self.jersey_number, self.name, self.goals)
+        return '{0}\t{1}'.format(self.jersey_number, self.name)
 
     # Player Stats
     @property

@@ -32,7 +32,7 @@ class PlayerStats(object):
 
     def __repr__(self):
         """Prints the list of games in order to form a schedule"""
-        res = ''
+        res = '#\tName\r\n'
         for player in self.players.get('players').values():
             res += '{0}\r\n'.format(str(player))
         for goalie in self.players.get('goalies').values():
@@ -84,6 +84,9 @@ class PlayerStats(object):
     def send_get_request(self, url):
             self.html_doc = get(url).text
             self.last_refresh = datetime.datetime.now()
+
+    def retrieve_html_tables(self, url):
+        raise NotImplementedError
 
     def retrieve_html_tables_with_class(self, url, table_class):
         """

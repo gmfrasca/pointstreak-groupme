@@ -1,5 +1,5 @@
 from factories import ScheduleFactory, RsvpToolFactory, PlayerStatsFactory
-from factories import FinanceToolFactory
+from factories import FinanceToolFactory, TeamStatsFactory
 from interfaces.responder import Responder
 from database import PointstreakDatabase
 from util import parsetime as pt
@@ -133,10 +133,15 @@ class GamedayReminderBot(TimedBot):
                 rsvp_cfg.update(dict(rsvp_tool_type=rsvp_type))
                 self.rsvp = RsvpToolFactory.create(**rsvp_cfg)
 
-    def load_stats(self):
+    def load_player_stats(self):
         stats_type = self.stats_cfg.get('type', 'pointstreak')
         self.player_stats = PlayerStatsFactory.create(stats_type,
                                                       **self.stats_cfg)
+
+    def load_team_stats(self):
+        stats_type = self.stats_cfg.get('type', 'pointstreak')
+        self.team_stats = TeamStatsFactory.create(stats_type,
+                                                  **self.stats_cfg)
 
     def game_has_been_notified(self, game_id):
         return self.db.game_has_been_notified(game_id)
@@ -151,7 +156,7 @@ class GamedayReminderBot(TimedBot):
             msg = "{0}\r\n{1}".format(msg,
                                       self.rsvp.get_next_game_attendance())
         if self.playoff_check:
-            self.load_stats()
+            self.load_player_stats()
             sched_length = self.sched.length
             games_remaining = self.sched.games_remaining
             danger_str = 'Playoff elligibility:'

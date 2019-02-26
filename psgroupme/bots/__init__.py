@@ -5,7 +5,8 @@ from master_bot import MasterBot
 from image_bot import ImageBot
 from playoff_bot import PlayoffBot
 from rsvp_bot import RsvpBot
-from stats_bot import StatsBot
+from player_stats_bot import PlayerStatsBot
+from team_stats_bot import TeamStatsBot
 from timed_bots import GamedayReminderBot, TestGamedayReminderBot
 from timed_bots import TeamFeeReminderBot, TestTeamFeeReminderBot
 from timed_bots import UpdatedGameNotifierBot, TestUpdatedGameNotifierBot
@@ -16,4 +17,5 @@ __all__ = ['BaseBot', 'ScheduleBot', 'TestBot', 'GamedayReminderBot',
            'BotResponseManager', 'TestGamedayReminderBot', 'PingBot',
            'LivePingBot', 'TeamFeeReminderBot', 'TestTeamFeeReminderBot',
            'UpdatedGameNotifierBot', 'TestUpdatedGameNotifierBot',
-           'MasterBot', 'ImageBot', 'PlayoffBot', 'RsvpBot', 'StatsBot']
+           'MasterBot', 'ImageBot', 'PlayoffBot', 'RsvpBot',
+           'PlayerStatsBot', 'TeamStatsBot']
