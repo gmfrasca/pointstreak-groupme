@@ -1,35 +1,35 @@
-from factories import PlayerStatsFactory
+from factories import TeamStatsFactory
 from base_bot import BaseBot
 
 
-class StatsBot(BaseBot):
+class TeamStatsBot(BaseBot):
 
-    def __init__(self, bot_cfg, player_stats=None, *args, **kwargs):
-        super(StatsBot, self).__init__(bot_cfg, *args, **kwargs)
-        self.player_stats = player_stats
+    def __init__(self, bot_cfg, team_stats=None, *args, **kwargs):
+        super(TeamStatsBot, self).__init__(bot_cfg, *args, **kwargs)
+        self.team_stats = team_stats
 
-    def check_stat(self, msg, params, **kwargs):
+    def check_team_stat(self, msg, params, **kwargs):
         name = msg.get('name', None)
         try:
             if len(params) > 0:
                 stat = params[-1]
                 if len(params) > 1:
                     name = ' '.join(params[:-1])
-                self._load_player_stats()
-                players = self.player_stats.get_player(name)
-                if len(players) < 1:
+                self._load_team_stats()
+                teams = self.team_stats.get_team(name)
+                if len(teams) < 1:
                     self.respond(
-                        "ERROR::Cound not find player: {0}".format(name))
+                        "ERROR::Cound not find team: {0}".format(name))
                     return
-                for player in players:
-                    val = player.get_stat(stat.lower())
+                for team in teams:
+                    val = team.get_stat(stat.lower())
                     if val is not None:
                         if isinstance(val, float):
-                            self.respond("{0}: {1:.3f} {2}".format(player.name,
+                            self.respond("{0}: {1:.3f} {2}".format(team.name,
                                                                    val,
                                                                    stat))
                         else:
-                            self.respond('{0}: {1} {2}'.format(player.name,
+                            self.respond('{0}: {1} {2}'.format(team.name,
                                                                val,
                                                                stat))
                     else:
@@ -38,15 +38,17 @@ class StatsBot(BaseBot):
         except Exception as e:
             self.respond("ERROR::{0}".format(str(e)))
 
-    def get_roster(self):
-        super(StatsBot, self).get_extra_context()
-        self.context.update(dict(roster=self.player_stats))
+    def get_standings(self, *args, **kwargs):
+        super(TeamStatsBot, self).get_extra_context()
+        self._load_team_stats()
+        print(type(self.team_stats))
+        self.context.update(dict(standings=self.team_stats.short_table))
 
-    def _load_player_stats(self):
-        if self.player_stats is not None:
+    def _load_team_stats(self):
+        if self.team_stats is not None:
             return
         stats_cfg = self.bot_data.get('stats', self.bot_data.get('schedule'))
         if stats_cfg is not None:
             stats_type = stats_cfg.get('type', self.DEFAULT_TYPE)
             stats_cfg.update(dict(stats_type=stats_type))
-            self.player_stats = PlayerStatsFactory.create(**stats_cfg)
+            self.team_stats = TeamStatsFactory.create(**stats_cfg)
