@@ -6,6 +6,7 @@ from parsers.schedules.debug_schedule import ScoreUpdateDebugSchedule
 from parsers.schedules.debug_schedule import TimeUpdateDebugSchedule
 from parsers.schedules.debug_schedule import GameAddDebugSchedule
 from parsers.schedules.debug_schedule import GameRemoveDebugSchedule
+from parsers.schedules.debug_schedule import GameFinalizedDebugSchedule
 import datetime
 
 
@@ -28,6 +29,8 @@ class ScheduleFactory(object):
             return GameAddDebugSchedule(**kwargs)
         elif schedule_type == 'debug_gameremove':
             return GameRemoveDebugSchedule(**kwargs)
+        elif schedule_type == 'debug_gamefinal':
+            return GameFinalizedDebugSchedule(**kwargs)
         else:
             raise ValueError("Schedule Type '{0}' not found"
                              .format(schedule_type))

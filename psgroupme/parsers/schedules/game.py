@@ -33,6 +33,11 @@ class Game(object):
     def future(self):
         return datetime.datetime.now() < self.full_gametime
 
+    @property
+    def full_gametime_str(self):
+        descriptor = pt.FINAL_DESCRIPTOR if self.final else pt.FULL_DESCRIPTOR
+        return self.full_gametime.strftime(descriptor)
+
     def parse_date(self, date, time, year, prevgame=None):
         # TODO: Determine if we should actually set includes_day
 
@@ -40,8 +45,6 @@ class Game(object):
         self.time = pt.normalize_time(time.strip())
         self.full_gametime = pt.assemble_full_datetime(date, time, year)
 
-        descriptor = pt.FINAL_DESCRIPTOR if self.final else pt.FULL_DESCRIPTOR
-        self.full_gametime_str = self.full_gametime.strftime(descriptor)
         if prevgame is not None:
             if prevgame.full_gametime > self.full_gametime:
                 next_year = str(int(self.year) + 1)
