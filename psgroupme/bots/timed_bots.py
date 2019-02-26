@@ -215,6 +215,9 @@ class UpdatedGameNotifierBot(TimedBot):
         return (old_dict['homescore'] != new_game.homescore or
                 old_dict['awayscore'] != new_game.awayscore)
 
+    def game_finality_is_different(self, old_dict, new_game):
+        return old_dict['final'] != new_game.final
+
     def time_is_different(self, old_dict, new_game):
         return old_dict['full_gametime_str'] != new_game.full_gametime_str
 
@@ -230,7 +233,10 @@ class UpdatedGameNotifierBot(TimedBot):
             for x in range(0, len(self.old_games)):
                 old = self.old_games[x]
                 new = self.sched.games[x]
-                if self.scores_are_different(old, new):
+                if self.game_finality_is_different(old, new):
+                    msg += "Final Score:\r\n{}\r\n".format(new)
+                    print(new.full_gametime_str)
+                elif self.scores_are_different(old, new):
                     msg += "Score Updated:\r\n{}\r\n".format(new)
                 if self.time_is_different(old, new) and new.future:
                     # Only notify if game hasn't already occurred

@@ -29,7 +29,8 @@ class DebugSchedule(Schedule):
                         'home', game_dt[1],
                         'away', game_dt[2],
                         year=game_dt[0].strftime("%Y"),
-                        prevgame=None)
+                        prevgame=None,
+                        final=False)
             games.append(game)
         return games
 
@@ -52,6 +53,16 @@ class ScoreUpdateDebugSchedule(DebugSchedule):
         first.awayscore = 7 - first.awayscore if first.awayscore else None
         last.homescore = 10 - last.homescore if last.homescore else None
         last.awayscore = 7 - last.awayscore if last.awayscore else None
+
+
+class GameFinalizedDebugSchedule(DebugSchedule):
+
+    def refresh_schedule(self):
+        self.refresh_count += 1
+        if self.refresh_count % 5 != 0:
+            return
+        game = self.games[0]
+        game.final = True
 
 
 class TimeUpdateDebugSchedule(DebugSchedule):
