@@ -240,7 +240,6 @@ class UpdatedGameNotifierBot(TimedBot):
                 new = self.sched.games[x]
                 if self.game_finality_is_different(old, new):
                     msg += "Final Score:\r\n{}\r\n".format(new)
-                    print(new.full_gametime_str)
                 elif self.scores_are_different(old, new):
                     msg += "Score Updated:\r\n{}\r\n".format(new)
                 if self.time_is_different(old, new) and new.future:

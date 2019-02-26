@@ -41,7 +41,6 @@ class TeamStatsBot(BaseBot):
     def get_standings(self, *args, **kwargs):
         super(TeamStatsBot, self).get_extra_context()
         self._load_team_stats()
-        print(type(self.team_stats))
         self.context.update(dict(standings=self.team_stats.short_table))
 
     def _load_team_stats(self):
