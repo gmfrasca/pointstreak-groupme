@@ -1,12 +1,12 @@
-from stats_bot import StatsBot
+from player_stats_bot import PlayerStatsBot
 from schedule_bot import ScheduleBot
 
 
-class PlayoffBot(ScheduleBot, StatsBot):
+class PlayoffBot(ScheduleBot, PlayerStatsBot):
 
     def __init__(self, bot_cfg, *args, **kwargs):
         ScheduleBot.__init__(self, bot_cfg, *args, **kwargs)
-        StatsBot.__init__(self, bot_cfg, *args, **kwargs)
+        PlayerStatsBot.__init__(self, bot_cfg, *args, **kwargs)
 
     def check_playoff(self, msg, params, *args, **kwargs):
         name = msg.get('name', None) if len(params) < 0 else ' '.join(params)
