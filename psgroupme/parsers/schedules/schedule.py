@@ -37,6 +37,7 @@ class Schedule(object):
         self.html_doc = None
         self.team_id = team_id
         self.season_id = season_id
+        self.team_name = None
         self.games = list()
         self.columns = self.DEFAULT_COLUMNS
         if columns and isinstance(columns, dict):
