@@ -282,6 +282,7 @@ class UpdatedGameNotifierBot(TimedBot):
         self.schedule_cfg = self.bot_data.get('schedule', dict())
         self.sleep_time = self.schedule_cfg.get('sleep_time', 1)
         self.schedule_type = self.schedule_cfg.get('type', 'pointstreak')
+        self.result_responses = self.bot_data.get('result_responses', dict())
         self.sched = ScheduleFactory.create(self.schedule_type,
                                             **self.schedule_cfg)
 
@@ -313,11 +314,17 @@ class UpdatedGameNotifierBot(TimedBot):
             self.send_msg("Schedule Change Detected: Games Removed!")
         else:
             msg = ''
+            result_res = ''
             for x in range(0, len(self.old_games)):
                 old = self.old_games[x]
                 new = self.sched.games[x]
                 if self.game_finality_is_different(old, new):
                     msg += "Final Score:\r\n{}\r\n".format(new)
+                    if isinstance(self.result_responses, dict):
+                        team = self.sched.team_name
+                        result = new.result_for_team(team)
+                        if result:
+                            result_res = self.result_responses.get(result, '')
                 elif self.scores_are_different(old, new):
                     msg += "Score Updated:\r\n{}\r\n".format(new)
                 if self.time_is_different(old, new) and new.future:
@@ -327,6 +334,8 @@ class UpdatedGameNotifierBot(TimedBot):
                                 old['full_gametime_str'], new))
             if msg != '':
                 self.send_msg(msg)
+            if result_res != '':
+                self.send_msg(result_res)
 
     def run(self):
         while not self.stopped:

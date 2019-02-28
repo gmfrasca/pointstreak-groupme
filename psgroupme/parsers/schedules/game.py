@@ -30,6 +30,16 @@ class Game(object):
                     final=self.final)
 
     @property
+    def winning_team(self):
+        if not self.homescore or not self.awayscore:
+            return None
+        if int(self.homescore) == int(self.awayscore):
+            return 'tie'
+        elif int(self.homescore) > int(self.awayscore):
+            return self.hometeam
+        return self.awayteam
+
+    @property
     def future(self):
         return datetime.datetime.now() < self.full_gametime
 
@@ -37,6 +47,15 @@ class Game(object):
     def full_gametime_str(self):
         descriptor = pt.FINAL_DESCRIPTOR if self.final else pt.FULL_DESCRIPTOR
         return self.full_gametime.strftime(descriptor)
+
+    def result_for_team(self, team_name):
+        if self.winning_team is None:
+            return None
+        if self.winning_team == team_name:
+            return 'win'
+        if self.winning_team == 'tie':
+            return 'tie'
+        return 'loss'
 
     def parse_date(self, date, time, year, prevgame=None):
         # TODO: Determine if we should actually set includes_day

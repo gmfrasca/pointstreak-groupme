@@ -8,6 +8,7 @@ class DebugSchedule(Schedule):
     def __init__(self, *args, **kwargs):
         # super(DebugSchedule, self).__init__(*args, **kwargs)
         self.now = datetime.datetime.now()
+        self.team_name = 'home'
         self.games = self.parse_table()
         self.refresh_count = 0
 
