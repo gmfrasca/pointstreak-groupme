@@ -27,7 +27,6 @@ class SportsEngineSchedule(Schedule):
     }
 
     def __init__(self, **kwargs):
-        self.team_name = 'blah'
         super(SportsEngineSchedule, self).__init__(**kwargs)
         self.team_name = self.parse_team_name()
 
