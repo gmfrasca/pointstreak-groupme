@@ -1,14 +1,13 @@
 from master_bot import MasterBot
-import logging
 import sys
 
 
 class TestBot(MasterBot):
     """Debug"""
-    def respond(self, msg):
-        """Respond using the matched message reply"""
-        logging.info("Response: {0}".format(msg))
-        print(msg)
+
+    def __init__(self, *args, **kwargs):
+        super(TestBot, self).__init__(*args, **kwargs)
+        self.responder.live = False
 
 
 def main(argv):

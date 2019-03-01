@@ -346,20 +346,23 @@ class UpdatedGameNotifierBot(TimedBot):
 
 class TestGamedayReminderBot(GamedayReminderBot):
 
-    def send_msg(self, msg):
-        print(msg)
+    def __init__(self, *args, **kwargs):
+        super(TestGamedayReminderBot, self).__init__(*args, **kwargs)
+        self.responder.live = False
 
 
 class TestTeamFeeReminderBot(TeamFeeReminderBot):
 
-    def send_msg(self, msg):
-        print(msg)
+    def __init__(self, *args, **kwargs):
+        super(TestTeamFeeReminderBot, self).__init__(*args, **kwargs)
+        self.responder.live = False
 
 
 class TestUpdatedGameNotifierBot(UpdatedGameNotifierBot):
 
-    def send_msg(self, msg):
-        print(msg)
+    def __init__(self, *args, **kwargs):
+        super(TestUpdatedGameNotifierBot, self).__init__(*args, **kwargs)
+        self.responder.live = False
 
 
 def main():
