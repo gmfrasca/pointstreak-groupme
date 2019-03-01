@@ -78,7 +78,7 @@ class BaseBot(Resource):
 
                         self.react(action_type, msg, params)
                     if 'reply' in match:
-                        self.respond(match['reply'].format(**self.context))
+                        self.respond(match['reply'], self.context)
                 except KeyError:
                     # message requires undefined context variable
                     self.respond('Sorry, that command is not available.')
@@ -94,9 +94,9 @@ class BaseBot(Resource):
         if callable(getattr(self, action_type, None)):
             getattr(self, action_type)(msg=msg, params=params)
 
-    def respond(self, msg):
+    def respond(self, msg, context=None):
         """Have the bot post a message to it's group"""
-        self.responder.reply(msg)
+        self.responder.reply(msg, context)
 
     def _get_actions(self, match):
         actions = list()

@@ -170,7 +170,7 @@ class TestBaseBot(unittest.TestCase):
     @mock.patch.object(psgroupme.bots.base_bot.Responder, 'reply')
     def test_respond(self, reply_fn):
         self.bot.respond("foobar")
-        reply_fn.assert_called_once_with('foobar')
+        reply_fn.assert_called_once_with('foobar', None)
 
     def test_includes_standard_replies(self):
         self.bot.refresh_responses()
@@ -240,18 +240,12 @@ class TestBaseBot(unittest.TestCase):
 
         test_msg = dict(text='foobar')
         self.bot.read_msg(test_msg)
-        self.bot.respond.assert_called_with('helloworld')
+        self.bot.respond.assert_called_with('helloworld', self.bot.context)
         self.bot.refresh_responses.assert_called()
 
         test_msg = dict(text='1test2')
         self.bot.read_msg(test_msg)
-        self.bot.respond.assert_called_with('testregex')
-        self.bot.refresh_responses.assert_called()
-
-        test_msg = dict(text='format_test')
-        self.bot.read_msg(test_msg)
-        self.bot.respond.assert_called_with('{}'.format(
-            BOTNAMES[self.bot.bot_type]))
+        self.bot.respond.assert_called_with('testregex', self.bot.context)
         self.bot.refresh_responses.assert_called()
 
 
@@ -283,7 +277,7 @@ class TestScheduleBot(TestBaseBot):
     def test_respond(self, reply_fn):
         test_msg = 'foobar'
         self.bot.respond(test_msg)
-        reply_fn.assert_called_once_with(test_msg)
+        reply_fn.assert_called_once_with(test_msg, None)
 
     def test_excludes_specialized_replies(self):
         pass
@@ -292,32 +286,29 @@ class TestScheduleBot(TestBaseBot):
     def test_real_responses(self, mock_resp):
 
         # Canned responses
-        nextgame_resp = self.bot.NEXTGAME_RESPONSE.format('TestNextGame')
-        lastgame_resp = self.bot.LASTGAME_RESPONSE.format('TestLastGame')
-        schedule_resp = self.bot.SCHEDULE_RESPONSE.format('TestSchedule')
         bot_name = BOTNAMES[self.bot.bot_type]
 
         username = 'TestUser'
         context = dict(name=username, system=False, sender_type='user')
         test_msg_list = [
-            ('Hello, {0}'.format(bot_name), 'Hello, {0}'.format(username)),
+            ('Hello, {0}'.format(bot_name), 'Hello, {name}'),
             ('abc', None),
-            ('Does anyone know when the next game is', nextgame_resp),
-            ('When the f is the next game', nextgame_resp),
+            ('Does anyone know when the next game is', "{nextgame_resp}"),
+            ('When the f is the next game', "{nextgame_resp}"),
             ('next game', None),
-            ('how did we do', lastgame_resp),
-            ('HoW dId We Do?', lastgame_resp),
-            ('HoW dId We Do? blah blah blah', lastgame_resp),
+            ('how did we do', "{lastgame_resp}"),
+            ('HoW dId We Do?', "{lastgame_resp}"),
+            ('HoW dId We Do? blah blah blah', "{lastgame_resp}"),
             ('did we do', None),
-            ('how\'d we do?', lastgame_resp),
-            ('how we do', lastgame_resp),
+            ('how\'d we do?', "{lastgame_resp}"),
+            ('how we do', "{lastgame_resp}"),
             ('how we do it', None),
             ('this is how we do it', None),
-            ('what was the score', lastgame_resp),
-            ('what was the score, {0}'.format(bot_name), lastgame_resp),
-            ('what is schedule', schedule_resp),
+            ('what was the score', "{lastgame_resp}"),
+            ('what was the score, {0}'.format(bot_name), "{lastgame_resp}"),
+            ('what is schedule', "{schedule_resp}"),
             ('what is scheduled', None),
-            ('what is the schedule', schedule_resp)
+            ('what is the schedule', "{schedule_resp}")
         ]
         for dialog in test_msg_list:
             with mock.patch.object(psgroupme.bots.ScheduleBot,
@@ -326,6 +317,6 @@ class TestScheduleBot(TestBaseBot):
                 test_msg.update(context)
                 self.bot.read_msg(test_msg)
                 if dialog[1]:
-                    mock_resp.assert_called_with(dialog[1])
+                    mock_resp.assert_called_with(dialog[1], self.bot.context)
                 else:
                     mock_resp.assert_not_called()
