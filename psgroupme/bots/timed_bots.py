@@ -197,14 +197,15 @@ class CronGamedayReminderBot(BaseGamedayReminderBot):
         self.notify_days = [int(x) for x in self.notify_days]
 
     def gametime_diff(self, from_date, to_date):
-        return (to_date.replace(hour=0, minute=0) -
-                from_date.replace(hour=0, minute=0)).days + 1
+        midnight_to = to_date.replace(hour=0, minute=0)
+        midnight_from = from_date.replace(hour=0, minute=0)
+        return (midnight_to - midnight_from).days + 1
 
     def check_for_game_and_notify(self):
         self.sched = ScheduleFactory.create(self.schedule_type,
                                             **self.schedule_cfg)
         self.sched.refresh_schedule()
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now()
         for game in reversed(self.sched.games):
             days_til_game = self.gametime_diff(now, game.full_gametime)
             if days_til_game in self.notify_days:
