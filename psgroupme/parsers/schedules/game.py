@@ -72,11 +72,11 @@ class Game(object):
     def __repr__(self):
         """Print this game's most relevant info all together"""
         if self.homescore and self.awayscore:
-            return '{0} {1} : {2} {3} on {4}'.format(self.hometeam,
-                                                     self.homescore,
-                                                     self.awayteam,
-                                                     self.awayscore,
-                                                     self.full_gametime_str)
+            return '{0} [{1}] : [{2}] {3} on {4}'.format(self.hometeam,
+                                                         self.homescore,
+                                                         self.awayscore,
+                                                         self.awayteam,
+                                                         self.full_gametime_str)
         return '{0} vs {1} at {2}'.format(self.hometeam,
                                           self.awayteam,
                                           self.full_gametime_str)
