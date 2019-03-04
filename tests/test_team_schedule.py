@@ -116,7 +116,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(str(self.game),
                          "home vs away at {0}".format(date_str))
         self.assertEqual(str(self.done_game),
-                         "home 6 : away 5 on {0}".format(date_str))
+                         "home [6] : [5] away on {0}".format(date_str))
 
 
 class TestPointstreakSchedule(unittest.TestCase):
@@ -210,7 +210,7 @@ class TestPointstreakSchedule(unittest.TestCase):
         self.assertEqual(score, None)
 
     def test_repr(self):
-        expected = '''home 6 : away 0 on \w\w\w, Aug 15 08:45 PM
+        expected = '''home \[6\] : \[0\] away on \w\w\w, Aug 15 08:45 PM
 home vs away at \w\w\w, Aug 25 08:45 PM
 '''
         self.assertRegexpMatches(str(self.schedule), expected)
