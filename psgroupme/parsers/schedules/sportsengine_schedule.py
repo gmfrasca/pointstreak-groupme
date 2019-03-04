@@ -88,7 +88,7 @@ class SportsEngineSchedule(Schedule):
         divs = score.find_all("div")
         if len(divs) < 1:
             return None, None
-        score_link = 1 if divs[0].a is not None else divs[1].a
+        score_link = divs[0].a if divs[0].a is not None else divs[1].a
         scoretext = score_link.text
         scores = [x.strip() for x in scoretext.split('-')]
         if self.is_home_team(opponent):
