@@ -1,0 +1,19 @@
+# Bots Config to use with Docker-built image
+public_url: http://localhost:5002
+img:
+  dest: /img/
+bots:
+    - class_name: 'bots.TestBot'
+      bot_name: 'TestBot'
+      bot_id: '1'
+      bot_url: "/testbot"
+      schedule:
+        type: debug
+        season_id: 1
+        team_id: 1
+    - class_name: 'bots.PingBot'
+      bot_name: 'PingBot'
+      bot_id: '2'
+      bot_url: '/pingbot'
+flask:
+    port: 5002

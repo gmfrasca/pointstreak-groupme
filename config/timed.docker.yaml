@@ -1,0 +1,30 @@
+# Config to use with Docker-built image
+bots:
+  - class_name: bots.TestGamedayReminderBot
+    bot_name: TestGDRBot
+    bot_id: '1'
+    playoff_check: False
+    cron: '* * * * *'
+    notify_days: 
+      - 0
+      - 1 
+    schedule:
+      type: debug
+      season_id: 1
+      team_id: 1
+  - class_name: bots.TestUpdatedGameNotifierBot
+    bot_name: UpdateBot
+    bot_id: '3'
+    schedule:
+      type: debug_gamefinal
+      season_id: 1
+      team_id: 1
+    result_responses:
+      win: 
+        - win_responseA
+        - win_responseB
+        - win_responseC
+        - win_responseD
+        - win_responseE
+      tie: tie
+      loss: loss

@@ -1,0 +1,99 @@
+# Responses Config to use with Docker-built image
+extra_context:
+   github_url: 'https://github.com/gmfrasca/pointstreak-groupme'
+responses:
+  global:
+    - input: '(hi|hello|greetings|salutations|sup),? {bot_name}'
+      reply: 'Hello, {name}'
+    - input: 'show me the (source|sauce|src|code)'
+      reply: 'You can find it at {github_url}'
+    - input: '(what|who) is (a )? {bot_name}'
+      reply: 'I am a GroupMe helper bot, beep boop. More info at {github_url}'
+  schedulebot:
+    - input: 'when.*next game([\?\!\.( is)].*)??$'
+      reply: '{nextgame_resp}'
+      load_schedule: True
+    - input: 'what was the score\??'
+      action: load_schedule
+      reply: '{lastgame_resp}'
+    - input: "^how('d| did)? we do([\\?\\!\\.].*)??$"
+      action: load_schedule
+      reply: '{lastgame_resp}'
+    - input: 'what is.* schedule([\?\!\.].*)??$'
+      action: load_schedule
+      reply: '{schedule_resp}'
+    - input: '^how many do we have'
+      action: load_rsvp
+      reply: '{attendance_resp}'
+    - input: 'what is today'
+      reply: '{today}'
+    - input: '!nextgame'
+      actions:
+        - 'load_schedule'
+      reply: '{next_game}'
+      load_schedule: True
+    - input: '!lastgame'
+      reply: '{last_game}'
+      action: load_schedule
+    - input: '!schedule'
+      reply: '{schedule}'
+      action: load_schedule
+    - input: '!attendance'
+      reply: '{attendance}'
+      action: load_rsvp
+    - input: '!attendees'
+      action: load_rsvp
+      reply: '{attendees}'
+    - input: '!source'
+      reply: '{github_url}'
+    - input: '!today'
+      reply: '{today}'
+    - input: '!debug'
+      reply: '{debug}'
+    - input: '!lines'
+      action: load_rsvp
+      reply: '{lines}'
+    - input: '!roster'
+      action: get_roster
+      reply: '{roster}'
+      load_stats: True
+    - input: '!standings'
+      action: get_standings
+      reply: '{standings}'
+    - input: '!teamfeeprogress'
+      action: load_rsvp
+      reply: '{teamfee_progress}'
+    - input: '!in'
+      actions:
+        - type: 'checkin_player'
+          checkin_type: 'in'
+    - input: '!out'
+      actions:
+        - type: 'checkin_player'
+          checkin_type: 'out'
+    - input: '!stat'
+      actions:
+        - type: 'check_stat'
+    - input: '!teamstat'
+      actions:
+        - type: 'check_team_stat'
+    - input: '!playoff'
+      actions:
+        - type: 'check_playoff'
+    - input: '!img'
+      actions:
+        - type: 'respond_image'
+    - input: '!testcallable'
+      actions:
+        - type: 'testcallable'
+          text: 'foobar'
+    - input: '!listimages'
+      actions:
+        - type: 'list_images'
+    - input: '!random'
+      reply:
+        - a
+        - b
+        - c
+        - d
+   
