@@ -87,7 +87,7 @@ responses:
 class BotResponseManagerMock(BotResponseManager):
 
     def reload_data(self):
-        self.data = yaml.load(MOCK_RESP_CFG)
+        self.data = yaml.load(MOCK_RESP_CFG, Loader=yaml.FullLoader)
         return MOCK_RESP_CFG
 
 

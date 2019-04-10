@@ -11,7 +11,7 @@ class BotResponseManager(object):
 
     def reload_data(self):
         with open(self.cfg_path) as f:
-            self.data = yaml.load(f)
+            self.data = yaml.load(f, Loader=yaml.FullLoader)
 
     def get(self, key, default=None):
         self.reload_data()

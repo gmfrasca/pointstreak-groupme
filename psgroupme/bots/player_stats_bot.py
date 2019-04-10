@@ -7,6 +7,8 @@ class PlayerStatsBot(BaseBot):
     def __init__(self, bot_cfg, player_stats=None, *args, **kwargs):
         super(PlayerStatsBot, self).__init__(bot_cfg, *args, **kwargs)
         self.player_stats = player_stats
+        self.stats_cfg = self.bot_data.get('stats',
+                                           self.bot_data.get('schedule'))
 
     def check_stat(self, msg, params, **kwargs):
         name = msg.get('name', None)
@@ -46,8 +48,7 @@ class PlayerStatsBot(BaseBot):
     def _load_player_stats(self):
         if self.player_stats is not None:
             return
-        stats_cfg = self.bot_data.get('stats', self.bot_data.get('schedule'))
-        if stats_cfg is not None:
-            stats_type = stats_cfg.get('type', self.DEFAULT_TYPE)
-            stats_cfg.update(dict(stats_type=stats_type))
-            self.player_stats = PlayerStatsFactory.create(**stats_cfg)
+        if self.stats_cfg is not None:
+            stats_type = self.stats_cfg.get('type', self.DEFAULT_TYPE)
+            self.stats_cfg.update(dict(stats_type=stats_type))
+            self.player_stats = PlayerStatsFactory.create(**self.stats_cfg)

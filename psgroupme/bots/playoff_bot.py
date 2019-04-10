@@ -22,9 +22,10 @@ class PlayoffBot(ScheduleBot, PlayerStatsBot):
                 for player in players:
                     sched_length = self.schedule.length
                     games_remaining = self.schedule.games_remaining
-                    el_pars = dict(sched_length=sched_length,
-                                   games_remaining=games_remaining)
-                    elligible = player.is_playoff_eligible(sched_length)
+                    el_pars = self.stats_cfg.copy()
+                    el_pars.update(dict(sched_length=sched_length,
+                                        games_remaining=games_remaining))
+                    elligible = player.is_playoff_eligible(**el_pars)
                     possible = player.can_be_elligible(**el_pars)
                     in_danger = player.in_danger_of_inelligibility(**el_pars)
                     missable = player.get_missable_games(**el_pars)
