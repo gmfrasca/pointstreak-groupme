@@ -19,7 +19,7 @@ class ConfigManager(object):
     def load_cfg(self, cfg_path):
         """Load the config from a target YAML"""
         with open(cfg_path) as f:
-            return yaml.load(f)
+            return yaml.load(f, Loader=yaml.FullLoader)
 
     def get_bot_data(self, bot_name):
         """Get the configuration for a bot based on bot name"""

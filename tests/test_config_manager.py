@@ -51,6 +51,7 @@ bots:
             'callback_url': 'http://foo.bar',
             'avatar_url': 'http://funny.jpg'
         }
+        print(self.cfg_mgr.cfg)
         self.assertEqual(self.cfg_mgr.get_bot_data('foo'), expected)
 
     def test_get_bot_data_no_config(self):

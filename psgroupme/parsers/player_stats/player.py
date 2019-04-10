@@ -61,14 +61,17 @@ class Player(object):
 
     # Playoff Elligibility
     def is_playoff_eligible(self, sched_length, round_down=True,
-                            grace_games=0):
+                            grace_games=0, games_needed=None, *args, **kwargs):
         needed = self.games_needed_for_playoff_elligible(sched_length,
                                                          round_down,
-                                                         grace_games)
+                                                         grace_games,
+                                                         games_needed)
         return needed <= 0
 
     def games_needed_for_playoff_elligible(self, sched_length, round_down=True,
-                                           grace_games=0):
+                                           grace_games=0, games_needed=None):
+        if games_needed is not None:
+            return games_needed - int(self.games_played)
         needed = sched_length / 2
         if round_down:
             needed -= needed % 2
@@ -76,23 +79,29 @@ class Player(object):
         return needed - int(self.games_played)
 
     def can_be_elligible(self, sched_length, games_remaining,
-                         round_down=True, grace_games=0):
+                         round_down=True, grace_games=0, games_needed=None,
+                         *args, **kwargs):
         return self.get_missable_games(sched_length, games_remaining,
-                                       round_down, grace_games) >= 0
+                                       round_down, grace_games,
+                                       games_needed) >= 0
 
     def in_danger_of_inelligibility(self, sched_length, games_remaining,
                                     round_down=True, grace_games=0,
-                                    warning_threshold=DEFAULT_THRESHOLD):
+                                    warning_threshold=DEFAULT_THRESHOLD,
+                                    games_needed=None, *args, **kwargs):
         possible_missed = self.get_missable_games(sched_length,
                                                   games_remaining,
-                                                  round_down, grace_games)
+                                                  round_down, grace_games,
+                                                  games_needed)
         return (possible_missed >= 0 and possible_missed <= warning_threshold)
 
     def get_missable_games(self, sched_length, games_remaining,
-                           round_down=True, grace_games=0):
+                           round_down=True, grace_games=0, games_needed=None,
+                           *args, **kwargs):
         needed = self.games_needed_for_playoff_elligible(sched_length,
                                                          round_down,
-                                                         grace_games)
+                                                         grace_games,
+                                                         games_needed)
         return games_remaining - needed
 
     def get_average(self, stat):
