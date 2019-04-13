@@ -3,6 +3,7 @@ from flask_restful import Resource
 from interfaces.responder import Responder
 from bot_responses import BotResponseManager
 import datetime
+import logging
 import json
 import re
 
@@ -19,6 +20,7 @@ class BaseBot(Resource):
 
     def __init__(self, bot_cfg, *args, **kwargs):
         """Load the config for this bot based on Name"""
+        self._logger = logging.getLogger(self.__class__.__name__)
         self.brm = BotResponseManager()
         self.bot_data = bot_cfg
         self.bot_id = self.bot_data.get('bot_id')

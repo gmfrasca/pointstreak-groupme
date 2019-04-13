@@ -1,21 +1,41 @@
 from interfaces.rest import main as start_rest_bots
 from interfaces.timed import main as start_timed_bots
 from time import sleep
+import argparse
 import logging
 import thread
 
 LOG_FILE = '/var/log/psgroupme.log'
 
-try:
-    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG)
-except IOError:
-    # Permission Denied to file, just log to Consolidate
-    logging.basicConfig(level=logging.DEBUG)
-    logging.warning("Could not log to {0}, logging to console instead".format(
-        LOG_FILE))
+
+def setup_logging(debug=False, logfile=LOG_FILE, console=False):
+    level = logging.DEBUG if debug else logging.INFO
+    stdout_fmt = '[%(asctime)s][%(levelname)s][%(name)s]: %(message)s'
+    cfg = {'level': level, 'format': stdout_fmt}
+    logging.basicConfig(**cfg)
+
+    if debug:
+        logging.info("Debug Mode On")
+
+    if console or logfile is None:
+        logging.info("Logging to Console Only")
+    else:
+        cfg.update({'filename': logfile})
+        logging.basicConfig(**cfg)
+        logging.info("Logging to {}".format(logfile))
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-l', '--log_file', default=LOG_FILE)
+    parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument("--console", action='store_true')
+    return parser.parse_args()
 
 
 def main():
+    args = parse_args()
+    setup_logging(args.verbose, args.log_file, args.console)
     try:
         thread.start_new_thread(start_rest_bots, ())
         thread.start_new_thread(start_timed_bots, ())
