@@ -269,6 +269,7 @@ class BenchApp(RsvpTool):
         return player_name.strip()
 
     def try_checkin(self, name, status='in'):
+        self._logger.info("RSVPing {} with status '{}'".format(name, status))
         if self.has_upcoming_game is False:
             return
         page = self.get_next_game_page().text

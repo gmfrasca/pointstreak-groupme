@@ -14,8 +14,9 @@ class RsvpBot(BaseBot):
         params = kwargs.get('params', list())
         name = msg.get('name', None) if len(params) < 1 else ' '.join(params)
         try:
+            status = kwargs.get('checkin_type', 'in')
             self._load_rsvp()
-            self.rsvp.try_checkin(name, kwargs.get('checkin_type', 'in'))
+            self.rsvp.try_checkin(name, status)
         except Exception as e:
             self.respond("ERROR::{0}".format(str(e)))
 
