@@ -10,7 +10,7 @@ class PlayerStatsBot(BaseBot):
         self.stats_cfg = self.bot_data.get('stats',
                                            self.bot_data.get('schedule'))
 
-    def check_stat(self, msg, params, **kwargs):
+    def check_stat(self, msg, *params, **kwargs):
         name = msg.get('name', None)
         try:
             if len(params) > 0:

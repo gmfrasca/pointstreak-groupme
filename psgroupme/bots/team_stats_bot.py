@@ -8,13 +8,13 @@ class TeamStatsBot(BaseBot):
         super(TeamStatsBot, self).__init__(bot_cfg, *args, **kwargs)
         self.team_stats = team_stats
 
-    def check_team_stat(self, msg, params, **kwargs):
+    def check_team_stat(self, msg, *args, **kwargs):
         name = msg.get('name', None)
         try:
-            if len(params) > 0:
-                stat = params[-1]
-                if len(params) > 1:
-                    name = ' '.join(params[:-1])
+            if len(args) > 0:
+                stat = args[-1]
+                if len(args) > 1:
+                    name = ' '.join(args[:-1])
                 self._load_team_stats()
                 teams = self.team_stats.get_team(name)
                 if len(teams) < 1:

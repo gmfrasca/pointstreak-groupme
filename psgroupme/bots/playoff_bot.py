@@ -8,10 +8,10 @@ class PlayoffBot(ScheduleBot, PlayerStatsBot):
         ScheduleBot.__init__(self, bot_cfg, *args, **kwargs)
         PlayerStatsBot.__init__(self, bot_cfg, *args, **kwargs)
 
-    def check_playoff(self, msg, params, *args, **kwargs):
-        name = msg.get('name', None) if len(params) < 0 else ' '.join(params)
+    def check_playoff(self, msg, *args, **kwargs):
+        name = msg.get('name', None) if len(args) < 0 else ' '.join(args)
         try:
-            if len(params) > 0:
+            if len(args) > 0:
                 self._load_player_stats()
                 self._load_schedule()
                 players = self.player_stats.get_player(name)

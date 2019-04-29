@@ -47,8 +47,10 @@ class BaseBot(Resource):
     def get_matching_responses(self, msg):
         context = msg.copy()
         context.update(self.bot_data)
-        return [x for x in self.responses if re.search(
+        matches = [x for x in self.responses if re.search(
                    x['input'].format(**context), msg['text'], re.I | re.U)]
+        self._logger.info("Matching Responses: {}".format(matches))
+        return matches
 
     def get_extra_context(self):
         self.context.update(self.brm.get_extra_context())
@@ -75,10 +77,13 @@ class BaseBot(Resource):
                 try:
                     for action in self._get_actions(match):
                         action_type = action
+                        kwargs = {}
                         if isinstance(action, dict):
                             action_type = action.get('type', 'pass')
+                            kwargs = action.get('kwargs')
+                            kwargs = kwargs if isinstance(kwargs, dict) else {}
 
-                        self.react(action_type, msg, params)
+                        self.react(action_type, msg, *params, **kwargs)
                     if 'reply' in match:
                         self.respond(match['reply'].format(**self.context))
                 except KeyError:
@@ -92,9 +97,15 @@ class BaseBot(Resource):
             return list()
         return words[cut_amt:]
 
-    def react(self, action_type, msg, params):
+    def react(self, action_type, msg, *args, **kwargs):
+        self._logger.info(("Reacting with:\n"
+                           "    Action Type: {}\n"
+                           "    Msg        : {}\n"
+                           "    Args       : {}\n"
+                           "    Kwargs     : {}\n").format(action_type, msg,
+                                                           args, kwargs))
         if callable(getattr(self, action_type, None)):
-            getattr(self, action_type)(msg=msg, params=params)
+            getattr(self, action_type)(msg, *args, **kwargs)
 
     def respond(self, msg):
         """Have the bot post a message to it's group"""

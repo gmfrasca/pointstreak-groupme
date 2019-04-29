@@ -9,14 +9,12 @@ class RsvpBot(BaseBot):
         super(RsvpBot, self).__init__(bot_cfg, *args, **kwargs)
         self.rsvp = rsvp
 
-    def checkin_player(self, *args, **kwargs):
-        msg = kwargs.get('msg', dict())
-        params = kwargs.get('params', list())
-        name = msg.get('name', None) if len(params) < 1 else ' '.join(params)
+    def checkin_player(self, msg, *args, **kwargs):
+        checkin_type = kwargs.get("checkin_type", "in")
+        name = msg.get('name', None) if len(args) < 1 else ' '.join(args)
         try:
-            status = kwargs.get('checkin_type', 'in')
             self._load_rsvp()
-            self.rsvp.try_checkin(name, status)
+            self.rsvp.try_checkin(name, checkin_type)
         except Exception as e:
             self.respond("ERROR::{0}".format(str(e)))
 
