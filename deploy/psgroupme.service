@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Pointstreak-GroupMe ChatBots
+
+[Service]
+Type=simple
+ExecStart={{ HOME_DIRECTORY }}/src/pointstreak-groupme/run.sh &
+
+[Install]
+WantedBy=multi-user.target
