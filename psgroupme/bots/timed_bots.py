@@ -15,6 +15,7 @@ class TimedBot(threading.Thread):
     def __init__(self, **kwargs):
         """Load the config for this bot based on Name"""
         super(TimedBot, self).__init__()
+        self._logger = logging.getLogger(self.__class__.__name__)
         self._stop_event = threading.Event()
         self.daemon = True
         self.bot_id = kwargs.get('bot_id')
@@ -30,7 +31,7 @@ class TimedBot(threading.Thread):
         return True
 
     def stop(self):
-        logging.info("Stopping Bot {0}".format(self.bot_type))
+        self._logger.info("Stopping Bot {0}".format(self.bot_type))
         self._stop_event.set()
 
     @property
@@ -201,15 +202,20 @@ class CronGamedayReminderBot(BaseGamedayReminderBot):
                 from_date.replace(hour=0, minute=0)).days + 1
 
     def check_for_game_and_notify(self):
-        self.sched = ScheduleFactory.create(self.schedule_type,
-                                            **self.schedule_cfg)
-        self.sched.refresh_schedule()
-        now = datetime.datetime.utcnow()
-        for game in reversed(self.sched.games):
-            days_til_game = self.gametime_diff(now, game.full_gametime)
-            if days_til_game in self.notify_days:
-                super(CronGamedayReminderBot, self)._send_game_notification(
-                    game.data, days=days_til_game)
+        try:
+            self.sched = ScheduleFactory.create(self.schedule_type,
+                                                **self.schedule_cfg)
+            self.sched.refresh_schedule()
+            self._logger.info("Checking Schedule for notifiable games...")
+            now = datetime.datetime.utcnow()
+            for game in reversed(self.sched.games):
+                days_til_game = self.gametime_diff(now, game.full_gametime)
+                if days_til_game in self.notify_days:
+                    super(CronGamedayReminderBot,
+                          self)._send_game_notification(game.data,
+                                                        days=days_til_game)
+        except Exception:
+            self._logger.exception("Could Not Check Schedule")
 
     def run(self):
         while not self.stopped:
@@ -280,11 +286,22 @@ class UpdatedGameNotifierBot(TimedBot):
         super(UpdatedGameNotifierBot, self).__init__(**kwargs)
         self.bot_data = kwargs
         self.schedule_cfg = self.bot_data.get('schedule', dict())
-        self.sleep_time = self.schedule_cfg.get('sleep_time', 1)
+        self.sleep_time = self.schedule_cfg.get('sleep_time', 600)
         self.schedule_type = self.schedule_cfg.get('type', 'pointstreak')
         self.result_responses = self.bot_data.get('result_responses', dict())
-        self.sched = ScheduleFactory.create(self.schedule_type,
-                                            **self.schedule_cfg)
+
+        self.sched = None
+        self._init_schedule()
+
+    def _init_schedule(self):
+        while self.sched is None:
+            try:
+                self.sched = ScheduleFactory.create(self.schedule_type,
+                                                    **self.schedule_cfg)
+            except Exception:
+                self._logger.error("Could not load schedule, "
+                                   "retrying in 1 Minute.")
+                sleep(1)
 
     def store_old_games(self):
         self.old_games = list()
@@ -292,8 +309,11 @@ class UpdatedGameNotifierBot(TimedBot):
             self.old_games.append(game.data)
 
     def refresh_schedule(self):
-        self.store_old_games()
-        self.sched.refresh_schedule()
+        try:
+            self.store_old_games()
+            self.sched.refresh_schedule()
+        except Exception:
+            self._logger.warning("Could not refresh schedule")
 
     def scores_are_different(self, old_dict, new_game):
         return (old_dict['homescore'] != new_game.homescore or
@@ -308,6 +328,7 @@ class UpdatedGameNotifierBot(TimedBot):
     def check_and_notify_schedule_changes(self):
         # TODO: Determine *WHICH* games were added or deleted
         # TODO: Check that game ids all match instead of assuming based on len
+        self._logger.info("Checking for changes in schedule...")
         if len(self.old_games) < len(self.sched.games):
             self.send_msg("Schedule Change Detected: New Games Added!")
         elif len(self.old_games) > len(self.sched.games):

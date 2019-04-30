@@ -13,6 +13,7 @@ class RsvpTool(object):
         self.session = requests.session()
         self.username = username
         self.password = password
+        self._logged_in = False
         self.login()
 
     def login(self):

@@ -12,6 +12,7 @@ def str_to_class(class_name):
 
 def main():
     """Start up a Flask REST API Frontend"""
+    logger = logging.getLogger("FlaskBotManager")
     cm = ConfigManager()
 
     # Setup Path for File server
@@ -30,7 +31,7 @@ def main():
         bot_url = bot.get('bot_url')
         subclass_name = "{0}{1}".format(class_name, bot_id)
         bot_class = str_to_class(class_name)
-        logging.info("Adding {0}".format(subclass_name))
+        logger.info("Adding {0}".format(subclass_name))
         bot.update(dict(img_cfg=img_cfg, public_url=public_url))
         api.add_resource(type(subclass_name, (bot_class,), {}), bot_url,
                          resource_class_kwargs=dict(bot_cfg=bot))

@@ -83,7 +83,7 @@ class TeamLockerRoom(RsvpTool):
             'flags-17768537': 'foobar'
         }
         response = self.session.post(game_url, data=payload)
-        logging.info(response.text)
+        self._logger.info(response.text)
 
         return game_url
 

@@ -49,7 +49,7 @@ class BaseBot(Resource):
         context.update(self.bot_data)
         matches = [x for x in self.responses if re.search(
                    x['input'].format(**context), msg['text'], re.I | re.U)]
-        self._logger.info("Matching Responses: {}".format(matches))
+        self._logger.debug("Matching Responses: {}".format(matches))
         return matches
 
     def get_extra_context(self):
@@ -98,18 +98,25 @@ class BaseBot(Resource):
         return words[cut_amt:]
 
     def react(self, action_type, msg, *args, **kwargs):
-        self._logger.info(("Reacting with:\n"
-                           "    Action Type: {}\n"
-                           "    Msg        : {}\n"
-                           "    Args       : {}\n"
-                           "    Kwargs     : {}\n").format(action_type, msg,
-                                                           args, kwargs))
+        self._logger.debug(("Reacting with:\n"
+                            "    Action Type: {}\n"
+                            "    Msg        : {}\n"
+                            "    Args       : {}\n"
+                            "    Kwargs     : {}\n").format(action_type, msg,
+                                                            args, kwargs))
         if callable(getattr(self, action_type, None)):
-            getattr(self, action_type)(msg, *args, **kwargs)
+            try:
+                getattr(self, action_type)(msg, *args, **kwargs)
+            except Exception:
+                self._logger.exception("Could not perform the following action"
+                                       ": {}".format(action_type))
 
     def respond(self, msg):
         """Have the bot post a message to it's group"""
-        self.responder.reply(msg)
+        try:
+            self.responder.reply(msg)
+        except Exception:
+            self._logger.info("Could not respond with message: {}".format(msg))
 
     def _get_actions(self, match):
         actions = list()

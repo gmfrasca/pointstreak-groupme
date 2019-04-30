@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from requests import get
 import datetime
+import logging
 
 # **Team Info**
 # *Sharknados*
@@ -34,6 +35,7 @@ class Schedule(object):
 
     def __init__(self, team_id=TEAM_ID, season_id=SEASON_ID,
                  company=COMPANY_ID, columns=None, **kwargs):
+        self._logger = logging.getLogger(self.__class__.__name__)
         self.html_doc = None
         self.team_id = team_id
         self.season_id = season_id
@@ -134,10 +136,12 @@ class Schedule(object):
 
     def refresh_schedule(self):
         """Reload the schedule from pointstreak"""
+        self._logger.info("Refreshing Schedule")
         self.html_table = self.retrieve_html_table(self.url)
         self.games = self.parse_table()
 
     def send_get_request(self, url):
+        self._logger.info("Retrieving Schedule")
         self.html_doc = get(url).text
         self.last_refresh = datetime.datetime.now()
 
