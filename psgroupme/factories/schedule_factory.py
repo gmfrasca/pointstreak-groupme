@@ -7,7 +7,6 @@ from parsers.schedules.debug_schedule import TimeUpdateDebugSchedule
 from parsers.schedules.debug_schedule import GameAddDebugSchedule
 from parsers.schedules.debug_schedule import GameRemoveDebugSchedule
 from parsers.schedules.debug_schedule import GameFinalizedDebugSchedule
-import datetime
 
 
 class ScheduleFactory(object):
@@ -36,36 +35,3 @@ class ScheduleFactory(object):
                              .format(schedule_type))
 
     create = staticmethod(create)
-
-
-def main(schedule_type='sportsengine'):
-    """
-    This is more of a testing procedure.  Get all relevent info and print it
-    """
-    sched_kwargs = {
-        'team_id': 3367048,
-        'season_id': 481539,
-        'company': 'dreamsports'
-    }
-    schedule = ScheduleFactory.create(schedule_type, **sched_kwargs)
-    now = datetime.datetime.now()
-    next_game = schedule.get_next_game()
-    last_game = schedule.get_last_game()
-    print "--- Today's Date ---"
-    print now
-    print "--- Full Schedule ---"
-    print schedule.get_schedule()
-    print "--- Next Game on Schedule ---"
-    if not next_game:
-        print 'No games left on schedule'
-    else:
-        print 'The next game is {0}'.format(next_game)
-    print "--- Last Game Played ---"
-    if not last_game:
-        print 'No games have been played yet'
-    else:
-        print 'The last game was {0}'.format(last_game)
-
-
-if __name__ == "__main__":
-    main()

@@ -18,6 +18,8 @@ class Responder(object):
             return
         data = dict(bot_id=self.bot_id, text=message)
         try:
+            self._logger.debug("Posting to {}: {}".format(GROUPME_BOT_URL,
+                                                          data))
             resp = post(GROUPME_BOT_URL, data=data)
             assert resp.status_code in range(200, 400)
         except (AssertionError, ConnectionError):

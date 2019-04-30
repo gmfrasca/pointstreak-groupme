@@ -50,6 +50,7 @@ class DashPlatformSchedule(Schedule):
         # return self.retrieve_html_table_with_class(url, table_classes)
         table_class = 'list-group'
         if self.schedule_is_stale:
+            self._logger.info("Schedule is stale, refreshing")
             self.send_get_request(url)
         soup = BeautifulSoup(self.html_doc, 'html.parser')
         return soup.find("ul", {'class': table_class})
@@ -62,6 +63,7 @@ class DashPlatformSchedule(Schedule):
         Returns:
             a list of PoinstreakGames in order from first to last
         """
+        self._logger.info("Parsing games from DashPlatform Data Table")
         games = []
         # OLD sytle
         # if self.html_table:
@@ -102,6 +104,7 @@ class DashPlatformSchedule(Schedule):
                             ateam, ascore, prevgame=prevgame, final=final)
                 games.append(game)
                 prevgame = game
+        self._logger.info("Parsed {} Games from Data Table".format(len(games)))
         return games
 
     def is_score_final(self, score):

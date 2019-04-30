@@ -13,7 +13,7 @@ class ImageBot(BaseBot):
                                x.split('.')[-1] in IMG_EXTENSIONS]))
 
     def respond_image(self, *args, **kwargs):
-        params = kwargs.get('params', list())
+        params = kwargs.get('params', list())  # TODO: update to use args?
         for param in params:
             self._respond_image(param)
 
@@ -25,6 +25,7 @@ class ImageBot(BaseBot):
         return files
 
     def _respond_image(self, searchfor):
+        self._logger.info("Searching {} for image".format(searchfor))
         searchfor = os.path.basename(searchfor)
         public_url = self.bot_data.get('public_url').strip('/')
         img_cfg = self.bot_data.get('img_cfg')
@@ -37,5 +38,6 @@ class ImageBot(BaseBot):
                 filename = '{}.{}'.format(searchfor, file_type)
                 if filename in found_files:
                     url = '{}/{}/{}'.format(public_url, dest, filename)
+                    self._logger.info("Found Image: {}".format(url))
                     self.respond(url)
                     return

@@ -40,6 +40,7 @@ class PointstreakSchedule(Schedule):
         Returns:
             a list of PoinstreakGames in order from first to last
         """
+        self._logger.info("Parsing games from Pointstreak Data Table")
         games = []
         if self.html_table:
             prevgame = None
@@ -54,6 +55,7 @@ class PointstreakSchedule(Schedule):
                             away, ascore, prevgame=prevgame, final=final)
                 games.append(game)
                 prevgame = game
+        self._logger.info("Parsed {} games".format(len(games)))
         return games
 
     def is_score_final(self, score):

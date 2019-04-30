@@ -62,7 +62,8 @@ class TeamFeeReminderBot(TimedBot):
         return None
 
     def get_finance_tool(self):
-        # Set up RsvpTool
+        # Set up FinanceTool
+        self._logger.debug("Loading FinanceTool Parser")
         finance_cfg = self.finance_cfg.copy()
         if finance_cfg:
             if 'username' in finance_cfg and 'password' in finance_cfg:
@@ -76,6 +77,7 @@ class TeamFeeReminderBot(TimedBot):
         fee, paid, percent = finance_tool.get_team_fee_stats()
         # Run only if fee isn't fully paid
         if fee != paid:
+            self._logger.info("Fee not paid in full yet, notifying")
             prog_bar = finance_tool.get_team_fee_progress()
             msg = ''
             if self.season_start_date:
@@ -92,11 +94,13 @@ class TeamFeeReminderBot(TimedBot):
             self.send_msg(msg)
 
     def run(self):
+        self._logger.info("Starting {} Thread".format(self.__class__.__name__))
         while not self.stopped:
             now = datetime.datetime.utcnow()
             cron = croniter.croniter(self.schedule, now)
             next_run = cron.get_next(datetime.datetime)
             delta = next_run - now
+            self._logger.info("Next Run at: {}".format(next_run))
             t = threading.Timer(delta.total_seconds(), self.post_msg)
             t.daemon = True
             t.start()
@@ -121,26 +125,32 @@ class BaseGamedayReminderBot(TimedBot):
 
     def load_rsvp(self):
         # Set up RsvpTool
+        self._logger.debug("Loading RSVP Parser")
         if self.rsvp is not None:
+            self._logger.debug("Already loaded.")
             return
         if self.rsvp_cfg:
+            self._logger.info("No RSVP Parser Loaded yet, creating new one.")
             if 'username' in self.rsvp_cfg and 'password' in self.rsvp_cfg:
                 rsvp_type = self.rsvp_cfg.get('type')
                 self.rsvp_cfg.update(dict(rsvp_tool_type=rsvp_type))
                 self.rsvp = RsvpToolFactory.create(**self.rsvp_cfg)
 
     def load_player_stats(self):
+        self._logger.info("Loading Player Stats Parser")
         stats_type = self.stats_cfg.get('type', 'pointstreak')
         self.player_stats = PlayerStatsFactory.create(stats_type,
                                                       **self.stats_cfg)
 
     def load_team_stats(self):
+        self._logger.info("Loading Team Stats Parser")
         stats_type = self.stats_cfg.get('type', 'pointstreak')
         self.team_stats = TeamStatsFactory.create(stats_type,
                                                   **self.stats_cfg)
 
     def get_playoff_danger_str(self):
         if self.playoff_check:
+            self._logger.info("Playoff Warning Check: Enabled")
             self.load_player_stats()
             sched_length = self.sched.length
             games_remaining = self.sched.games_remaining
@@ -177,6 +187,7 @@ class BaseGamedayReminderBot(TimedBot):
                 attendance = self.rsvp.get_next_game_attendance()
                 msg = "{0}\r\n{1}".format(msg, attendance)
             msg = '{}{}'.format(msg, self.get_playoff_danger_str())
+        self._logger.debug("Generated Msg: {}".format(msg))
         self.send_msg(msg)
         sleep(1)
 
@@ -218,6 +229,7 @@ class CronGamedayReminderBot(BaseGamedayReminderBot):
             self._logger.exception("Could Not Check Schedule")
 
     def run(self):
+        self._logger.info("Starting {} Thread".format(self.__class__.__name__))
         while not self.stopped:
             now = datetime.datetime.utcnow()
 
@@ -226,6 +238,7 @@ class CronGamedayReminderBot(BaseGamedayReminderBot):
             if self.debug:
                 next_run = now + datetime.timedelta(0, 2)
             delta = (next_run - now).total_seconds()
+            self._logger.info("Next Run at: {}".format(next_run))
             t = threading.Timer(delta, self.check_for_game_and_notify)
             t.daemon = True
             t.start()
@@ -239,19 +252,27 @@ class DatabaseGamedayReminderBot(BaseGamedayReminderBot):
     NIGHT_CUTOFF = datetime.time(22, 00)
 
     def ok_time_to_send_msg(self):
+        self._logger.debug("Checking if now is within the notifiable window"
+                           "of {} to {}".format(self.MORNING_CUTOFF,
+                                                self.NIGHT_CUTOFF))
         now = datetime.datetime.now().time()
         return self.MORNING_CUTOFF <= now <= self.NIGHT_CUTOFF
 
     def game_has_been_notified(self, game_id):
+        self._logger.debug("Checking if Game {} has been notified".format(
+            game_id))
         return self.db.game_has_been_notified(game_id)
 
     def get_game(self, game_id):
+        self._logger.debug("Retreiving Game {} from DB".format(game_id))
         return self.db.get_game(game_id)
 
     def run(self):
         # Set up Database
         # TODO: Can we move this inside run loop?
+        self._logger.info("Setting up Pointstreak DB")
         self.db = PointstreakDatabase()
+        self._logger.info("Setting up Schedule")
         self.sched = ScheduleFactory.create(self.schedule_type,
                                             **self.schedule_cfg)
         self.sched.refresh_schedule()
@@ -266,6 +287,7 @@ class DatabaseGamedayReminderBot(BaseGamedayReminderBot):
     def _check_and_notify_game(self, game_id):
         if not self.game_has_been_notified(game_id) and \
                 self.ok_time_to_send_msg():
+            self._logger.info("OK to send notification")
             game = self.db.get_game(game_id)
             self._send_game_notification(game)
             self.db.set_notified(game_id, True)
@@ -282,6 +304,11 @@ class GamedayReminderBot(CronGamedayReminderBot, DatabaseGamedayReminderBot):
 
 
 class UpdatedGameNotifierBot(TimedBot):
+
+    NOTIFICATION_TYPES = ['GAMES_ADDED', 'GAMES_REMOVED',
+                          'FINAL_SCORE', 'SCORE_UPDATED',
+                          'TIME_UPDATED']
+
     def __init__(self, **kwargs):
         super(UpdatedGameNotifierBot, self).__init__(**kwargs)
         self.bot_data = kwargs
@@ -289,7 +316,7 @@ class UpdatedGameNotifierBot(TimedBot):
         self.sleep_time = self.schedule_cfg.get('sleep_time', 600)
         self.schedule_type = self.schedule_cfg.get('type', 'pointstreak')
         self.result_responses = self.bot_data.get('result_responses', dict())
-
+        self.notify_caps = self.bot_data.get('notify', ['all'])
         self.sched = None
         self._init_schedule()
 
@@ -301,7 +328,12 @@ class UpdatedGameNotifierBot(TimedBot):
             except Exception:
                 self._logger.error("Could not load schedule, "
                                    "retrying in 1 Minute.")
-                sleep(1)
+                sleep(60)
+
+    def _notification_is_enabled(self, notify_type):
+        if 'all' in [x.lower() for x in self.notify_caps]:
+            return True
+        return notify_type.lower() in [x.lower() for x in self.notify_caps]
 
     def store_old_games(self):
         self.old_games = list()
@@ -309,6 +341,7 @@ class UpdatedGameNotifierBot(TimedBot):
             self.old_games.append(game.data)
 
     def refresh_schedule(self):
+        self._logger.debug("Refreshing Schedule")
         try:
             self.store_old_games()
             self.sched.refresh_schedule()
@@ -316,40 +349,69 @@ class UpdatedGameNotifierBot(TimedBot):
             self._logger.warning("Could not refresh schedule")
 
     def scores_are_different(self, old_dict, new_game):
+        old_home = old_dict['homescore']
+        old_away = old_dict['awayscore']
+        new_home = new_game.homescore
+        new_away = new_game.awayscore
+        self._logger.debug("Check Home Scores: {} vs {}".format(old_home,
+                                                                new_home))
+        self._logger.debug("Check Away Scores: {} vs {}".format(old_away,
+                                                                new_away))
         return (old_dict['homescore'] != new_game.homescore or
                 old_dict['awayscore'] != new_game.awayscore)
 
     def game_finality_is_different(self, old_dict, new_game):
-        return old_dict['final'] != new_game.final
+        old = old_dict['final']
+        new = new_game.final
+        self._logger.debug("Check Finality: {} vs {}".format(old, new))
+        return old != new
 
     def time_is_different(self, old_dict, new_game):
-        return old_dict['full_gametime_str'] != new_game.full_gametime_str
+        old = old_dict['full_gametime_str']
+        new = new_game.full_gametime_str
+        self._logger.debug("Check Time: {} vs {}".format(old, new))
+        return old != new
 
     def check_and_notify_schedule_changes(self):
         # TODO: Determine *WHICH* games were added or deleted
         # TODO: Check that game ids all match instead of assuming based on len
-        self._logger.info("Checking for changes in schedule...")
+        self._logger.debug("Checking for changes in schedule...")
         if len(self.old_games) < len(self.sched.games):
-            self.send_msg("Schedule Change Detected: New Games Added!")
+            self._logger.info("More Games Detected: {} vs old {}".format(
+                len(self.sched.games), len(self.old_games)))
+            if self._notification_is_enabled('GAMES_ADDED'):
+                self.send_msg("Schedule Change Detected: New Games Added!")
         elif len(self.old_games) > len(self.sched.games):
-            self.send_msg("Schedule Change Detected: Games Removed!")
+            self._logger.info("Less Games Detected: {} vs old {}".format(
+                len(self.sched.games), len(self.old_games)))
+            if self._notification_is_enabled('GAMES_REMOVED'):
+                self.send_msg("Schedule Change Detected: Games Removed!")
         else:
             msg = ''
             result_res = ''
             for x in range(0, len(self.old_games)):
                 old = self.old_games[x]
                 new = self.sched.games[x]
-                if self.game_finality_is_different(old, new):
+                if (self.game_finality_is_different(old, new) and
+                        self._notification_is_enabled('FINAL_SCORE')):
+                    self._logger.info("Game {} has completed, ".format(x) +
+                                      "Adding to Message List")
                     msg += "Final Score:\r\n{}\r\n".format(new)
                     if isinstance(self.result_responses, dict):
                         team = self.sched.team_name
                         result = new.result_for_team(team)
                         if result:
                             result_res = self.result_responses.get(result, '')
-                elif self.scores_are_different(old, new):
+                elif (self.scores_are_different(old, new) and
+                      self._notification_is_enabled('SCORE_UPDATED')):
+                    self._logger.info("Score Updated for Game {},".format(x) +
+                                      " Adding to Message List")
                     msg += "Score Updated:\r\n{}\r\n".format(new)
-                if self.time_is_different(old, new) and new.future:
+                if (self.time_is_different(old, new) and new.future and
+                        self._notification_is_enabled('TIME_UPDATED')):
                     # Only notify if game hasn't already occurred
+                    self._logger.info("Time Updated for Game {}, ".format(x) +
+                                      "Adding to Message List")
                     msg += ("Game Time Updated:\r\n"
                             "Game on {} is now: {}\r\n".format(
                                 old['full_gametime_str'], new))
@@ -359,28 +421,29 @@ class UpdatedGameNotifierBot(TimedBot):
                 self.send_msg(result_res)
 
     def run(self):
+        self._logger.info("Starting UpdatedGameNotificationBot")
         while not self.stopped:
             self.refresh_schedule()
             self.check_and_notify_schedule_changes()
             sleep(self.sleep_time)
 
 
-class TestGamedayReminderBot(GamedayReminderBot):
+class TestTimedBot(object):
 
     def send_msg(self, msg):
-        print(msg)
+        self._logger.info("Response:\n\n\n{}\n\n".format(msg))
 
 
-class TestTeamFeeReminderBot(TeamFeeReminderBot):
-
-    def send_msg(self, msg):
-        print(msg)
+class TestGamedayReminderBot(TestTimedBot, GamedayReminderBot):
+    pass
 
 
-class TestUpdatedGameNotifierBot(UpdatedGameNotifierBot):
+class TestTeamFeeReminderBot(TestTimedBot, TeamFeeReminderBot):
+    pass
 
-    def send_msg(self, msg):
-        print(msg)
+
+class TestUpdatedGameNotifierBot(TestTimedBot, UpdatedGameNotifierBot):
+    pass
 
 
 def main():

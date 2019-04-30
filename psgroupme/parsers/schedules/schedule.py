@@ -157,6 +157,7 @@ class Schedule(object):
              a bs tbody element containing the team schedule
         """
         if self.schedule_is_stale:
+            self._logger.info("Schedule data is stale, refreshing")
             self.send_get_request(url)
         soup = BeautifulSoup(self.html_doc, 'html.parser')
         table = soup.find("table", {'class': table_class})

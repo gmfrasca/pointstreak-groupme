@@ -23,6 +23,7 @@ class ScheduleBot(BaseBot):
         super(ScheduleBot, self).get_extra_context()
         self._load_schedule()
         if self.schedule is not None:
+            self._logger.info("Getting Extra Context from Schedule Parser")
             self.schedule.refresh_schedule()  # TODO: do not need?
             next_game = self.schedule.get_next_game()
             last_game = self.schedule.get_last_game()
@@ -46,9 +47,12 @@ class ScheduleBot(BaseBot):
                                      schedule=schedule))
 
     def _load_schedule(self):
+        self._logger.debug("Loading Schedule Parser")
         if self.schedule is not None:
+            self._logger.debug("Schedule Parser already loaded.")
             return
         if 'schedule' in self.bot_data:
+            self._logger.debug("Schedule Parser not loaded, creating new one")
             schedule_cfg = self.bot_data.get('schedule', dict())
             schedule_type = schedule_cfg.get('type', self.DEFAULT_TYPE)
             schedule_cfg.update(dict(schedule_type=schedule_type))

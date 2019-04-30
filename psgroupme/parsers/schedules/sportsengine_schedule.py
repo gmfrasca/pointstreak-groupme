@@ -44,6 +44,7 @@ class SportsEngineSchedule(Schedule):
             url, 'statTable sortable noSortImages')
 
     def parse_table(self):
+        self._logger.info("Parsing Games from SportsEngine Data Table")
         games = []
         prevgame = None
         for game_row in self.html_table.find_all('tr'):
@@ -60,6 +61,7 @@ class SportsEngineSchedule(Schedule):
                         awayscore, prevgame=prevgame, final=final)
             games.append(game)
             prevgame = game
+        self._logger.info("Parsed {} Games from Table".format(len(games)))
         return games
 
     def is_home_team(self, opponent):
@@ -74,6 +76,7 @@ class SportsEngineSchedule(Schedule):
         gametime = gametime_cell.a if gametime_cell.a is not None else None
         if gametime is not None and gametime.span is not None:
             return gametime.text
+        self._logger.debug("Could not find game time, assigning 12:01AM EST")
         return "12:01 AM EST"
 
     def parse_teams(self, opponent):

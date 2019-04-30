@@ -30,6 +30,7 @@ class BaseBot(Resource):
         self.context = dict()
 
     def refresh_responses(self):
+        self._logger.info("Refreshing Responses")
         self.responses = self.brm.get_global_responses()
         self.responses.extend(self.get_bot_specific_responses())
 
@@ -39,12 +40,14 @@ class BaseBot(Resource):
 
     def handle_msg(self, msg):
         """Check if a message is actionable (not system or bot), and respond"""
+        self._logger.debug("Handling msg: {}".format(msg))
         system = msg.get('system', True)
         sender_type = msg.get('sender_type', 'user')
         if not system and sender_type != 'bot':
             self.read_msg(msg)
 
     def get_matching_responses(self, msg):
+        self._logger.info("Searching for matching responses")
         context = msg.copy()
         context.update(self.bot_data)
         matches = [x for x in self.responses if re.search(
@@ -53,6 +56,7 @@ class BaseBot(Resource):
         return matches
 
     def get_extra_context(self):
+        self._logger.info("Getting Extra Context")
         self.context.update(self.brm.get_extra_context())
         self.context.update(dict(today=datetime.datetime.now().strftime(
             "%a %b %d %I:%M.%S%p")))
@@ -68,11 +72,13 @@ class BaseBot(Resource):
         self.refresh_responses()
         matches = self.get_matching_responses(msg)
         if len(matches) > 0:
+            self._logger.info("Reactable Msg Recieved!")
             matches = self.get_matching_responses(msg)
             self.context = msg.copy()
             self.context.update(self.bot_data)
             self.get_extra_context()
             for match in matches:
+                self._logger.info("Working with match: {}".format(match))
                 params = self.get_params(match, msg)
                 try:
                     for action in self._get_actions(match):
@@ -91,6 +97,7 @@ class BaseBot(Resource):
                     self.respond('Sorry, that command is not available.')
 
     def get_params(self, match, msg):
+        ''' Get words after matching command in msgtxt and return as list '''
         cut_amt = len(match.get('input', '').split())
         words = msg.get('text', '').split()
         if len(words) <= cut_amt:
@@ -113,12 +120,14 @@ class BaseBot(Resource):
 
     def respond(self, msg):
         """Have the bot post a message to it's group"""
+        self._logger.debug("Responding with msg: {}".format(msg))
         try:
             self.responder.reply(msg)
         except Exception:
             self._logger.info("Could not respond with message: {}".format(msg))
 
     def _get_actions(self, match):
+        self._logger.info("Getting actions")
         actions = list()
         single_action = match.get('action', list())
         multi_actions = match.get('actions', list())
@@ -130,14 +139,17 @@ class BaseBot(Resource):
             actions.extend([multi_actions])
         if isinstance(multi_actions, list):
             actions.extend(multi_actions)
+        self._logger.info("Actions to perform: {}".format(actions))
         return actions
 
     def get(self):
         """React to a GET call"""
+        self._logger.info("Received GET call")
         return {'bot_cfg': self.bot_data}
 
     def post(self):
         """React to a POST call"""
+        self._logger.info("Received POST call")
         data_str = request.data
         try:
             msg = json.loads(data_str)

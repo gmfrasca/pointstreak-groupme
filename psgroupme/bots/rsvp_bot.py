@@ -13,15 +13,20 @@ class RsvpBot(BaseBot):
         checkin_type = kwargs.get("checkin_type", "in")
         name = msg.get('name', None) if len(args) < 1 else ' '.join(args)
         try:
+            self._logger.info(
+                "Received request to checkin {} with status {}".format(
+                    name, checkin_type))
             self._load_rsvp()
             self.rsvp.try_checkin(name, checkin_type)
         except Exception as e:
+            self._logger.exception(e)
             self.respond("ERROR::{0}".format(str(e)))
 
     def load_rsvp(self, *args, **kwargs):
         super(RsvpBot, self).get_extra_context()
         self._load_rsvp()
         if self.rsvp is not None:
+            self._logger.info("Getting Extra Context from RSVPTool Parser")
             attendance = self.rsvp.get_next_game_attendance()
             attendance_resp = attendance
             attendees = self.rsvp.get_next_game_attendees()
@@ -35,9 +40,12 @@ class RsvpBot(BaseBot):
 
     def _load_rsvp(self):
         # Set up RsvpTool
+        self._logger.debug("Loading RSVPTool Parser")
         if self.rsvp is not None:
+            self._logger.debug("RSVPTool Parser already loaded.")
             return
         if 'rsvp' in self.bot_data:
+            self._logger.debug("RSVPTool Parser not loaded, creating new one")
             rsvp_cfg = self.bot_data.get('rsvp')
             if 'username' in rsvp_cfg and 'password' in rsvp_cfg:
                 rsvp_type = rsvp_cfg.get('type')
