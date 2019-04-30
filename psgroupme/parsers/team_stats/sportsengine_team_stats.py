@@ -38,6 +38,7 @@ class SportsEngineTeamStats(TeamStats):
 
     # TODO
     def parse_table(self):
+        self._logger.info("Parsing TeamStats Page")
         standings = list()
         team_table = self.html_tables[0]
         for team_row in team_table.find_all('tr'):

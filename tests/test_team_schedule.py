@@ -1,6 +1,5 @@
 from psgroupme.parsers.schedules.pointstreak_schedule import PointstreakSchedule
 from psgroupme.parsers.schedules.game import Game
-from psgroupme.factories.schedule_factory import main as sched_main
 import unittest
 import mock
 import datetime
@@ -265,8 +264,3 @@ home vs away at \w\w\w, Aug 25 08:45 PM
         self.assertEqual(next_game.awayteam, 'away')
         self.assertIsNone(next_game.homescore)
         self.assertIsNone(next_game.awayscore)
-
-    @mock.patch('psgroupme.factories.schedule_factory.PointstreakSchedule')
-    def test_main(self, mock_sched):
-        mock_sched.return_code = self.schedule
-        sched_main(schedule_type='pointstreak')

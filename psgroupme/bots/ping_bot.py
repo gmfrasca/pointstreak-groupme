@@ -1,6 +1,7 @@
 from flask_restful import Resource
 from flask import request
 from interfaces.responder import Responder
+import logging
 import json
 
 
@@ -15,11 +16,12 @@ class PingBot(Resource):
         return type(self).__name__
 
     def __init__(self, bot_id, **kwargs):
+        self._logger = logging.getLogger(self.__class__.__name__)
         self.bot_id = bot_id
 
     def respond(self, msg):
         """Have the bot post a message to it's group"""
-        print("pong")
+        self._logger.info("pong")
 
     def get(self):
         """React to a GET call"""
@@ -46,6 +48,7 @@ class LivePingBot(PingBot):
             system = msg.get('system', True)
             sender_type = msg.get('sender_type', 'user')
             if not system and sender_type != 'bot':
+                self._logger.info("User message recieved, responding")
                 self.respond(msg)
             return {'post': msg}
         except ValueError:

@@ -1,5 +1,6 @@
 from requests import post
 from argparse import ArgumentParser
+import logging
 import json
 
 DEFAULT_MSG = 'Hello, TestBot.'
@@ -35,7 +36,11 @@ test_data = {
     'text': args.msg,
     'user_id': '1234567890'
 }
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("AllSchedulesDebugger")
+
 for bot in BOTS:
-    print "==== {0} ====".format(bot['type'])
+    logger.info("==== {0} ====".format(bot['type']))
     post('{}{}'.format(BASEURL, bot['url']), data=json.dumps(test_data))
-    print ""
+    logger.info("")

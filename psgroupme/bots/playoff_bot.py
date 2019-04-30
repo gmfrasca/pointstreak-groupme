@@ -11,7 +11,8 @@ class PlayoffBot(ScheduleBot, PlayerStatsBot):
     def check_playoff(self, msg, *args, **kwargs):
         name = msg.get('name', None) if len(args) < 0 else ' '.join(args)
         try:
-            if len(args) > 0:
+            self._logger.info("Check Playoff elligibility of {}".format(name))
+            if len(args) > 0:  # TODO: why this check?
                 self._load_player_stats()
                 self._load_schedule()
                 players = self.player_stats.get_player(name)
@@ -49,4 +50,5 @@ class PlayoffBot(ScheduleBot, PlayerStatsBot):
                                           player.name))
 
         except Exception as e:
+            self._logger.exception(e)
             self.respond("ERROR::{0}".format(str(e)))

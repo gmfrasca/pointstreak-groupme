@@ -42,14 +42,17 @@ class SportsEnginePlayerStats(PlayerStats):
 
     # TODO
     def parse_table(self):
+        self._logger.info("Parsing Player Stat Table...")
         players = dict()
         goalies = dict()
         player_table = self.html_tables[0]
         goalie_table = self.html_tables[1]
 
+        self._logger.info("Parsing Players Stats...")
         for player_row in player_table.find_all('tr'):
             cells = player_row.find_all('td')
             player_name = self.get_stat(cells, 'player_name')
+            self._logger.debug("Adding player '{}'".format(player_name))
             player = Player(name=player_name,
                             games_played=self.get_stat(cells, 'games_played'),
                             goals=self.get_stat(cells, 'goals'),
@@ -60,9 +63,11 @@ class SportsEnginePlayerStats(PlayerStats):
                                                         'jersey_number'))
             players.update({player_name: player})
 
+        self._logger.info("Parsing Goalie Stats...")
         for goalie_row in goalie_table.find_all('tr'):
             cells = goalie_row.find_all('td')
             goalie_name = self.get_stat(cells, 'player_name')
+            self._logger.debug("Adding goalie '{}'".format(player_name))
             goalie = Player(name=goalie_name,
                             games_played=self.get_stat(cells, 'games_played'),
                             wins=self.get_stat(cells, 'wins'),
@@ -71,4 +76,6 @@ class SportsEnginePlayerStats(PlayerStats):
                             goals_against=self.get_stat(cells,
                                                         'goals_against'))
             goalies.update({goalie_name: goalie})
-        return dict(players=players, goalies=goalies)
+        player_dict = dict(players=players, goalies=goalies)
+        self._logger.debug("Player Dict: {}".format(player_dict))
+        return player_dict

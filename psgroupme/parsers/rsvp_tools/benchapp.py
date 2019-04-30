@@ -61,11 +61,13 @@ class BenchApp(RsvpTool):
 
     def retrieve_next_game_page(self):
         self.login()
+        self._logger.info("Retrieving Next Game Page from BenchApp")
         self.next_game = self.session.get('{0}{1}'.format(self.baseurl,
                                                           NEXT_GAME_URL))
 
     def retrieve_finances_page(self):
         self.login()
+        self._logger.info("Retrieving Finances Page from BenchApp")
         self.finances = self.session.get('{0}{1}'.format(self.baseurl,
                                                          FINANCES_URL))
 
@@ -73,6 +75,7 @@ class BenchApp(RsvpTool):
         return self.finances
 
     def get_next_game_data(self):
+        self._logger.info("Parsing Attendance data from BenchApp")
         if self.next_game_data is not None:
             return self.next_game_data
         if self.has_upcoming_game is False:
@@ -98,6 +101,7 @@ class BenchApp(RsvpTool):
         return float(Decimal(sub(r'[^\d.-]', '', moneytext)))
 
     def get_team_fee_stats(self):
+        self._logger.info("Parsing TeamFee Stats from BenchApp")
         page = self.get_finances_page().text
         soup = BeautifulSoup(page, 'html.parser')
         rosterlist = soup.find("table", {"id": "rosterList"})
@@ -158,6 +162,7 @@ class BenchApp(RsvpTool):
         return len(self.get_list_of_unknown_status_players())
 
     def get_next_game_attendance(self):
+        self._logger.info("Getting next game's attendance")
         if self.has_upcoming_game:
             return "In: {0}, Out: {1}, Waitlist: {2}, No Status: {3}".format(
                 self.get_number_checked_in(),
@@ -168,6 +173,7 @@ class BenchApp(RsvpTool):
             return "No upcoming games found."
 
     def get_next_game_attendees(self):
+        self._logger.info("Getting next game's attendees")
         if self.has_upcoming_game:
             in_list = self.get_list_of_attending_players()
             out_list = self.get_list_of_not_attending_players()
@@ -188,6 +194,7 @@ class BenchApp(RsvpTool):
             return "No upcoming games found."
 
     def get_next_game_lines(self):
+        self._logger.debug("Getting next game's positions")
         self.login()
         if self.has_upcoming_game is False:
             return "No upcoming games found."
@@ -246,6 +253,7 @@ class BenchApp(RsvpTool):
         return self.construct_line_str(lines)
 
     def construct_line_str(self, lines):
+        self._logger.debug("Formatting Lines Text")
         line_str = '---FORWARDS---'
         for line in lines.get('forwards'):
             lw = line.get('leftwing', None)
@@ -269,6 +277,7 @@ class BenchApp(RsvpTool):
         for goalie in lines.get('goalies'):
             if goalie is not None:
                 line_str = '{0}\r\n{1}'.format(line_str, goalie)
+        self._logger.debug("Lines:\n{}".format(line_str))
         return line_str
 
     def get_player_in_line_pos(self, soup, pos):
@@ -291,6 +300,7 @@ class BenchApp(RsvpTool):
                                 id=lambda x: x and x.startswith('player-'))
         found = False
         playeritem = None
+        self._logger.info("Looking up player {}".format(name))
         for player in players:
             # Checkin By ID, exact match
             if player.get('id').endswith(name) or \
@@ -303,6 +313,8 @@ class BenchApp(RsvpTool):
                     found = True
                     playeritem = player
         if found:
+            self._logger.info(
+                "Found {}, attempting to RSVP with '{}'".format(name, status))
             try:
                 checkin = playeritem.find("a", {"href": "#IN"})
                 checkin_fn = checkin.get('onclick', '')
@@ -318,6 +330,7 @@ class BenchApp(RsvpTool):
                                                    'ignore').strip("'"))
                 self.session.get('{0}{1}'.format(DEFAULT_URL, CHECKIN_URL),
                                  params=data)
+                self._logger.info("Success.")
             except Exception:
                 raise CheckinException(
                     "ERROR::Could not check in {0}".format(name))

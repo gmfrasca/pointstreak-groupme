@@ -1,3 +1,4 @@
+import logging
 import yaml
 import os
 
@@ -13,11 +14,13 @@ class ConfigManager(object):
     def __init__(self, cfg_path=DEFAULT_CONFIG):
         """Load the groupme bot config"""
         # Handle NoneType cfg_path
+        self._logger = logging.getLogger(self.__class__.__name__)
         cfg_path = cfg_path if cfg_path else DEFAULT_CONFIG
         self.cfg = self.load_cfg(cfg_path)
 
     def load_cfg(self, cfg_path):
         """Load the config from a target YAML"""
+        self._logger.info("Loading config from {}".format(cfg_path))
         with open(cfg_path) as f:
             return yaml.load(f, Loader=yaml.FullLoader)
 

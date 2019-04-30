@@ -23,6 +23,7 @@ class TeamLockerRoom(RsvpTool):
         raise RuntimeError("Could not parse csrf token from source")
 
     def login(self):
+        self._logger.info("Logging into PointStreak Team Locker Room")
         csrf = self.get_csrf_token()
         payload = {
             "username": self.username,
@@ -50,6 +51,7 @@ class TeamLockerRoom(RsvpTool):
         return json.loads(schedule)
 
     def get_next_game(self):
+        self._logger.debug("Getting next game")
         for game in self.schedule:
             played = game.get('played', -1)
             if played and int(played) == 0:
@@ -58,6 +60,7 @@ class TeamLockerRoom(RsvpTool):
 
     # TODO: Refactor to get_next_game_attendance_str
     def get_next_game_attendance(self):
+        self._logger.debug("Getting next game's attendance")
         next_game = self.get_next_game()
         if next_game:
             attin = next_game.get('attin', '0')
@@ -67,12 +70,14 @@ class TeamLockerRoom(RsvpTool):
         return "No upcoming games found."
 
     def get_next_game_id(self):
+        self._logger.debug("Getting next game's id")
         game = self.get_next_game()
         if game:
             return game.get('gameid', None)
         return None
 
     def get_game_attendees(self, gameid):
+        self._logger.debug("Looking up attendees for game #{}".format(gameid))
         game = self.get_next_game()
         game_url = '{0}/#game/{1}'.format(self.baseurl, game.get('gameid'))
 
@@ -88,6 +93,7 @@ class TeamLockerRoom(RsvpTool):
         return game_url
 
     def get_next_game_attendees(self):
+        self._logger.debug("Getting next game's attendees")
         gameid = self.get_next_game_id()
         return self.get_game_attendees(gameid) if gameid else None
 
