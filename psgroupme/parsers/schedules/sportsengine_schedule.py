@@ -18,12 +18,12 @@ class SportsEngineSchedule(Schedule):
         'homelogo': None,
         'hometeam': None,
         'awaylogo': None,
-        'awayteam': 3,
-        'gameday': 1,
-        'gametime': 5,
+        'awayteam': 2,
+        'gameday': 0,
+        'gametime': 4,
         'extras': None,
-        'result': 2,
-        'location': 4
+        'result': 1,
+        'location': 3
     }
 
     def __init__(self, **kwargs):
