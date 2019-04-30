@@ -30,9 +30,18 @@ class BenchApp(RsvpTool):
         self.retrieve_finances_page()
 
     def login(self):
-        data = dict(email=self.username, password=self.password)
-        self.session.post("{0}{1}".format(self.baseurl, LOGIN_URL),
-                          data=data)
+        if self._logged_in:
+            self._logger.info("Already logged into BenchApp")
+            return
+        try:
+            self._logger.info("Logging into BenchApp")
+            data = dict(email=self.username, password=self.password)
+            self.session.post("{0}{1}".format(self.baseurl, LOGIN_URL),
+                              data=data)
+            self._logged_in = True
+        except Exception:
+            return
+            self._logger.warning("Could not log into BenchApp")
 
     def parse_playeritem(self, playeritem):
         text = playeritem.findAll("a", {"href": "#profile"})[0]
@@ -51,10 +60,12 @@ class BenchApp(RsvpTool):
         return self.next_game
 
     def retrieve_next_game_page(self):
+        self.login()
         self.next_game = self.session.get('{0}{1}'.format(self.baseurl,
                                                           NEXT_GAME_URL))
 
     def retrieve_finances_page(self):
+        self.login()
         self.finances = self.session.get('{0}{1}'.format(self.baseurl,
                                                          FINANCES_URL))
 
@@ -177,6 +188,7 @@ class BenchApp(RsvpTool):
             return "No upcoming games found."
 
     def get_next_game_lines(self):
+        self.login()
         if self.has_upcoming_game is False:
             return "No upcoming games found."
         page = self.get_next_game_page().text
@@ -269,6 +281,7 @@ class BenchApp(RsvpTool):
         return player_name.strip()
 
     def try_checkin(self, name, status='in'):
+        self.login()
         self._logger.info("RSVPing {} with status '{}'".format(name, status))
         if self.has_upcoming_game is False:
             return

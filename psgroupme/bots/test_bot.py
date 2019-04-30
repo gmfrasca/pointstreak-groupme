@@ -1,5 +1,4 @@
 from master_bot import MasterBot
-import logging
 import sys
 
 
@@ -7,8 +6,7 @@ class TestBot(MasterBot):
     """Debug"""
     def respond(self, msg):
         """Respond using the matched message reply"""
-        logging.info("Response: {0}".format(msg))
-        print(msg)
+        self._logger.info("Response:\n\n\n{0}\n\n".format(msg))
 
 
 def main(argv):
