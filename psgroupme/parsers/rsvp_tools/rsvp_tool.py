@@ -7,12 +7,14 @@ class RsvpTool(object):
 
     DEFAULT_URL = 'https://teamlockerroom.com'
 
-    def __init__(self, username, password, url=DEFAULT_URL, **kwargs):
+    def __init__(self, username, password, url=DEFAULT_URL,
+                 finance=False, **kwargs):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.baseurl = url
         self.session = requests.session()
         self.username = username
         self.password = password
+        self.finance = finance
         self._logged_in = False
         self.login()
 

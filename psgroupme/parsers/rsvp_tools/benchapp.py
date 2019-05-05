@@ -66,13 +66,14 @@ class BenchApp(RsvpTool):
                                                           NEXT_GAME_URL))
 
     def retrieve_finances_page(self):
-        self.login()
-        self._logger.info("Retrieving Finances Page from BenchApp")
-        self.finances = self.session.get('{0}{1}'.format(self.baseurl,
-                                                         FINANCES_URL))
+        if self.finance:
+            self.login()
+            self._logger.info("Retrieving Finances Page from BenchApp")
+            self.finance_page = self.session.get('{0}{1}'.format(self.baseurl,
+                                                                 FINANCES_URL))
 
     def get_finances_page(self):
-        return self.finances
+        return self.finance_page
 
     def get_next_game_data(self):
         self._logger.info("Parsing Attendance data from BenchApp")
@@ -101,23 +102,25 @@ class BenchApp(RsvpTool):
         return float(Decimal(sub(r'[^\d.-]', '', moneytext)))
 
     def get_team_fee_stats(self):
-        self._logger.info("Parsing TeamFee Stats from BenchApp")
-        page = self.get_finances_page().text
-        soup = BeautifulSoup(page, 'html.parser')
-        rosterlist = soup.find("table", {"id": "rosterList"})
-        footer = rosterlist.find("tfoot")
-        items = footer.find_all("td")
+        if self.finance:
+            self._logger.info("Parsing TeamFee Stats from BenchApp")
+            page = self.get_finances_page().text
+            soup = BeautifulSoup(page, 'html.parser')
+            rosterlist = soup.find("table", {"id": "rosterList"})
+            footer = rosterlist.find("tfoot")
+            items = footer.find_all("td")
 
-        paid = self.moneytext_to_float(items[2].text)
-        fee = self.moneytext_to_float(items[1].text)
+            paid = self.moneytext_to_float(items[2].text)
+            fee = self.moneytext_to_float(items[1].text)
 
-        # Do calculations here
-        percent = 100.0
-        try:
-            percent = paid / fee
-        except ZeroDivisionError:
-            pass
-        return fee, paid, percent
+            # Do calculations here
+            percent = 1.0
+            try:
+                percent = paid / fee
+            except ZeroDivisionError:
+                pass
+            return fee, paid, percent
+        return 0, 0, 1.0
 
     def get_team_fee_progress(self):
         fee, paid, percent = self.get_team_fee_stats()
