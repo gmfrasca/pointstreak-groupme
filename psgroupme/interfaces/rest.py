@@ -1,9 +1,10 @@
 from flask import Flask
 from flask_restful import Api
-from config_manager import ConfigManager
+from psgroupme.config_manager import ConfigManager
+from functools import reduce
 import sys
 import logging
-import bots  # noqa: need this to subclass
+import psgroupme.bots as bots # noqa: need this to subclass
 
 
 def str_to_class(class_name):

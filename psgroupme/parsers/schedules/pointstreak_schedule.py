@@ -2,8 +2,8 @@
 Quick and Dirty table parser to read a team schedule
 off of Poinstreak, a team stats-tracking website
 """
-from schedule import Schedule
-from game import Game
+from .schedule import Schedule
+from .game import Game
 
 # Default Poinstreak URL info
 PS_URL = 'http://stats.pointstreak.com'

@@ -1,9 +1,9 @@
-from interfaces.rest import main as start_rest_bots
-from interfaces.timed import main as start_timed_bots
+from psgroupme.interfaces.rest import main as start_rest_bots
+from psgroupme.interfaces.timed import main as start_timed_bots
 from time import sleep
 import argparse
 import logging
-import thread
+import _thread
 
 LOG_FILE = '/var/log/psgroupme.log'
 
@@ -38,8 +38,8 @@ def main():
     args = parse_args()
     setup_logging(args.verbose, args.log_file, args.console)
     try:
-        thread.start_new_thread(start_rest_bots, ())
-        thread.start_new_thread(start_timed_bots, ())
+        _thread.start_new_thread(start_rest_bots, ())
+        _thread.start_new_thread(start_timed_bots, ())
     except Exception as e:
         logging.error("Unable to start thread")
         logging.error(e)

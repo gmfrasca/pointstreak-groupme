@@ -1,4 +1,4 @@
-from base_bot import BaseBot
+from psgroupme.bots.base_bot import BaseBot
 import os
 
 IMG_EXTENSIONS = ['jpg', 'jpeg', 'gif', 'png', 'bmp']

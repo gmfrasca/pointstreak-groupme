@@ -1,5 +1,5 @@
-from schedule import Schedule
-from game import Game
+from .schedule import Schedule
+from .game import Game
 import datetime
 
 

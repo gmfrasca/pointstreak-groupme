@@ -64,10 +64,10 @@ class PlayerStats(object):
         if search_name.lower() == 'all':
             return self.roster_list
         found = list()
-        for player_name, player in self.players.get('players').iteritems():
+        for player_name, player in self.players.get('players').items():
             if search_name.lower() in player_name.lower():
                 found.append(player)
-        for player_name, player in self.players.get('goalies').iteritems():
+        for player_name, player in self.players.get('goalies').items():
             if search_name.lower() in player_name.lower():
                 found.append(player)
         self._logger.info("Found Player(s): {}".format(found))

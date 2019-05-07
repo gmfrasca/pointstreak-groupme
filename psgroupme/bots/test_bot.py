@@ -1,5 +1,5 @@
 from interfaces.responder import DebugResponder
-from master_bot import MasterBot
+from psgroupme.bots.master_bot import MasterBot
 import sys
 
 

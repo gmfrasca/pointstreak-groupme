@@ -1,5 +1,5 @@
-from parsers.rsvp_tools.team_locker_room import TeamLockerRoom
-from parsers.rsvp_tools.benchapp import BenchApp
+from psgroupme.parsers.rsvp_tools.team_locker_room import TeamLockerRoom
+from psgroupme.parsers.rsvp_tools.benchapp import BenchApp
 
 
 class RsvpToolFactory(object):

@@ -1,5 +1,5 @@
-from factories import TeamStatsFactory
-from base_bot import BaseBot
+from psgroupme.factories import TeamStatsFactory
+from psgroupme.bots.base_bot import BaseBot
 
 
 class TeamStatsBot(BaseBot):
