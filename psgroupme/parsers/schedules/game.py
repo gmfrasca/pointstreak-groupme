@@ -1,4 +1,4 @@
-from util import parsetime as pt
+from psgroupme.util import parsetime as pt
 import datetime
 
 

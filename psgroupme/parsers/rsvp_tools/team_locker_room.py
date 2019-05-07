@@ -1,4 +1,4 @@
-from rsvp_tool import RsvpTool
+from .rsvp_tool import RsvpTool
 import logging
 import json
 import sys

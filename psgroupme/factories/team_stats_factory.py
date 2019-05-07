@@ -1,4 +1,5 @@
-from parsers.team_stats.sportsengine_team_stats import SportsEngineTeamStats
+from psgroupme.parsers.team_stats.sportsengine_team_stats import (
+    SportsEngineTeamStats)
 
 
 class TeamStatsFactory(object):

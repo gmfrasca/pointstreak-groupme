@@ -1,4 +1,4 @@
-from parsers.player_stats.sportsengine_player_stats \
+from psgroupme.parsers.player_stats.sportsengine_player_stats \
     import SportsEnginePlayerStats
 
 

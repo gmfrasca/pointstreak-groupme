@@ -17,7 +17,7 @@ bots:
 '''
 
     def setUp(self):
-        with mock.patch('__builtin__.open',
+        with mock.patch('builtins.open',
                         mock.mock_open(read_data=self.MOCK_YAML)):
             assert open('/fake/config.yaml').read() == self.MOCK_YAML
             self.cfg_mgr = ConfigManager()

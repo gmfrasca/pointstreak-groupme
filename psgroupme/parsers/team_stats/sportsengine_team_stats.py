@@ -2,8 +2,8 @@
 Quick and Dirty table parser to read the player stats
 off of SportsEngine, a team stats-tracking website
 """
-from team_stats import TeamStats
-from team import Team
+from .team_stats import TeamStats
+from .team import Team
 
 
 SE_URL = 'http://www.pahl.org'

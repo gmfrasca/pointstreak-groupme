@@ -1,7 +1,8 @@
 from bs4 import BeautifulSoup
-from rsvp_tool import RsvpTool
+from .rsvp_tool import RsvpTool
 from re import sub
 from decimal import Decimal
+from functools import reduce
 import logging
 import sys
 import re
