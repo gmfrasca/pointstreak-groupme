@@ -1,8 +1,9 @@
-from config_manager import ConfigManager
+from psgroupme.config_manager import ConfigManager
+from functools import reduce
 import signal
 import sys
 import logging
-import bots  # noqa
+import psgroupme.bots as bots# noqa
 
 
 TIMED_BOT_CFG = 'config/timed.local.yaml'

@@ -2,12 +2,13 @@
 Quick and Dirty table parser to read a team schedule
 off of DashPlatform, a team stats-tracking website
 """
-from util.parsetime import DATE_DESCRIPTOR, TIME_DESCRIPTOR
+from psgroupme.util.parsetime import DATE_DESCRIPTOR, TIME_DESCRIPTOR
+import psgroupme.util.parsetime as pdt
 from bs4 import BeautifulSoup
-from schedule import Schedule
-import parsedatetime as pdt
+from .schedule import Schedule
+from .game import Game
 import datetime
-from game import Game
+
 
 # *Red Hat 2 Dash*
 TEAM_ID = 14998

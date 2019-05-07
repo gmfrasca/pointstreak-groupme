@@ -1,12 +1,12 @@
-from parsers.schedules.pointstreak_schedule import PointstreakSchedule
-from parsers.schedules.sportsengine_schedule import SportsEngineSchedule
-from parsers.schedules.dashplatform_schedule import DashPlatformSchedule
-from parsers.schedules.debug_schedule import DebugSchedule
-from parsers.schedules.debug_schedule import ScoreUpdateDebugSchedule
-from parsers.schedules.debug_schedule import TimeUpdateDebugSchedule
-from parsers.schedules.debug_schedule import GameAddDebugSchedule
-from parsers.schedules.debug_schedule import GameRemoveDebugSchedule
-from parsers.schedules.debug_schedule import GameFinalizedDebugSchedule
+from psgroupme.parsers.schedules.pointstreak_schedule import (
+    PointstreakSchedule)
+from psgroupme.parsers.schedules.sportsengine_schedule import (
+    SportsEngineSchedule)
+from psgroupme.parsers.schedules.dashplatform_schedule import (
+    DashPlatformSchedule)
+from psgroupme.parsers.schedules.debug_schedule import (
+    DebugSchedule, ScoreUpdateDebugSchedule, TimeUpdateDebugSchedule,
+    GameAddDebugSchedule, GameRemoveDebugSchedule, GameFinalizedDebugSchedule)
 
 
 class ScheduleFactory(object):

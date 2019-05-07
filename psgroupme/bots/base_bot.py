@@ -1,7 +1,8 @@
 from flask import request
 from flask_restful import Resource
-from interfaces.responder import Responder
-from bot_responses import BotResponseManager
+from psgroupme.interfaces.responder import Responder
+from psgroupme.bots.bot_responses import BotResponseManager
+from psgroupme.util.encode_strings import encode_strings
 import datetime
 import logging
 import json
@@ -115,6 +116,11 @@ class BaseBot(Resource):
                                                             args, kwargs))
         if callable(getattr(self, action_type, None)):
             try:
+                msg = encode_strings(msg)
+                args = encode_strings(args)
+                kwargs = encode_strings(kwargs)
+                print("FOO")
+                print(msg, args, kwargs)
                 getattr(self, action_type)(msg, *args, **kwargs)
             except Exception:
                 self._logger.exception("Could not perform the following action"
@@ -133,11 +139,11 @@ class BaseBot(Resource):
         actions = list()
         single_action = match.get('action', list())
         multi_actions = match.get('actions', list())
-        if isinstance(single_action, basestring):
+        if isinstance(single_action, str):
             actions.extend([single_action])
         if isinstance(single_action, list):
             actions.extend(single_action)
-        if isinstance(multi_actions, basestring):
+        if isinstance(multi_actions, str):
             actions.extend([multi_actions])
         if isinstance(multi_actions, list):
             actions.extend(multi_actions)

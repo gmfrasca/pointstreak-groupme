@@ -3,8 +3,8 @@ Quick and Dirty table parser to read a team schedule
 off of SportsEngine, a team stats-tracking website
 """
 from bs4 import BeautifulSoup
-from schedule import Schedule
-from game import Game
+from .schedule import Schedule
+from .game import Game
 
 
 SE_URL = 'http://www.pahl.org'

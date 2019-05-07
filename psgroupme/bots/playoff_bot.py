@@ -1,5 +1,5 @@
-from player_stats_bot import PlayerStatsBot
-from schedule_bot import ScheduleBot
+from psgroupme.bots.player_stats_bot import PlayerStatsBot
+from psgroupme.bots.schedule_bot import ScheduleBot
 
 
 class PlayoffBot(ScheduleBot, PlayerStatsBot):

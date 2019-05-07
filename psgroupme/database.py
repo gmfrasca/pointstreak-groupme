@@ -1,4 +1,4 @@
-from factories import ScheduleFactory
+from psgroupme.factories import ScheduleFactory
 import datetime
 import sqlite3
 

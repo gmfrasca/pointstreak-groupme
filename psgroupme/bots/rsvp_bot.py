@@ -1,5 +1,5 @@
-from factories import RsvpToolFactory
-from base_bot import BaseBot
+from psgroupme.factories import RsvpToolFactory
+from psgroupme.bots.base_bot import BaseBot
 
 
 class RsvpBot(BaseBot):

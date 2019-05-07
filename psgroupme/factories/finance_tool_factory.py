@@ -1,4 +1,4 @@
-from parsers.rsvp_tools.benchapp import BenchApp
+from psgroupme.parsers.rsvp_tools.benchapp import BenchApp
 
 
 class FinanceToolFactory(object):

@@ -1,5 +1,5 @@
-from factories import ScheduleFactory
-from base_bot import BaseBot
+from psgroupme.factories import ScheduleFactory
+from psgroupme.bots.base_bot import BaseBot
 
 
 class ScheduleBot(BaseBot):
