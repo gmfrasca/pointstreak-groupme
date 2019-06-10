@@ -1,6 +1,6 @@
 from factories import ScheduleFactory, RsvpToolFactory, PlayerStatsFactory
 from factories import FinanceToolFactory, TeamStatsFactory
-from interfaces.responder import Responder
+from interfaces.responder import Responder, DebugResponder
 from database import PointstreakDatabase
 from util import parsetime as pt
 from time import sleep
@@ -431,7 +431,9 @@ class UpdatedGameNotifierBot(TimedBot):
 class TestTimedBot(object):
 
     def send_msg(self, msg):
-        self._logger.info("Response:\n\n\n{}\n\n".format(msg))
+        self.responder = DebugResponder(1)
+        if msg and msg != '':
+            self.responder.reply(msg)
 
 
 class TestGamedayReminderBot(TestTimedBot, GamedayReminderBot):

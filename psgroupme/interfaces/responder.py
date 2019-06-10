@@ -1,6 +1,7 @@
 from requests.exceptions import ConnectionError
 from requests import post
 import logging
+import random
 
 GROUPME_BOT_URL = 'https://api.groupme.com/v3/bots/post'
 
@@ -12,15 +13,32 @@ class Responder(object):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.bot_id = bot_id
 
+    def _send(self, url, data):
+        return post(url, data=data)
+
     def reply(self, message):
         """Post a message to the GroupMe REST API"""
         if not message or message == '':
             return
+        if isinstance(message, list):
+            message = random.choice(message)
         data = dict(bot_id=self.bot_id, text=message)
         try:
             self._logger.debug("Posting to {}: {}".format(GROUPME_BOT_URL,
                                                           data))
-            resp = post(GROUPME_BOT_URL, data=data)
+            resp = self._send(GROUPME_BOT_URL, data)
             assert resp.status_code in range(200, 400)
         except (AssertionError, ConnectionError):
             self._logger.exception("Could not post msg to Groupme Endpoint")
+
+class DebugResponder(Responder):
+    class MockResponse(object):
+
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+
+
+    def _send(self, url, data):
+        self._logger.info("DEBUG Response: {}".format(data.get('text')))
+        return self.MockResponse(data, 200)
