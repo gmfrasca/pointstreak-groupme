@@ -91,7 +91,9 @@ class BaseBot(Resource):
 
                         self.react(action_type, msg, *params, **kwargs)
                     if 'reply' in match:
-                        self.respond(match['reply'].format(**self.context))
+                        rpls = match['reply']
+                        rpls = rpls if isinstance(rpls, list) else [rpls]
+                        self.respond([x.format(**self.context) for x in rpls])
                 except KeyError:
                     # message requires undefined context variable
                     self.respond('Sorry, that command is not available.')
