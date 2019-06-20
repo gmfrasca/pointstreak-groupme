@@ -75,6 +75,10 @@ class BenchApp(RsvpTool):
     def get_finances_page(self):
         return self.finance_page
 
+    def reset_game_data(self):
+        self.next_game_data = None
+        self.retrieve_next_game_page()
+
     def get_next_game_data(self):
         self._logger.info("Parsing Attendance data from BenchApp")
         if self.next_game_data is not None:

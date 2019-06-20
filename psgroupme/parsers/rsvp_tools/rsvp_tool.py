@@ -28,6 +28,9 @@ class RsvpTool(object):
     def get_next_game_attendees(self):
         return 'NextGameAttendees'
 
+    def reset_game_data(self):
+        pass
+
     def try_checkin(self, name, status):
         raise NotImplementedError
 

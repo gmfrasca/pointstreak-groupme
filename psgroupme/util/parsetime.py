@@ -24,14 +24,16 @@ def normalize_date(date, year=None, includes_day=False, return_type=str):
     listdate = date.split()[cut_item:]
     listdate.extend([year])
     strdate = '{} {} {}'.format(*listdate)  # TODO: handle len(listdate) != 3
-    parsed, status = pdt.Calendar().parseDT(str(strdate))
+    parsed, status = pdt.Calendar(
+        version=pdt.VERSION_CONTEXT_STYLE).parseDT(str(strdate))
     if return_type == str:
         return parsed.strftime(DATE_DESCRIPTOR)
     return parsed
 
 
 def normalize_time(time, return_type=str):
-    parsed, status = pdt.Calendar().parseDT(str(time))
+    parsed, status = pdt.Calendar(
+        version=pdt.VERSION_CONTEXT_STYLE).parseDT(str(time))
     if return_type == str:
         return parsed.strftime(TIME_DESCRIPTOR)
     return parsed
@@ -56,5 +58,6 @@ def assemble_full_datetime(date, time, year=None):
     fulltime = ' '.join(fulltime)
 
     # TODO: act on bad status from parseDT
-    parsed, status = pdt.Calendar().parseDT(str(fulltime))
+    parsed, status = pdt.Calendar(
+        version=pdt.VERSION_CONTEXT_STYLE).parseDT(str(fulltime))
     return parsed
