@@ -91,7 +91,8 @@ class DashPlatformSchedule(Schedule):
                 gamedate_list = gamedate_cell.split()
                 structured = '{}/{} {}'.format(gamedate_list[0], year,
                                                gamedate_list[2])
-                parsed, _ = pdt.Calendar().parseDT(structured)
+                parsed, _ = pdt.Calendar(
+                    version=pdt.VERSION_CONTEXT_STYLE).parseDT(structured)
                 gamedate = parsed.strftime(DATE_DESCRIPTOR)
                 gametime = parsed.strftime(TIME_DESCRIPTOR)
                 score_cells = game_row.find_all('td')

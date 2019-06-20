@@ -184,6 +184,7 @@ class BaseGamedayReminderBot(TimedBot):
             msg = "{0} {1}".format(msg, game_str)
             if self.rsvp is not None and days == 0:
                 self.load_rsvp()
+                self.rsvp.reset_game_data()
                 attendance = self.rsvp.get_next_game_attendance()
                 msg = "{0}\r\n{1}".format(msg, attendance)
             msg = '{}{}'.format(msg, self.get_playoff_danger_str())
