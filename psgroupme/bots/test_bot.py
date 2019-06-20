@@ -1,3 +1,4 @@
+from interfaces.responder import DebugResponder
 from master_bot import MasterBot
 import sys
 
@@ -6,7 +7,9 @@ class TestBot(MasterBot):
     """Debug"""
     def respond(self, msg):
         """Respond using the matched message reply"""
-        self._logger.info("Response:\n\n\n{0}\n\n".format(msg))
+        self.responder = DebugResponder(self.bot_id)
+        super(TestBot, self).respond(msg)
+        # self._logger.info("Response:\n\n\n{0}\n\n".format(msg))
 
 
 def main(argv):
