@@ -44,16 +44,12 @@ class DashPlatformSchedule(Schedule):
                                    sched_params)
 
     def retrieve_html_table(self, url):
-        # As of 2018-04-10, this is no longer a table but a list
-        # Leaving in incase this is undone
-        # table_classes = 'table table-condensed table-striped'
-        # return self.retrieve_html_table_with_class(url, table_classes)
         table_class = 'list-group'
         if self.schedule_is_stale:
             self._logger.info("Schedule is stale, refreshing")
             self.send_get_request(url)
         soup = BeautifulSoup(self.html_doc, 'html.parser')
-        return soup.find("ul", {'class': table_class})
+        return soup.find("div", {'class': table_class})
 
     def parse_table(self):
         """
@@ -65,41 +61,38 @@ class DashPlatformSchedule(Schedule):
         """
         self._logger.info("Parsing games from DashPlatform Data Table")
         games = []
-        # OLD sytle
-        # if self.html_table:
-        #     for game_row in self.html_table.find_all('tr'):
-        #         cells = game_row.find_all('td')
-        #         gamedate, gametime = self.parse_game(
-        #             cells[self.COLUMNS['gamedatetime']])
-        #         hscore, ascore = self.parse_score(
-        #             cells[self.COLUMNS['results']])
-        #         home, away = self.parse_teams(
-        #             cells[self.COLUMNS['description']])
-        #         games.append(Game(gamedate,
-        #                           gametime,
-        #                           home,
-        #                           hscore,
-        #                           away,
-        #                           ascore))
         now = datetime.datetime.now()
         year = now.year
         if self.html_table:
             prevgame = None
-            for game_row in self.html_table.find_all('li'):
+            game_rows = self.html_table.find_all('div',
+                                                 {'class': 'list-group-item'})
+            for game_row in game_rows:
+                # Parse Date
                 gamedate_cell = game_row.find(
-                    'h4', {'class': 'list-group-item-heading'}).text
-                gamedate_list = gamedate_cell.split()
-                structured = '{}/{} {}'.format(gamedate_list[0], year,
-                                               gamedate_list[2])
+                    'div', {'class': 'event__date'}).div.find_all('div')
+                cell_date = gamedate_cell[0].text
+                cell_time = gamedate_cell[1].text.split(' ', 1)[1]
+                structured = '{} {} {}'.format(cell_date, year, cell_time)
                 parsed, _ = pdt.Calendar(
                     version=pdt.VERSION_CONTEXT_STYLE).parseDT(structured)
                 gamedate = parsed.strftime(DATE_DESCRIPTOR)
                 gametime = parsed.strftime(TIME_DESCRIPTOR)
-                score_cells = game_row.find_all('td')
-                hscore = score_cells[self.columns['homescore']].text
-                hteam = score_cells[self.columns['hometeam']].a.text
-                ascore = score_cells[self.columns['awayscore']].text
-                ateam = score_cells[self.columns['awayteam']].a.text
+
+                # Parse Score
+                event_cells = game_row.find('div', {'class': 'event__details'})
+                score_cells = event_cells.find_all('div', recursive=False)
+                away_cells = score_cells[0].find_all('div')
+                home_cells = score_cells[1].find_all('div')
+
+                ascore = away_cells[1].text
+                hscore = home_cells[1].text
+                ascore = None if ascore == "-" else ascore
+                hscore = None if hscore == "-" else hscore
+
+                ateam = away_cells[0].a.text
+                hteam = home_cells[0].a.text
+
                 final = self.is_score_final(None)
                 game = Game(gamedate, gametime, hteam, hscore,
                             ateam, ascore, prevgame=prevgame, final=final)
