@@ -12,6 +12,8 @@ def setup_logging(debug=False, logfile=LOG_FILE, console=False):
     level = logging.DEBUG if debug else logging.INFO
     stdout_fmt = '[%(asctime)s][%(levelname)s][%(name)s]: %(message)s'
     cfg = {'level': level, 'format': stdout_fmt}
+    if logfile is not None and console is False:
+        cfg.update({'filename': logfile})
     logging.basicConfig(**cfg)
 
     if debug:
@@ -21,7 +23,6 @@ def setup_logging(debug=False, logfile=LOG_FILE, console=False):
         logging.info("Logging to Console Only")
     else:
         cfg.update({'filename': logfile})
-        logging.basicConfig(**cfg)
         logging.info("Logging to {}".format(logfile))
 
 
