@@ -240,18 +240,17 @@ class TestBaseBot(unittest.TestCase):
 
         test_msg = dict(text='foobar')
         self.bot.read_msg(test_msg)
-        self.bot.respond.assert_called_with('helloworld')
+        self.bot.respond.assert_called_with(['helloworld'])
         self.bot.refresh_responses.assert_called()
 
         test_msg = dict(text='1test2')
         self.bot.read_msg(test_msg)
-        self.bot.respond.assert_called_with('testregex')
+        self.bot.respond.assert_called_with(['testregex'])
         self.bot.refresh_responses.assert_called()
 
         test_msg = dict(text='format_test')
         self.bot.read_msg(test_msg)
-        self.bot.respond.assert_called_with('{}'.format(
-            BOTNAMES[self.bot.bot_type]))
+        self.bot.respond.assert_called_with([BOTNAMES[self.bot.bot_type]])
         self.bot.refresh_responses.assert_called()
 
 
@@ -326,6 +325,6 @@ class TestScheduleBot(TestBaseBot):
                 test_msg.update(context)
                 self.bot.read_msg(test_msg)
                 if dialog[1]:
-                    mock_resp.assert_called_with(dialog[1])
+                    mock_resp.assert_called_with([dialog[1]])
                 else:
                     mock_resp.assert_not_called()
