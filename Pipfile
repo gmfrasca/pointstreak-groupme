@@ -1,0 +1,22 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+flake8 = "==3.3.0"
+parsedatetime = "==2.4"
+bs4 = "==0.0.1"
+requests = "*"
+croniter = "*"
+Flask = "*"
+Flask-RESTful = "*"
+PyYAML = "*"
+pytest = "*"
+mock = "*"
+jinja2 = "*"
+
+[requires]
+python_version = "3.7"
