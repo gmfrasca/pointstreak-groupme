@@ -209,7 +209,7 @@ class TestPointstreakSchedule(unittest.TestCase):
         self.assertEqual(score, None)
 
     def test_repr(self):
-        expected = '''home \[6\] : \[0\] away on \w\w\w, Aug 15 08:45 PM
+        expected = r'''home \[6\] : \[0\] away on \w\w\w, Aug 15 08:45 PM
 home vs away at \w\w\w, Aug 25 08:45 PM
 '''
         self.assertRegex(str(self.schedule), expected)
@@ -231,7 +231,7 @@ home vs away at \w\w\w, Aug 25 08:45 PM
 
     def test_last_game_before(self):
         last_game = self.schedule.get_last_game_before(self.mock_now)
-        self.assertRegex(last_game.date, '\w\w\w, Aug 15')
+        self.assertRegex(last_game.date, r'\w\w\w, Aug 15')
         self.assertEqual(last_game.time, '08:45 PM')
         self.assertGreater(self.mock_now, last_game.full_gametime)
         self.assertEqual(last_game.hometeam, 'home')
