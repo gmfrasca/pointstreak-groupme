@@ -16,9 +16,9 @@ class TeamLockerRoom(RsvpTool):
 
     def get_csrf_token(self):
         response = self.session.get(self.baseurl)
-        match = re.search('var csrf = \"\S+\"', response.text)
+        match = re.search(r'var csrf = \"\S+\"', response.text)
         if match:
-            match = re.search('\"\S+\"', match.group(0)).group(0)
+            match = re.search(r'\"\S+\"', match.group(0)).group(0)
             return match.replace('"', '')
         raise RuntimeError("Could not parse csrf token from source")
 
@@ -41,7 +41,7 @@ class TeamLockerRoom(RsvpTool):
     def schedule(self):
         self.login()
         response = self.session.get(self.baseurl + "/#home")
-        match = re.search('tlr.teamschedule = [^\n]*', response.text)
+        match = re.search(r'tlr.teamschedule = [^\n]*', response.text)
         if not match:
             return dict()
         match = re.search("'[^\n]*'", match.group(0))

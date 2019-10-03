@@ -1,7 +1,9 @@
 language: python
 python:
-    - "3.5.5"
-install: "pip install -Ur requirements.txt"
+    - "3.7.3"
+install:
+    - pip install pipenv
+    - pipenv install
 script:
     - flake8
     - pytest tests
