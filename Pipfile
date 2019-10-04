@@ -20,3 +20,6 @@ jinja2 = "*"
 
 [requires]
 python_version = "3.7"
+
+[scripts]
+psgroupme = "python -m psgroupme -l ./log/psgroupme.log"
