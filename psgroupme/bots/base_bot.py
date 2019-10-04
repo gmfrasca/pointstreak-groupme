@@ -119,8 +119,6 @@ class BaseBot(Resource):
                 msg = encode_strings(msg)
                 args = encode_strings(args)
                 kwargs = encode_strings(kwargs)
-                print("FOO")
-                print(msg, args, kwargs)
                 getattr(self, action_type)(msg, *args, **kwargs)
             except Exception:
                 self._logger.exception("Could not perform the following action"
