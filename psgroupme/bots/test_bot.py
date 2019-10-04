@@ -1,4 +1,4 @@
-from interfaces.responder import DebugResponder
+from psgroupme.interfaces.responder import DebugResponder
 from psgroupme.bots.master_bot import MasterBot
 import sys
 
