@@ -5,7 +5,7 @@ import argparse
 import logging
 import _thread
 
-LOG_FILE = '/var/log/psgroupme.log'
+LOG_FILE = './log/psgroupme.log'
 
 
 def setup_logging(debug=False, logfile=LOG_FILE, console=False):
