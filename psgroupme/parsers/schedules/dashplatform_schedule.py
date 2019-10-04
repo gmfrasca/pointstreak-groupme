@@ -3,7 +3,7 @@ Quick and Dirty table parser to read a team schedule
 off of DashPlatform, a team stats-tracking website
 """
 from psgroupme.util.parsetime import DATE_DESCRIPTOR, TIME_DESCRIPTOR
-import psgroupme.util.parsetime as pdt
+import psgroupme.util.parsetime as pt
 from bs4 import BeautifulSoup
 from .schedule import Schedule
 from .game import Game
@@ -63,7 +63,6 @@ class DashPlatformSchedule(Schedule):
         self._logger.info("Parsing games from DashPlatform Data Table")
         games = []
         now = datetime.datetime.now()
-        year = now.year
         if self.html_table:
             prevgame = None
             game_rows = self.html_table.find_all('div',
@@ -74,9 +73,9 @@ class DashPlatformSchedule(Schedule):
                     'div', {'class': 'event__date'}).div.find_all('div')
                 cell_date = gamedate_cell[0].text
                 cell_time = gamedate_cell[1].text.split(' ', 1)[1]
-                structured = '{} {} {}'.format(cell_date, year, cell_time)
-                parsed, _ = pdt.Calendar(
-                    version=pdt.VERSION_CONTEXT_STYLE).parseDT(structured)
+                structured = '{} {}'.format(cell_date, cell_time)
+                parsed = pt.normalize_date(structured, now.year,
+                                           return_type=datetime.datetime)
                 gamedate = parsed.strftime(DATE_DESCRIPTOR)
                 gametime = parsed.strftime(TIME_DESCRIPTOR)
 
