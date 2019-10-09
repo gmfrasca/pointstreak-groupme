@@ -7,12 +7,12 @@ from .playoff_bot import PlayoffBot
 from .rsvp_bot import RsvpBot
 from .player_stats_bot import PlayerStatsBot
 from .team_stats_bot import TeamStatsBot
-from .timed_bots import GamedayReminderBot
-from .timed_bots import TestGamedayReminderBot
-from .timed_bots import TeamFeeReminderBot
-from .timed_bots import TestTeamFeeReminderBot
-from .timed_bots import UpdatedGameNotifierBot
-from .timed_bots import TestUpdatedGameNotifierBot
+from .timed import GamedayReminderBot
+from .timed import TestGamedayReminderBot
+from .timed import TeamFeeReminderBot
+from .timed import TestTeamFeeReminderBot
+from .timed import UpdatedGameNotifierBot
+from .timed import TestUpdatedGameNotifierBot
 from .bot_responses import BotResponseManager
 from .ping_bot import PingBot, LivePingBot
 
