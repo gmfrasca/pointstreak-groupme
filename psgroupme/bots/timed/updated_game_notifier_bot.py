@@ -2,6 +2,10 @@ from psgroupme.factories import ScheduleFactory
 from .base_timed_bot import BaseTimedBot
 from .test_timed_bot import TestTimedBot
 from time import sleep
+import datetime
+
+EXPECTED_GAME_DURATION = 60 * 60 * 2  # 2 hours
+ACTIVE_GAME_POLL_TIME = 60 * 2  # 2 minutes
 
 
 class UpdatedGameNotifierBot(BaseTimedBot):
@@ -15,6 +19,8 @@ class UpdatedGameNotifierBot(BaseTimedBot):
         self.bot_data = kwargs
         self.schedule_cfg = self.bot_data.get('schedule', dict())
         self.sleep_time = self.schedule_cfg.get('sleep_time', 600)
+        self.active_poll_time = self.schedule_cfg.get('active_poll_time',
+                                                      ACTIVE_GAME_POLL_TIME)
         self.schedule_type = self.schedule_cfg.get('type', 'pointstreak')
         self.result_responses = self.bot_data.get('result_responses', dict())
         self.notify_caps = self.bot_data.get('notify', ['all'])
@@ -121,12 +127,28 @@ class UpdatedGameNotifierBot(BaseTimedBot):
             if result_res != '':
                 self.send_msg(result_res)
 
+    def game_is_in_progress(self):
+        now = datetime.datetime.now()
+        for game in self.sched.games:
+            start = game.full_gametime
+            sleep_delta = datetime.timedelta(seconds=self.sleep_time)
+            game_delta = datetime.timedelta(seconds=EXPECTED_GAME_DURATION)
+            cycle_before = start - sleep_delta
+            cycle_after = start + sleep_delta + game_delta
+            if not game.final and cycle_before > now and cycle_after < now:
+                return True
+        return False
+
+    def sleep_until_next_run(self):
+        sleep(self.sleep_time if self.game_is_in_progress else
+              self.active_poll_time)
+
     def run(self):
         self._logger.info("Starting UpdatedGameNotificationBot")
         while not self.stopped:
             self.refresh_schedule()
             self.check_and_notify_schedule_changes()
-            sleep(self.sleep_time)
+            self.sleep_until_next_run()
 
 
 class TestUpdatedGameNotifierBot(TestTimedBot, UpdatedGameNotifierBot):
