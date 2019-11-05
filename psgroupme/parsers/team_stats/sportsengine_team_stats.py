@@ -34,7 +34,11 @@ class SportsEngineTeamStats(TeamStats):
         return self.retrieve_html_tables_with_class(url, 'statTable')
 
     def get_stat(self, row, data_name):
-        return row[self.COLUMNS[data_name]].text.strip()
+        try:
+            return row[self.COLUMNS[data_name]].text.strip()
+        except IndexError as ie:
+            # Stat doesn't exist
+            return None
 
     # TODO
     def parse_table(self):
