@@ -10,18 +10,18 @@ class Team(object):
         self.ties = ties
         self.goals_for = goals_for
         self.goals_against = goals_against
-        self.division = division
+        self.division = division if division else self.record
 
     def __repr__(self):
         return '{0}:\t{1} pts\t({2})'.format(self.name,
                                              self.points,
-                                             self.division)
+                                             self.record)
 
     @property
     def full_description(self):
         full = ("{}\t| {} Points \t| {} Games Played \t| {} Wins \t|"
                 " {} Losses \t| {} Ties \t| {} Goals For \t|"
-                " {} Goals Against \t| {} |")
+                " {} Goals Against \t| {} Division Record|")
         return full.format(self.name, self.points, self.games_played,
                            self.wins, self.losses, self.ties, self.goals_for,
                            self.goals_against, self.division)
@@ -52,6 +52,10 @@ class Team(object):
     @property
     def goals_against_average(self):
         return self.get_average(self.goals_against)
+
+    @property
+    def record(self):
+        return '{}-{}-{}'.format(self.wins, self.losses, self.ties)
 
     def get_stat(self, stat_name):
         stat_dict = {
