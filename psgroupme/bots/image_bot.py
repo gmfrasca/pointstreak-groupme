@@ -13,9 +13,10 @@ class ImageBot(BaseBot):
                                x.split('.')[-1] in IMG_EXTENSIONS]))
 
     def respond_image(self, *args, **kwargs):
-        params = kwargs.get('params', list())  # TODO: update to use args?
-        for param in params:
-            self._respond_image(param)
+        if len(args) > 1:
+            self._respond_image(args[1])
+        else:
+            self.respond("Please specify an image.")
 
     def _list_of_files_in_dir(self, searchdir, show_all=False):
         files = [x for x in os.listdir(searchdir) if
