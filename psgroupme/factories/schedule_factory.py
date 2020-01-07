@@ -1,10 +1,10 @@
-from psgroupme.parsers.schedules.pointstreak_schedule import (
+from recleagueparser.schedules.pointstreak_schedule import (
     PointstreakSchedule)
-from psgroupme.parsers.schedules.sportsengine_schedule import (
+from recleagueparser.schedules.sportsengine_schedule import (
     SportsEngineSchedule)
-from psgroupme.parsers.schedules.dashplatform_schedule import (
+from recleagueparser.schedules.dashplatform_schedule import (
     DashPlatformSchedule)
-from psgroupme.parsers.schedules.debug_schedule import (
+from recleagueparser.schedules.debug_schedule import (
     DebugSchedule, ScoreUpdateDebugSchedule, TimeUpdateDebugSchedule,
     GameAddDebugSchedule, GameRemoveDebugSchedule, GameFinalizedDebugSchedule)
 

@@ -17,6 +17,7 @@ PyYAML = "*"
 pytest = "*"
 mock = "*"
 jinja2 = "*"
+recleagueparser = {editable = true,git = "https://github.com/gmfrasca/rec-league-parser"}
 
 [requires]
 python_version = "3.7"

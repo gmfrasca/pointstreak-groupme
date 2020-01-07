@@ -1,4 +1,4 @@
-ENCODING = 'unicode-escape'
+ENCODING = 'UTF-8'
 
 
 def encode_strings(data):
