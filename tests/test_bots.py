@@ -4,7 +4,7 @@ import json
 import psgroupme
 import yaml
 from psgroupme.bots import BaseBot, ScheduleBot, BotResponseManager
-from psgroupme.parsers.schedules.pointstreak_schedule import \
+from recleagueparser.schedules.pointstreak_schedule import \
     PointstreakSchedule
 
 EXAMPLE_RESP_YAML = 'config/responses.example.yaml'
