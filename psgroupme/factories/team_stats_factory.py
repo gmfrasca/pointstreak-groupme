@@ -1,6 +1,6 @@
-from psgroupme.parsers.team_stats.sportsengine_team_stats import (
+from recleagueparser.team_stats.sportsengine_team_stats import (
     SportsEngineTeamStats)
-from psgroupme.parsers.team_stats.dashplatform_team_stats import (
+from recleagueparser.team_stats.dashplatform_team_stats import (
     DashPlatformTeamStats)
 
 
