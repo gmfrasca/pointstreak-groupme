@@ -1,4 +1,4 @@
-from psgroupme.factories import ScheduleFactory
+from recleagueparser.schedules import ScheduleFactory
 from psgroupme.bots.base_bot import BaseBot
 
 
