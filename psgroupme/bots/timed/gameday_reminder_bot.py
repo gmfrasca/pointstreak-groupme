@@ -1,5 +1,7 @@
-from psgroupme.factories import ScheduleFactory, RsvpToolFactory
-from psgroupme.factories import PlayerStatsFactory, TeamStatsFactory
+from recleagueparser.schedules import ScheduleFactory
+from recleagueparser.rsvp_tools import RsvpToolFactory
+from recleagueparser.player_stats import PlayerStatsFactory
+from recleagueparser.team_stats import TeamStatsFactory
 from psgroupme.database import PointstreakDatabase
 from .base_timed_bot import BaseTimedBot
 from .test_timed_bot import TestTimedBot

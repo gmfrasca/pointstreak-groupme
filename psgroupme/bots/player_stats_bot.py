@@ -1,4 +1,4 @@
-from psgroupme.factories.player_stats_factory import PlayerStatsFactory
+from recleagueparser.player_stats import PlayerStatsFactory
 from psgroupme.bots.base_bot import BaseBot
 
 

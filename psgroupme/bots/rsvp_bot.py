@@ -1,4 +1,4 @@
-from psgroupme.factories import RsvpToolFactory
+from recleagueparser.rsvp_tools import RsvpToolFactory
 from psgroupme.bots.base_bot import BaseBot
 
 
@@ -47,7 +47,8 @@ class RsvpBot(BaseBot):
         if 'rsvp' in self.bot_data:
             self._logger.debug("RSVPTool Parser not loaded, creating new one")
             rsvp_cfg = self.bot_data.get('rsvp')
-            if 'username' in rsvp_cfg and 'password' in rsvp_cfg:
-                rsvp_type = rsvp_cfg.get('type')
+            rsvp_type = rsvp_cfg.get('type')
+            if (('username' in rsvp_cfg and 'password' in rsvp_cfg) or
+                    rsvp_type == 'gdrive'):
                 rsvp_cfg.update(dict(rsvp_tool_type=rsvp_type))
                 self.rsvp = RsvpToolFactory.create(**rsvp_cfg)
