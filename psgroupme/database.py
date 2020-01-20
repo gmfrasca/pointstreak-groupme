@@ -1,4 +1,4 @@
-from psgroupme.factories import ScheduleFactory
+from recleagueparser.schedules import ScheduleFactory
 import datetime
 import sqlite3
 

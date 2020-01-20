@@ -1,4 +1,4 @@
-from psgroupme.factories import FinanceToolFactory
+from recleagueparser.rsvp_tools import RsvpToolFactory as FinanceToolFactory
 from .base_timed_bot import BaseTimedBot
 from .test_timed_bot import TestTimedBot
 from psgroupme.util import parsetime as pt

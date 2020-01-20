@@ -1,4 +1,4 @@
-from psgroupme.factories import ScheduleFactory
+from recleagueparser.schedules import ScheduleFactory
 from .base_timed_bot import BaseTimedBot
 from .test_timed_bot import TestTimedBot
 from time import sleep
