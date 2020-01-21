@@ -48,7 +48,5 @@ class RsvpBot(BaseBot):
             self._logger.debug("RSVPTool Parser not loaded, creating new one")
             rsvp_cfg = self.bot_data.get('rsvp')
             rsvp_type = rsvp_cfg.get('type')
-            if (('username' in rsvp_cfg and 'password' in rsvp_cfg) or
-                    rsvp_type == 'gdrive'):
-                rsvp_cfg.update(dict(rsvp_tool_type=rsvp_type))
-                self.rsvp = RsvpToolFactory.create(**rsvp_cfg)
+            rsvp_cfg.update(dict(rsvp_tool_type=rsvp_type))
+            self.rsvp = RsvpToolFactory.create(**rsvp_cfg)
