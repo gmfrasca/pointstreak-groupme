@@ -34,10 +34,9 @@ class BaseGamedayReminderBot(BaseTimedBot):
             return
         if self.rsvp_cfg:
             self._logger.info("No RSVP Parser Loaded yet, creating new one.")
-            if 'username' in self.rsvp_cfg and 'password' in self.rsvp_cfg:
-                rsvp_type = self.rsvp_cfg.get('type')
-                self.rsvp_cfg.update(dict(rsvp_tool_type=rsvp_type))
-                self.rsvp = RsvpToolFactory.create(**self.rsvp_cfg)
+            rsvp_type = self.rsvp_cfg.get('type')
+            self.rsvp_cfg.update(dict(rsvp_tool_type=rsvp_type))
+            self.rsvp = RsvpToolFactory.create(**self.rsvp_cfg)
 
     def load_player_stats(self):
         self._logger.info("Loading Player Stats Parser")
