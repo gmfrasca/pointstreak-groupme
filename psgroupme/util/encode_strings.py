@@ -1,9 +1,6 @@
-ENCODING = 'UTF-8'
-
-
 def encode_strings(data):
     if isinstance(data, str):
-        return data.encode(ENCODING)
+        return str(data)
     elif isinstance(data, list):
         return [encode_strings(x) for x in data]
     elif isinstance(data, dict):
