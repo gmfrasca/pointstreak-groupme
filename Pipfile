@@ -4,9 +4,11 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+ansible = "*"
+flake8 = "==3.3.0"
+pytest = "*"
 
 [packages]
-flake8 = "==3.3.0"
 parsedatetime = "==2.4"
 bs4 = "==0.0.1"
 requests = "*"
@@ -14,13 +16,12 @@ croniter = "*"
 Flask = "*"
 Flask-RESTful = "*"
 PyYAML = "*"
-pytest = "*"
 mock = "*"
 jinja2 = "*"
 recleagueparser = {editable = true,git = "https://github.com/gmfrasca/rec-league-parser"}
 
 [requires]
-python_version = "3.7"
+python_version = "3.6"
 
 [scripts]
 psgroupme = "python -m psgroupme -l ./log/psgroupme.log"

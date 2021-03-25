@@ -112,3 +112,7 @@ localdev/
 
 # db files
 *.db
+
+# Ansible Host File
+hosts
+*.local.*
