@@ -1,6 +1,7 @@
 from psgroupme.interfaces.responder import Responder, GROUPME_BOT_URL
 import unittest
 import mock
+import json
 
 
 def mocked_post(*args, **kwargs):
@@ -24,7 +25,7 @@ class TestConfigManager(unittest.TestCase):
     @mock.patch('psgroupme.interfaces.responder.post', side_effect=mocked_post)
     def test_reply(self, mock_post):
         reply_text = 'foo'
-        expected_data = dict(text=reply_text, bot_id=self.bot_id)
+        expected_data = json.dumps(dict(bot_id=self.bot_id, text=reply_text))
         self.responder.reply(reply_text)
         mock_post.assert_called_once_with(GROUPME_BOT_URL, data=expected_data)
 
