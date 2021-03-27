@@ -2,6 +2,7 @@ from requests.exceptions import ConnectionError
 from requests import post
 import logging
 import random
+import json
 
 GROUPME_BOT_URL = 'https://api.groupme.com/v3/bots/post'
 
@@ -23,6 +24,12 @@ class Responder(object):
         if isinstance(message, list):
             message = random.choice(message)
         data = dict(bot_id=self.bot_id, text=message)
+
+        # NOTE(gfrasca): Sometime between 2020-12-31 and 2021-03-27 the
+        # Groupme API appeared to stop taking direct JSON as a data input.
+        # Sending this as a string seems to be a workaround, but there is no
+        # documentation stating this change
+        data = json.dumps(data)
         try:
             self._logger.debug("Posting to {}: {}".format(GROUPME_BOT_URL,
                                                           data))
