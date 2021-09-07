@@ -33,7 +33,7 @@ class TeamFeeReminderBot(BaseTimedBot):
         if finance_cfg:
             if 'username' in finance_cfg and 'password' in finance_cfg:
                 finance_type = finance_cfg.get('type')
-                finance_cfg.update(dict(finance_tool_type=finance_type))
+                finance_cfg.update(dict(rsvp_tool_type=finance_type))
                 return FinanceToolFactory.create(**finance_cfg)
         return None
 
