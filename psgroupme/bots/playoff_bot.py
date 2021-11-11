@@ -8,6 +8,29 @@ class PlayoffBot(ScheduleBot, PlayerStatsBot):
         ScheduleBot.__init__(self, bot_cfg, *args, **kwargs)
         PlayerStatsBot.__init__(self, bot_cfg, *args, **kwargs)
 
+    def get_playoff_danger_str(self):
+        self._load_player_stats()
+        self._load_schedule()
+        sched_length = self.schedule.length
+        games_remaining = self.schedule.games_remaining
+        danger_str = 'Playoff elligibility:'
+        danger_exists = False
+        el_pars = self.stats_cfg.copy()
+        el_pars.update(dict(sched_length=sched_length,
+                            games_remaining=games_remaining))
+        for player in self.player_stats.get_playoff_danger(
+                sched_length, games_remaining):
+            danger_exists = True
+            missable = player.get_missable_games(**el_pars)
+            danger_str += '\r\n{0} can only miss {1} more games'.format(
+               player.name, missable)
+        if danger_exists:
+            return "\r\n{0}".format(danger_str)
+        return 'No players in danger of missing playoffs'
+
+    def check_playoff_roster(self, msg, *args, **kwargs):
+        self.respond(self.get_playoff_danger_str())
+
     def check_playoff(self, msg, *args, **kwargs):
         name = msg.get('name', None) if len(args) < 0 else ' '.join(args)
         try:
