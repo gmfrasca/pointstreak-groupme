@@ -47,5 +47,6 @@ class DebugResponder(Responder):
             self.status_code = status_code
 
     def _send(self, url, data):
+        data = json.loads(data)
         self._logger.info("DEBUG Response: {}".format(data.get('text')))
         return self.MockResponse(data, 200)
