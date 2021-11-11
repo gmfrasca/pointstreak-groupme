@@ -5,13 +5,14 @@ from recleagueparser.team_stats import TeamStatsFactory
 from psgroupme.database import PointstreakDatabase
 from .base_timed_bot import BaseTimedBot
 from .test_timed_bot import TestTimedBot
+from ..playoff_bot import PlayoffBot
 from time import sleep
 import threading
 import croniter
 import datetime
 
 
-class BaseGamedayReminderBot(BaseTimedBot):
+class BaseGamedayReminderBot(BaseTimedBot, PlayoffBot):
 
     DEFAULT_STATS_TYPE = 'sportsengine'
 
@@ -50,23 +51,10 @@ class BaseGamedayReminderBot(BaseTimedBot):
         self.team_stats = TeamStatsFactory.create(stats_type,
                                                   **self.stats_cfg)
 
-    def get_playoff_danger_str(self):
+    def get_playoff_warning(self):
         if self.playoff_check:
-            self._logger.info("Playoff Warning Check: Enabled")
             self.load_player_stats()
-            sched_length = self.sched.length
-            games_remaining = self.sched.games_remaining
-            danger_str = 'Playoff elligibility:'
-            danger_exists = False
-            for player in self.player_stats.get_playoff_danger(
-                    sched_length, games_remaining):
-                danger_exists = True
-                missable = player.get_missable_games(sched_length,
-                                                     games_remaining)
-                danger_str += '\r\n{0} can only miss {1} more games'.format(
-                   player.name, missable)
-            if danger_exists:
-                return "\r\n{0}".format(danger_str)
+            return self.get_playoff_danger_str()
         return ''
 
     def send_game_notification(self, *args, **kwargs):
@@ -89,7 +77,7 @@ class BaseGamedayReminderBot(BaseTimedBot):
                 self.rsvp.reset_game_data()
                 attendance = self.rsvp.get_next_game_attendance()
                 msg = "{0}\r\n{1}".format(msg, attendance)
-            msg = '{}{}'.format(msg, self.get_playoff_danger_str())
+            msg = '{}{}'.format(msg, self.get_playoff_warning())
         self._logger.debug("Generated Msg: {}".format(msg))
         self.send_msg(msg)
         sleep(1)
@@ -117,12 +105,12 @@ class CronGamedayReminderBot(BaseGamedayReminderBot):
 
     def check_for_game_and_notify(self):
         try:
-            self.sched = ScheduleFactory.create(self.schedule_type,
-                                                **self.schedule_cfg)
-            self.sched.refresh_schedule()
+            self.schedule = ScheduleFactory.create(self.schedule_type,
+                                                   **self.schedule_cfg)
+            self.schedule.refresh_schedule()
             self._logger.info("Checking Schedule for notifiable games...")
             now = datetime.datetime.utcnow()
-            for game in reversed(self.sched.games):
+            for game in reversed(self.schedule.games):
                 days_til_game = self.gametime_diff(now, game.full_gametime)
                 if days_til_game in self.notify_days:
                     super(CronGamedayReminderBot,
@@ -176,12 +164,12 @@ class DatabaseGamedayReminderBot(BaseGamedayReminderBot):
         self._logger.info("Setting up Pointstreak DB")
         self.db = PointstreakDatabase()
         self._logger.info("Setting up Schedule")
-        self.sched = ScheduleFactory.create(self.schedule_type,
-                                            **self.schedule_cfg)
-        self.sched.refresh_schedule()
+        self.schedule = ScheduleFactory.create(self.schedule_type,
+                                               **self.schedule_cfg)
+        self.schedule.refresh_schedule()
         self.db.load_schedule(self.sched)
-        team_id = self.sched.team_id
-        season_id = self.sched.season_id
+        team_id = self.schedule.team_id
+        season_id = self.schedule.season_id
         while True:
             if self.db.is_game_today(team_id, season_id):
                 game_id = self.db.get_todays_game(team_id, season_id)
