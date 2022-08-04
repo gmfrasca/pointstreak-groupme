@@ -1,3 +1,4 @@
+from recleagueparser.rsvp_tools import exceptions as rsvptoolexceptions
 from recleagueparser.rsvp_tools import RsvpToolFactory
 from psgroupme.bots.base_bot import BaseBot
 
@@ -11,13 +12,23 @@ class RsvpBot(BaseBot):
 
     def checkin_player(self, msg, *args, **kwargs):
         checkin_type = kwargs.get("checkin_type", "in")
-        name = msg.get('name', None) if len(args) < 1 else ' '.join(args)
+        sender = msg.get('name', None)
+        name = sender if len(args) < 1 else ' '.join(args)
         try:
             self._logger.info(
                 "Received request to checkin {} with status {}".format(
                     name, checkin_type))
             self._load_rsvp()
             self.rsvp.try_checkin(name, checkin_type)
+        except rsvptoolexceptions.NoPlayerFoundCheckinException as npfce:
+            self._logger.warning(npfce)
+            self._logger.warning("Attempting to check in sender instead")
+            try:
+                self._load_rsvp()
+                self.rsvp.try_checkin(sender, checkin_type)
+            except Exception as e:
+                self._logger.exception(e)
+                self.respond("ERROR::{0}".format(str(e)))
         except Exception as e:
             self._logger.exception(e)
             self.respond("ERROR::{0}".format(str(e)))
