@@ -1,4 +1,6 @@
 from recleagueparser.schedules import ScheduleFactory
+from recleagueparser.schedules.compare import ScheduleComparer
+
 from psgroupme.bots.base_bot import BaseBot
 
 
@@ -11,10 +13,12 @@ class ScheduleBot(BaseBot):
     DEFAULT_SEASON_ID = 481539
     DEFAULT_TYPE = 'sportsengine'
 
-    def __init__(self, bot_cfg, schedule=None, *args, **kwargs):
+    def __init__(self, bot_cfg, schedule=None,
+                 compare_schedule=None, *args, **kwargs):
         """Initialize the bot, and add ScheduleBot-specific responses"""
         super(ScheduleBot, self).__init__(bot_cfg, *args, **kwargs)
         self.schedule = schedule
+        self.compare_schedule = compare_schedule
 
     def get_bot_specific_responses(self):
         return self.brm.get_responses().get('schedulebot', list())
@@ -46,6 +50,18 @@ class ScheduleBot(BaseBot):
                                      last_game=last_game,
                                      schedule=schedule))
 
+    def compare_schedules(self, msg, *args, **kwargs):
+        self._load_schedule()
+        self._load_compare_schedule()
+        if self.schedule is not None and self.compare_schedule is not None:
+            include_past_games = kwargs.get("include_past_games", False)
+            sc = ScheduleComparer(self.schedule, self.compare_schedule)
+            diff = sc.sched_diff(not include_past_games)
+            if diff:
+                self.respond(f"Schedule Diff Detected:\n{diff}")
+            else:
+                self.respond("Schedule syncronization verified: no diffs detected")
+
     def _load_schedule(self):
         self._logger.debug("Loading Schedule Parser")
         if self.schedule is not None:
@@ -57,3 +73,15 @@ class ScheduleBot(BaseBot):
             schedule_type = schedule_cfg.get('type', self.DEFAULT_TYPE)
             schedule_cfg.update(dict(schedule_type=schedule_type))
             self.schedule = ScheduleFactory.create(**schedule_cfg)
+
+    def _load_compare_schedule(self):
+        self._logger.debug("Loading Schedule Parser")
+        if self.compare_schedule is not None:
+            self._logger.debug("Schedule Parser already loaded.")
+            return
+        if 'compare_schedule' in self.bot_data:
+            self._logger.debug("Compare Schedule Parser not loaded, creating new one")
+            cschedule_cfg = self.bot_data.get('compare_schedule', dict())
+            cschedule_type = cschedule_cfg.get('type', self.DEFAULT_TYPE)
+            cschedule_cfg.update(dict(schedule_type=cschedule_type))
+            self.compare_schedule = ScheduleFactory.create(**cschedule_cfg)
