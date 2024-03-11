@@ -18,9 +18,10 @@ Flask-RESTful = "*"
 PyYAML = ">=5.4"
 mock = "*"
 jinja2 = ">=2.11.3"
-recleagueparser = {editable = true,git = "https://github.com/gmfrasca/rec-league-parser"}
 rsa = ">=4.1"
 httplib2 = ">=0.19.0"
+recleagueparser = {git = "git+https://github.com/gmfrasca/rec-league-parser#egg=recleagueparser"}
+icalendar = "*"
 
 [requires]
 python_version = "3.6"
