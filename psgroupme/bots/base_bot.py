@@ -5,6 +5,8 @@ from psgroupme.bots.bot_responses import BotResponseManager
 from psgroupme.util.encode_strings import encode_strings
 import datetime
 import logging
+import random
+import time
 import json
 import re
 
@@ -62,6 +64,16 @@ class BaseBot(Resource):
         self.context.update(dict(today=datetime.datetime.now().strftime(
             "%a %b %d %I:%M.%S%p")))
 
+    def multiping(self, msg, *params, **kwargs):
+        if len(params) < 3:
+            return
+        sleep_time_min = int(params[0])
+        sleep_time_max = int(params[1])
+        amt = int(params[2])
+        for i in range(0, amt):
+            self.respond("pong")
+            time.sleep(random.randint(sleep_time_min, sleep_time_max))
+ 
     def read_msg(self, msg):
         """
         Read a message's contents, and act on it if it matches a regex in
