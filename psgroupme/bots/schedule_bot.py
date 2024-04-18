@@ -55,8 +55,12 @@ class ScheduleBot(BaseBot):
         self._load_compare_schedule()
         if self.schedule is not None and self.compare_schedule is not None:
             include_past_games = kwargs.get("include_past_games", False)
+            include_keywords = kwargs.get("include_keywords")
+            exclude_keywords = kwargs.get("exclude_keywords")
             sc = ScheduleComparer(self.schedule, self.compare_schedule)
-            diff = sc.sched_diff(not include_past_games)
+            diff = sc.sched_diff(not include_past_games,
+                                 include_keywords=include_keywords,
+                                 exclude_keywords=exclude_keywords)
             if diff:
                 self.respond(f"Schedule Diff Detected:\n{diff}")
             else:
