@@ -27,6 +27,8 @@ class ScheduleSyncCheckBot(BaseTimedBot):
         self.cschedule_cfg = self.bot_data.get('compare_schedule', dict())
         self.cschedule_type = self.cschedule_cfg.get('type', 'pointstreak')
         self.include_past_games = self.cschedule_cfg.get('include_past_games', False)
+        self.include_keywords = self.cschedule_cfg.get('include_keywords')
+        self.exclude_keywords = self.cschedule_cfg.get('exclude_keywords')
 
     def check_for_diff_and_notify(self):
         try:
@@ -40,7 +42,9 @@ class ScheduleSyncCheckBot(BaseTimedBot):
             self._logger.info("Checking Schedules for diffs...")
             if self.schedule is not None and self.cschedule is not None:
                 sc = ScheduleComparer(self.schedule, self.cschedule)
-                diff = sc.sched_diff(not self.include_past_games)
+                diff = sc.sched_diff(not self.include_past_games,
+                                     include_keywords=self.include_keywords,
+                                     exclude_keywords=self.exclude_keywords)
                 if diff:
                     self.send_msg(f"ALERT: Schedule Diff Detected:\n{diff}")
 
