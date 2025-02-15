@@ -41,7 +41,7 @@ class TeamFeeReminderBot(BaseTimedBot):
         finance_tool = self.get_finance_tool()
         fee, paid, percent = finance_tool.get_team_fee_stats()
         # Run only if fee isn't fully paid
-        if fee != paid:
+        if paid < fee:
             self._logger.info("Fee not paid in full yet, notifying")
             prog_bar = finance_tool.get_team_fee_progress()
             msg = ''
