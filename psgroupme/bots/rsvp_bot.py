@@ -22,6 +22,14 @@ class RsvpBot(BaseBot):
             self._logger.exception(e)
             self.respond("ERROR::{0}".format(str(e)))
 
+    def get_duties_responses(self):
+        try:
+            drink_duty = self.rsvp.get_duty_assignment("Drinks")
+            all_duties = self.rsvp.get_all_duty_assignments()
+            return drink_duty, all_duties
+        except:
+            return "", ""
+
     def load_rsvp(self, *args, **kwargs):
         super(RsvpBot, self).get_extra_context()
         self._load_rsvp()
@@ -32,12 +40,15 @@ class RsvpBot(BaseBot):
             attendees = self.rsvp.get_next_game_attendees()
             lines = self.rsvp.get_next_game_lines()
             teamfee_progress = self.rsvp.get_team_fee_progress()
+            drink_duty, all_duties = self.get_duties_responses()
             self.context.update(dict(attendance=attendance,
                                      attendance_resp=attendance_resp,
                                      attendees=attendees,
                                      lines=lines,
-                                     teamfee_progress=teamfee_progress))
-
+                                     teamfee_progress=teamfee_progress,
+                                     drink_duty=drink_duty,
+                                     all_duties=all_duties))
+    
     def _load_rsvp(self):
         # Set up RsvpTool
         self._logger.debug("Loading RSVPTool Parser")
