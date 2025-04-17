@@ -22,6 +22,22 @@ class RsvpBot(BaseBot):
             self._logger.exception(e)
             self.respond("ERROR::{0}".format(str(e)))
 
+    def get_duty(self, msg, *args, **kwargs):
+        duty_type = msg.get("duty_type", "Drinks") if len(args) < 1 else ' '.join(args)
+        try:
+            self._logger.info(f"Looking up {duty_type} duty assignment for upcoming game.")
+            self._load_rsvp()
+            d = "drinks" if duty_type.lower() == "beer" else duty_type
+            assignee = self.rsvp.get_duty_assignment(d)
+            if assignee:
+                self.respond(f"{assignee} is assigned {duty_type} duty for upcoming game.")    
+            else:
+                self.respond(f"Could not find {duty_type} duty assignment for upcoming game.")
+
+        except Exception as e:
+            self._logger.exception(e)
+            self.respond("ERROR::{0}".format(str(e)))
+
     def get_duties_responses(self):
         try:
             drink_duty = self.rsvp.get_duty_assignment("Drinks")
