@@ -23,6 +23,7 @@ class BaseGamedayReminderBot(BaseTimedBot, PlayoffBot):
         self.stats_cfg = self.bot_data.get('stats', self.schedule_cfg)
         self.rsvp_cfg = self.bot_data.get('rsvp')
         self.playoff_check = self.bot_data.get('playoff_check', False)
+        self.duty_check = self.bot_data.get('duty_check', False)
         self.schedule_type = self.schedule_cfg.get('type', 'pointstreak')
         self.rsvp = None
         self.load_rsvp()
@@ -57,6 +58,13 @@ class BaseGamedayReminderBot(BaseTimedBot, PlayoffBot):
             return self.get_playoff_danger_str()
         return ''
 
+    def get_duty_assignments(self):
+        if self.duty_check:
+            self.load_rsvp()
+            all_duties = self.rsvp.get_all_duty_assignments()
+            return all_duties
+        return ''
+
     def send_game_notification(self, *args, **kwargs):
         raise NotImplementedError
 
@@ -72,15 +80,17 @@ class BaseGamedayReminderBot(BaseTimedBot, PlayoffBot):
         else:
             msg = "It's Gameday!"
             msg = "{0} {1}".format(msg, game_str)
-            if self.rsvp is not None and days == 0:
+            if self.rsvp:
                 self.load_rsvp()
                 self.rsvp.reset_game_data()
                 attendance = self.rsvp.get_next_game_attendance()
                 msg = "{0}\r\n{1}".format(msg, attendance)
+                duty_assignments = self.get_duty_assignments()
+                if duty_assignments:
+                    msg = '{}\r\n\r\n{}'.format(msg, self.get_duty_assignments())
             msg = '{}{}'.format(msg, self.get_playoff_warning())
         self._logger.debug("Generated Msg: {}".format(msg))
         self.send_msg(msg)
-        sleep(1)
 
     def run(self):
         raise NotImplementedError
