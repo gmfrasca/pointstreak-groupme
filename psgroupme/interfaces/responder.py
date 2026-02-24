@@ -7,6 +7,20 @@ import json
 GROUPME_BOT_URL = 'https://api.groupme.com/v3/bots/post'
 
 
+class ResponderFactory(object):
+    def __init__(self, *args, **kwargs):
+        self._logger = logging.getLogger(self.__class__.__name__)
+
+    def get_responder(self, responder_type, *args, **kwargs):
+        if responder_type == 'groupme':
+            return GroupmeResponder(*args, **kwargs)
+        elif responder_type == 'debug':
+            return DebugResponder(*args, **kwargs)
+        else:
+            # For now, default to GroupmeResponder for backwards compatibility
+            self._logger.warning("Responder type '{0}' not found, using GroupmeResponder".format(responder_type))
+            return GroupmeResponder(*args, **kwargs)
+
 class Responder(object):
 
     def __init__(self, *args, **kwargs):
