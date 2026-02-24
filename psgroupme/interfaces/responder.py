@@ -9,9 +9,20 @@ GROUPME_BOT_URL = 'https://api.groupme.com/v3/bots/post'
 
 class Responder(object):
 
-    def __init__(self, bot_id):
+    def __init__(self, *args, **kwargs):
         """Initialize this responder by assigning a bot"""
         self._logger = logging.getLogger(self.__class__.__name__)
+
+    def _send(self, url, data):
+        raise NotImplementedError("Subclasses must implement this method")
+
+    def reply(self, message):
+        raise NotImplementedError("Subclasses must implement this method")
+
+class GroupmeResponder(Responder):
+
+    def __init__(self, bot_id, *args, **kwargs):
+        super(GroupmeResponder, self).__init__(bot_id, *args, **kwargs)
         self.bot_id = bot_id
 
     def _send(self, url, data):
@@ -39,7 +50,7 @@ class Responder(object):
             self._logger.exception("Could not post msg to Groupme Endpoint")
 
 
-class DebugResponder(Responder):
+class DebugResponder(GroupmeResponder):
     class MockResponse(object):
 
         def __init__(self, json_data, status_code):

@@ -1,4 +1,4 @@
-from psgroupme.interfaces.responder import Responder, GROUPME_BOT_URL
+from psgroupme.interfaces.responder import GroupmeResponder, GROUPME_BOT_URL
 import unittest
 import mock
 import json
@@ -17,7 +17,7 @@ class TestConfigManager(unittest.TestCase):
 
     def setUp(self):
         self.bot_id = '12345'
-        self.responder = Responder(self.bot_id)
+        self.responder = GroupmeResponder(self.bot_id)
 
     def tearDown(self):
         pass

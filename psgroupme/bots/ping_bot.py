@@ -1,6 +1,6 @@
 from flask_restful import Resource
 from flask import request
-from psgroupme.interfaces.responder import Responder
+from psgroupme.interfaces.responder import GroupmeResponder
 import logging
 import json
 
@@ -39,7 +39,7 @@ class PingBot(Resource):
 class LivePingBot(PingBot):
 
     def respond(self, msg):
-        Responder(self.bot_id).reply("pong")
+        GroupmeResponder(self.bot_id).reply("pong")
 
     def post(self):
         data_str = request.data

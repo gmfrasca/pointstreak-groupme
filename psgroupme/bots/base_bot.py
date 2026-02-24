@@ -1,6 +1,6 @@
 from flask import request
 from flask_restful import Resource
-from psgroupme.interfaces.responder import Responder
+from psgroupme.interfaces.responder import GroupmeResponder
 from psgroupme.bots.bot_responses import BotResponseManager
 from psgroupme.util.encode_strings import encode_strings
 import datetime
@@ -27,7 +27,7 @@ class BaseBot(Resource):
         self.bot_id = self.bot_data.get('bot_id')
         self.bot_name = self.bot_data.get('bot_name', 'UnknownBot')
         assert self.bot_id is not None
-        self.responder = Responder(self.bot_id)
+        self.responder = GroupmeResponder(self.bot_id)
         self.context = dict()
 
     def refresh_responses(self):
