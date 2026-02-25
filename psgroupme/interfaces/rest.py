@@ -44,19 +44,25 @@ def main():
             responders.append(ResponderFactory().get_responder(responder_type, **rcfg))
 
         # Determine the bot class
-        subclass_name = "{0}{1}".format(class_name, bot_id)
         bot_class = str_to_class(class_name)
-        logger.info("Adding {0}".format(subclass_name))
-
-        # Add image host url
-        bot.update(dict(img_cfg=img_cfg, public_url=public_url))
 
         # Stand up the various listeners for each responder used by this bot
         for r in responders:
-            if r.host_type == 'flask':
+            # Generate bot config for this responder
+            bot_cfg = bot.copy()
+            bot_cfg.update(dict(
+                bot_id=r.bot_id,
+                bot_url=r.bot_url,
+                img_cfg=img_cfg,
+                public_url=public_url))
+            bot_name = "{0}-{1}".format(class_name, r.bot_id)
+            logger.info(f"Adding {bot_name}")
+
+            # Add a Flask listener for this responder if it is a Groupme responder and has a bot_url
+            if r.host_type == 'flask' and r.bot_url is not None:
                 logger.info(f"Adding Flask listener for {r.bot_id} on endpoint {r.bot_url}")
-                api.add_resource(type(subclass_name, (bot_class,), {}), r.bot_url,
-                         resource_class_kwargs=dict(bot_cfg=bot))
+                resource_class = type(bot_name, (bot_class,), {})
+                api.add_resource(resource_class, r.bot_url, resource_class_kwargs=dict(bot_cfg=bot_cfg, responder=r))
             else:
                 logger.warning("Responder type '{0}' has no host type, bot will not have a listener".format(r.host_type))
 

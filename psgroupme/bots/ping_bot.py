@@ -39,6 +39,7 @@ class PingBot(Resource):
 class LivePingBot(PingBot):
 
     def respond(self, msg):
+        # TODO: Use factory to get the correct responder instead of GroupmeResponder
         GroupmeResponder(self.bot_id).reply("pong")
 
     def post(self):

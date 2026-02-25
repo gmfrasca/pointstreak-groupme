@@ -1,6 +1,6 @@
 from flask import request
 from flask_restful import Resource
-from psgroupme.interfaces.responder import GroupmeResponder
+from psgroupme.interfaces.responder import ResponderFactory
 from psgroupme.bots.bot_responses import BotResponseManager
 from psgroupme.util.encode_strings import encode_strings
 import datetime
@@ -19,7 +19,7 @@ class BaseBot(Resource):
     def bot_type(self):
         return type(self).__name__
 
-    def __init__(self, bot_cfg, *args, **kwargs):
+    def __init__(self, bot_cfg, responder, *args, **kwargs):
         """Load the config for this bot based on Name"""
         self._logger = logging.getLogger(self.__class__.__name__)
         self.brm = BotResponseManager()
@@ -27,7 +27,7 @@ class BaseBot(Resource):
         self.bot_id = self.bot_data.get('bot_id')
         self.bot_name = self.bot_data.get('bot_name', 'UnknownBot')
         assert self.bot_id is not None
-        self.responder = GroupmeResponder(self.bot_id)
+        self.responder = responder
         self.context = dict()
 
     def refresh_responses(self):
