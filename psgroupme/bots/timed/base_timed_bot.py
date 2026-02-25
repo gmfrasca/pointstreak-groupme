@@ -1,19 +1,17 @@
-from psgroupme.interfaces.responder import Responder
 import threading
 import logging
 
 
 class BaseTimedBot(threading.Thread):
 
-    def __init__(self, **kwargs):
+    def __init__(self, responder, **kwargs):
         """Load the config for this bot based on Name"""
         super(BaseTimedBot, self).__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
         self._stop_event = threading.Event()
         self.daemon = True
         self.bot_id = kwargs.get('bot_id')
-        assert self.bot_id is not None
-        self.responder = Responder(self.bot_id)
+        self.responder = responder
 
     @property
     def bot_type(self):
