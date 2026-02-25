@@ -23,6 +23,8 @@ class ResponderFactory(object):
 
 class Responder(object):
 
+    host_type = None
+
     def __init__(self, *args, **kwargs):
         """Initialize this responder by assigning a bot"""
         self._logger = logging.getLogger(self.__class__.__name__)
@@ -35,9 +37,12 @@ class Responder(object):
 
 class GroupmeResponder(Responder):
 
-    def __init__(self, bot_id, *args, **kwargs):
+    host_type = 'flask'
+
+    def __init__(self, bot_id, bot_url,*args, **kwargs):
         super(GroupmeResponder, self).__init__(bot_id, *args, **kwargs)
         self.bot_id = bot_id
+        self.bot_url = bot_url
 
     def _send(self, url, data):
         return post(url, data=data)
@@ -65,6 +70,7 @@ class GroupmeResponder(Responder):
 
 
 class DebugResponder(GroupmeResponder):
+
     class MockResponse(object):
 
         def __init__(self, json_data, status_code):
