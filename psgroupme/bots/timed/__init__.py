@@ -6,8 +6,10 @@ from .updated_game_notifier_bot import UpdatedGameNotifierBot
 from .updated_game_notifier_bot import TestUpdatedGameNotifierBot
 from .schedule_sync_bot import ScheduleSyncCheckBot
 from .schedule_sync_bot import TestScheduleSyncCheckBot
+from .timed_ping_bot import TimedPingBot
 
 __all__ = ['GamedayReminderBot', 'TestGamedayReminderBot',
            'TeamFeeReminderBot', 'TestTeamFeeReminderBot',
            'UpdatedGameNotifierBot', 'TestUpdatedGameNotifierBot',
-           'ScheduleSyncCheckBot', 'TestScheduleSyncCheckBot']
+           'ScheduleSyncCheckBot', 'TestScheduleSyncCheckBot',
+           'TimedPingBot']
