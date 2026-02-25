@@ -39,12 +39,12 @@ class GroupmeResponder(Responder):
 
     host_type = 'flask'
 
-    def __init__(self, bot_id, bot_url,*args, **kwargs):
+    def __init__(self, bot_id, bot_url=None, *args, **kwargs):
         super(GroupmeResponder, self).__init__(bot_id, *args, **kwargs)
         self.bot_id = bot_id
         self.bot_url = bot_url
 
-    def _send(self, url, data):
+    def send(self, url, data):
         return post(url, data=data)
 
     def reply(self, message):
@@ -63,7 +63,7 @@ class GroupmeResponder(Responder):
         try:
             self._logger.debug("Posting to {}: {}".format(GROUPME_BOT_URL,
                                                           data))
-            resp = self._send(GROUPME_BOT_URL, data)
+            resp = self.send(GROUPME_BOT_URL, data)
             assert resp.status_code in range(200, 400)
         except (AssertionError, ConnectionError):
             self._logger.exception("Could not post msg to Groupme Endpoint")
@@ -77,7 +77,7 @@ class DebugResponder(GroupmeResponder):
             self.json_data = json_data
             self.status_code = status_code
 
-    def _send(self, url, data):
+    def send(self, url, data):
         data = json.loads(data)
         self._logger.info("DEBUG Response: {}".format(data.get('text')))
         return self.MockResponse(data, 200)
