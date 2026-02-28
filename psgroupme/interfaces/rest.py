@@ -28,31 +28,13 @@ def main():
     api = Api(app)
 
     # Add Bots to a REST API URL here
-    for bot in cm.get_bots():
-        class_name = bot.get('class_name')
+    for bot_cfg in cm.get_bots():
+        class_name = bot_cfg.get('class_name')
         bot_class = str_to_class(class_name)
 
         # Handle Legacy configuration options
-        bot_id = bot.get('bot_id')
-        bot_url = bot.get('bot_url')
-        default_bot_cfg = {"bot_id": bot_id, "type": "groupme"}
-
-        # Create responders for this bot
-        # TODO: should this be done in bot itself?
-        responders = []
-        responders_cfg = bot.get('responders', [default_bot_cfg])
-        for rcfg in responders_cfg:
-            responder_type = rcfg.get('type', 'groupme')
-            if 'bot_id' not in rcfg:
-                rcfg['bot_id'] = bot_id
-            responders.append(ResponderFactory().get_responder(responder_type, **rcfg))
-
-        # Create bot
-        bot_cfg = bot.copy()
-        bot_cfg.update(dict(
-            responders=responders,
-        ))
-        bot = bot_class(bot_cfg=bot_cfg, responders=responders)
+        bot_url = bot_cfg.get('bot_url')
+        bot = bot_class(bot_cfg=bot_cfg)
 
         # Set up listeners
         listeners_cfg = bot_cfg.pop('listeners', [])
