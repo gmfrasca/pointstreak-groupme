@@ -9,8 +9,8 @@ class Listener(object):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.bot = bot
 
-    def on_message(self, message):
-        self.bot.on_message(message)
+    def process_message(self, message):
+        self.bot.handle_msg(message)
 
 class GroupmeListener(Listener, Resource):
     def __init__(self, bot, *args, **kwargs):
