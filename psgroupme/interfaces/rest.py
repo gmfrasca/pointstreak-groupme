@@ -1,7 +1,6 @@
 from flask import Flask
 from flask_restful import Api
 from psgroupme.config_manager import ConfigManager
-from psgroupme.interfaces.responder import ResponderFactory
 from psgroupme.interfaces.listener import GroupmeListener
 from functools import reduce
 import sys
@@ -34,15 +33,19 @@ def main():
 
         # Handle Legacy configuration options
         bot_url = bot_cfg.get('bot_url')
+        default_listener_cfg = {"type": "groupme", "url": bot_url}
+
+        # Create bot
         bot = bot_class(bot_cfg=bot_cfg)
 
         # Set up listeners
-        listeners_cfg = bot_cfg.pop('listeners', [])
+        listeners_cfg = bot_cfg.pop('listeners', [default_listener_cfg])
         for l in listeners_cfg:
             listener_type = l.get('type', 'groupme')
             if listener_type == 'groupme':
                 bot_url = l.get('url', bot_url)
                 if bot_url is not None:
+                    logger.info("Adding Groupme listener for bot {} at {}".format(bot.bot_name, bot_url))
                     api.add_resource(GroupmeListener, bot_url, resource_class_kwargs={'bot': bot})
                 else:
                     logger.warning("Bot URL is not set, cannot add Groupme listener")

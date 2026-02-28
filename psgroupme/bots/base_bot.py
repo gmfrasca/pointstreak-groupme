@@ -23,10 +23,14 @@ class BaseBot(object):
         self.brm = BotResponseManager()
         self.bot_data = bot_cfg
         self.bot_name = self.bot_data.get('bot_name', 'UnknownBot')
+        self.bot_id = self.bot_data.get('bot_id')
         self.context = dict()
-        self.responders = self._setup_responders(
-            self.bot_data.get('responders', dict()),
-            self.bot_data.get('bot_id'))
+
+        # Setup responders
+        responders_cfg = self.bot_data.get('responders', [])
+        if self.bot_id is not None:
+            responders_cfg.append({"type": "groupme", "bot_id": self.bot_id})
+        self.responders = self._setup_responders(responders_cfg, self.bot_id)
 
     def _setup_responders(self, responders_cfg, bot_id):
         responders = []
@@ -34,6 +38,8 @@ class BaseBot(object):
             responder_type = cfg.get('type', 'groupme')
             if 'bot_id' not in cfg:
                 cfg['bot_id'] = bot_id
+
+            self._logger.info(f"Setting up {responder_type} responder for bot {cfg['bot_id']}")
             responders.append(ResponderFactory().get_responder(responder_type, **cfg))
         return responders
 
