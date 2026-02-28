@@ -1,5 +1,3 @@
-from flask import request
-from flask_restful import Resource
 from psgroupme.interfaces.responder import ResponderFactory
 from psgroupme.bots.bot_responses import BotResponseManager
 from psgroupme.util.encode_strings import encode_strings
@@ -9,7 +7,7 @@ import json
 import re
 
 
-class BaseBot(Resource):
+class BaseBot(object):
     """
     A basic GroupMe Bot. Responds to messages if they match the input regex
     found in bot_responses.py
@@ -157,20 +155,3 @@ class BaseBot(Resource):
             actions.extend(multi_actions)
         self._logger.info("Actions to perform: {}".format(actions))
         return actions
-
-    def get(self):
-        """React to a GET call"""
-        self._logger.info("Received GET call")
-        return {'bot_cfg': self.bot_data}
-
-    def post(self):
-        """React to a POST call"""
-        self._logger.info("Received POST call")
-        data_str = request.data
-        try:
-            msg = json.loads(data_str)
-            self.handle_msg(msg)
-            return {'post': msg}
-        except ValueError:
-            pass
-        return None

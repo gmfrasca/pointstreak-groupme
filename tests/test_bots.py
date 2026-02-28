@@ -147,26 +147,6 @@ class TestBaseBot(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_get_request(self):
-        expected = dict(bot_cfg=self.bot.bot_data)
-        self.assertEqual(self.bot.get(), expected)
-
-    @mock.patch("psgroupme.bots.base_bot.request")
-    def test_post_request(self, mocked_data):
-        mocked_data.data = '{"foo": "bar"}'
-        loaded_dict = json.loads(mocked_data.data)
-        expected = dict(post=loaded_dict)
-        self.bot.handle_msg = mock.MagicMock()
-        self.assertEqual(self.bot.post(), expected)
-        self.bot.handle_msg.assert_called_once_with(loaded_dict)
-
-    @mock.patch("psgroupme.bots.base_bot.request")
-    def test_bad_post_request(self, mocked_data):
-        mocked_data.data = '{"this_is_bad_json'
-        self.bot.handle_msg = mock.MagicMock()
-        self.assertEqual(self.bot.post(), None)
-        self.bot.handle_msg.assert_not_called()
-
     @mock.patch.object(psgroupme.bots.base_bot.Responder, 'reply')
     def test_respond(self, reply_fn):
         self.bot.respond("foobar")
