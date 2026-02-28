@@ -6,7 +6,8 @@ from functools import reduce
 import sys
 import logging
 import psgroupme.bots as bots # noqa: need this to subclass
-
+import _thread
+from time import sleep
 
 class ClientManager(object):
     def __init__(self, config_path):
@@ -48,7 +49,23 @@ class ClientManager(object):
             self._logger.warning("Unknown listener type '{0}', bot will not have a listener".format(listener_type))
 
     def run(self):
-        self.fcm.run()
+        client_threads = {
+            'flask': self.fcm.run,
+        }
+
+        for thread_name, thread_func in client_threads.items():
+            try:
+                _thread.start_new_thread(thread_func, ())
+            except Exception as e:
+                logging.error("Unable to start {} thread".format(thread_name))
+                logging.error(e)
+
+        running = True
+        while running:
+            try:
+                sleep(1)
+            except KeyboardInterrupt:
+                running = False
 
 
 class FlaskClientManager(object):
