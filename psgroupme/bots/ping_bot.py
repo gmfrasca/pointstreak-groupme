@@ -23,18 +23,6 @@ class PingBot(Resource):
         """Have the bot post a message to it's group"""
         self._logger.info("pong")
 
-    def get(self):
-        """React to a GET call"""
-        return {'bot_cfg': self.bot_data}
-
-    def post(self):
-        """React to a POST call"""
-        try:
-            self.respond("ping")
-        except ValueError:
-            pass
-        return None
-
 
 class LivePingBot(PingBot):
 
@@ -42,16 +30,3 @@ class LivePingBot(PingBot):
         # TODO: Use factory to get the correct responder instead of GroupmeResponder
         GroupmeResponder(self.bot_id).reply("pong")
 
-    def post(self):
-        data_str = request.data
-        try:
-            msg = json.loads(data_str)
-            system = msg.get('system', True)
-            sender_type = msg.get('sender_type', 'user')
-            if not system and sender_type != 'bot':
-                self._logger.info("User message recieved, responding")
-                self.respond(msg)
-            return {'post': msg}
-        except ValueError:
-            pass
-        return None
