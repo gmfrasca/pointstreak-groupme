@@ -39,10 +39,9 @@ class GroupmeResponder(Responder):
 
     host_type = 'flask'
 
-    def __init__(self, bot_id, bot_url=None, *args, **kwargs):
+    def __init__(self, bot_id, *args, **kwargs):
         super(GroupmeResponder, self).__init__(bot_id, *args, **kwargs)
         self.bot_id = bot_id
-        self.bot_url = bot_url
 
     def send(self, url, data):
         return post(url, data=data)

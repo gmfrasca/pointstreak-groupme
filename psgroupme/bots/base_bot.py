@@ -19,15 +19,13 @@ class BaseBot(Resource):
     def bot_type(self):
         return type(self).__name__
 
-    def __init__(self, bot_cfg, responder, *args, **kwargs):
+    def __init__(self, bot_cfg, responders=[], *args, **kwargs):
         """Load the config for this bot based on Name"""
         self._logger = logging.getLogger(self.__class__.__name__)
         self.brm = BotResponseManager()
         self.bot_data = bot_cfg
-        self.bot_id = self.bot_data.get('bot_id')
         self.bot_name = self.bot_data.get('bot_name', 'UnknownBot')
-        assert self.bot_id is not None
-        self.responder = responder
+        self.responders = responders
         self.context = dict()
 
     def refresh_responses(self):
@@ -126,11 +124,12 @@ class BaseBot(Resource):
 
     def respond(self, msg):
         """Have the bot post a message to it's group"""
-        self._logger.debug("Responding with msg: {}".format(msg))
-        try:
-            self.responder.reply(msg)
-        except Exception:
-            self._logger.info("Could not respond with message: {}".format(msg))
+        for r in self.responders:
+            try:
+                self._logger.debug("Responding with msg: {}".format(msg))
+                r.reply(msg)
+            except Exception:
+                self._logger.info("Could not respond with message using responder {}: {}".format(r.bot_id, msg))
 
     def _get_actions(self, match):
         self._logger.info("Getting actions")
