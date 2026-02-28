@@ -19,14 +19,25 @@ class BaseBot(Resource):
     def bot_type(self):
         return type(self).__name__
 
-    def __init__(self, bot_cfg, responders=[], *args, **kwargs):
+    def __init__(self, bot_cfg, *args, **kwargs):
         """Load the config for this bot based on Name"""
         self._logger = logging.getLogger(self.__class__.__name__)
         self.brm = BotResponseManager()
         self.bot_data = bot_cfg
         self.bot_name = self.bot_data.get('bot_name', 'UnknownBot')
-        self.responders = responders
         self.context = dict()
+        self.responders = self._setup_responders(
+            self.bot_data.get('responders', dict()),
+            self.bot_data.get('bot_id'))
+
+    def _setup_responders(self, responders_cfg, bot_id):
+        responders = []
+        for cfg in responders_cfg:
+            responder_type = cfg.get('type', 'groupme')
+            if 'bot_id' not in cfg:
+                cfg['bot_id'] = bot_id
+            responders.append(ResponderFactory().get_responder(responder_type, **cfg))
+        return responders
 
     def refresh_responses(self):
         self._logger.info("Refreshing Responses")
