@@ -17,11 +17,10 @@ from .timed import ScheduleSyncCheckBot
 from .timed import TestScheduleSyncCheckBot
 from .timed import TimedPingBot
 from .bot_responses import BotResponseManager
-from .ping_bot import PingBot, LivePingBot
 
 __all__ = ['BaseBot', 'ScheduleBot', 'TestBot', 'GamedayReminderBot',
-           'BotResponseManager', 'TestGamedayReminderBot', 'PingBot',
-           'LivePingBot', 'TeamFeeReminderBot', 'TestTeamFeeReminderBot',
+           'BotResponseManager', 'TestGamedayReminderBot',
+           'TeamFeeReminderBot', 'TestTeamFeeReminderBot',
            'UpdatedGameNotifierBot', 'TestUpdatedGameNotifierBot',
            'MasterBot', 'ImageBot', 'PlayoffBot', 'RsvpBot',
            'PlayerStatsBot', 'TeamStatsBot',
