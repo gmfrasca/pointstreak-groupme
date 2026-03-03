@@ -1,19 +1,22 @@
 from flask import Flask
 from flask_restful import Api
 from psgroupme.config_manager import ConfigManager
-from psgroupme.interfaces.listener import GroupmeListener
+from psgroupme.interfaces.listener import GroupmeListener, DiscordListener
 from functools import reduce
 import sys
 import logging
 import psgroupme.bots as bots # noqa: need this to subclass
 import _thread
 from time import sleep
+import discord
+
 
 class ClientManager(object):
     def __init__(self, config_path):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.cm = ConfigManager(config_path)
         self.fcm = FlaskClientManager(config_path)
+        self.dcm = DiscordClient(config_path)
         self.create_bots()
 
     def str_to_class(self, class_name):
@@ -34,9 +37,9 @@ class ClientManager(object):
             # Set up listeners
             listeners_cfg = bot_cfg.pop('listeners', [default_listener_cfg])
             for l in listeners_cfg:
-                self.add_listener(bot, l, bot_url)
+                self.add_listener(l, bot,bot_url)
     
-    def add_listener(self, bot, listener_cfg, bot_url):
+    def add_listener(self, listener_cfg, bot, bot_url):
         listener_type = listener_cfg.get('type', 'groupme')
         if listener_type == 'groupme':
             bot_url = listener_cfg.get('url', bot_url)
@@ -45,12 +48,20 @@ class ClientManager(object):
                 self.fcm.add_bot(GroupmeListener, bot_url, {'bot': bot})
             else:
                 self._logger.warning("Bot URL is not set, cannot add Groupme listener")
+        elif listener_type == 'discord':
+            channel_id = listener_cfg.get('channel_id', None)
+            if channel_id is not None:
+                self._logger.info("Adding Discord listener for bot {} at channel {}".format(bot.bot_name, channel_id))
+                self.dcm.add_listener(DiscordListener(bot, channel_id))
+            else:
+                self._logger.warning("Channel ID is not set, cannot add Discord listener")
         else:
             self._logger.warning("Unknown listener type '{0}', bot will not have a listener".format(listener_type))
 
     def run(self):
         client_threads = {
             'flask': self.fcm.run,
+            'discord': self.dcm.run,
         }
 
         for thread_name, thread_func in client_threads.items():
@@ -66,6 +77,50 @@ class ClientManager(object):
                 sleep(1)
             except KeyboardInterrupt:
                 running = False
+
+# TODO: Right now we only support one discord client (ie one token)
+# TODO: We should support indefinate numbers of clients managed by a single controller
+class DiscordClient(object):
+    def __init__(self, config_path):
+        self._logger = logging.getLogger(self.__class__.__name__)
+
+        self._logger.info("Setting up Discord client")
+        self.cm = ConfigManager(config_path)
+        self.token = self.cm.get_discord_token()
+        discord_client = discord.Client(intents=discord.Intents.default())
+        self.discord_client = discord_client
+        self.listeners = []
+        self._logger.info("Discord client setup complete")
+
+        @discord_client.event
+        async def on_ready():
+            self._logger.info("Discord client ready")
+
+        @discord_client.event
+        async def on_message(message):
+            channel_id = message.channel.id
+            self._logger.debug(f"Message received in channel {message.channel.name} (id: {channel_id}): {message.content}")
+            for listener in self.listeners:
+                  if listener.channel_id == channel_id:
+                    self._logger.debug(f"Recieved Message for bot {listener.bot.bot_name}: {message.content}")
+                    listener.process_message(message.content)
+
+    def add_listener(self, listener):
+        self.listeners.append(listener)
+
+    def send(self, channel_id, message):
+        channel = self.discord_client.get_channel(channel_id)
+        try:
+            channel.send(message)
+            self._logger.info("Message sent to channel {}: {}".format(channel.name, message))
+            return True
+        except Exception as e:
+            self._logger.error("Error sending message to channel {}: {}".format(channel.name, e))
+            return False
+
+    def run(self):
+        self._logger.info("Running Discord client")
+        self.discord_client.run(self.token)
 
 
 class FlaskClientManager(object):
@@ -85,8 +140,6 @@ class FlaskClientManager(object):
 
     def run(self):
         self.app.run(host=self.host, port=self.port)
-
-
 
 
 def main():
