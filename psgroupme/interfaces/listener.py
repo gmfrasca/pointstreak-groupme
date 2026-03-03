@@ -36,3 +36,8 @@ class GroupmeListener(Listener, Resource):
         '''React to a POST call'''
         self._logger.info("Received POST call")
         return self.process_message(request.data)
+
+class DiscordListener(Listener):
+    def __init__(self, bot, channel_id, *args, **kwargs):
+        super(DiscordListener, self).__init__(bot, *args, **kwargs)
+        self.channel_id = channel_id
