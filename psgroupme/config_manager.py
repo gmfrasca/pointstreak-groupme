@@ -47,3 +47,12 @@ class ConfigManager(object):
 
     def get_public_url(self):
         return self.cfg.get('public_url', 'http://localhost:5000')
+
+    def get_client_config(self):
+        return self.cfg.get('clients', dict())
+
+    def get_discord_config(self):
+        return self.get_client_config().get('discord', dict())
+
+    def get_discord_token(self):
+        return self.get_discord_config().get('token', None)
