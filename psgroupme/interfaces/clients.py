@@ -17,7 +17,11 @@ class ClientManager(object):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.cm = ConfigManager(config_path)
         self.fcm = FlaskClientManager(config_path)
-        self.dcm = DiscordClientManager(config_path)
+        if self.cm.get_discord_token() is not None:
+            self.dcm = DiscordClientManager(config_path)
+        else:
+            self._logger.warning("Discord token is not set, cannot set up Discord client. Will not be available.")
+            self.dcm = None
         self.create_bots()
 
     def str_to_class(self, class_name):
@@ -50,6 +54,9 @@ class ClientManager(object):
             else:
                 self._logger.warning("Bot URL is not set, cannot add Groupme listener")
         elif listener_type == 'discord':
+            if self.dcm is None:
+                self._logger.warning("Discord client is not available, cannot add Discord listener")
+                return
             channel_id = listener_cfg.get('channel_id', None)
             if channel_id is not None:
                 self._logger.info("Adding Discord listener for bot {} at channel {}".format(bot.bot_name, channel_id))
@@ -60,10 +67,11 @@ class ClientManager(object):
             self._logger.warning("Unknown listener type '{0}', bot will not have a listener".format(listener_type))
 
     def run(self):
-        client_threads = {
-            'flask': self.fcm.run,
-            'discord': self.dcm.run,
-        }
+        client_threads = {'flask': self.fcm.run}
+
+        # Add Discord client if it is available
+        if self.dcm is not None:
+            client_threads['discord'] = self.dcm.run
 
         for thread_name, thread_func in client_threads.items():
             try:
@@ -97,6 +105,10 @@ class DiscordClientManager(object):
         self._logger.info("Setting up Discord client")
         self.cm = ConfigManager(config_path)
         self.token = self.cm.get_discord_token()
+        if self.token is None:
+            self._logger.warning("Discord token is not set, cannot set up Discord client. Will not be available.")
+            self.discord_client = None
+            return
         intents = discord.Intents.default()
         intents.message_content = True
         discord_client = discord.Client(intents=intents)
