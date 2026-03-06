@@ -25,7 +25,7 @@ recleagueparser = {git = "git+https://github.com/gmfrasca/rec-league-parser#egg=
 "discord.py" = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.11"
 
 [scripts]
 psgroupme = "python -m psgroupme -l ./log/psgroupme.log"
