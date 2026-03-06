@@ -9,6 +9,7 @@ import psgroupme.bots as bots # noqa: need this to subclass
 import _thread
 from time import sleep
 import discord
+import asyncio
 
 
 class ClientManager(object):
@@ -16,7 +17,7 @@ class ClientManager(object):
         self._logger = logging.getLogger(self.__class__.__name__)
         self.cm = ConfigManager(config_path)
         self.fcm = FlaskClientManager(config_path)
-        self.dcm = DiscordClient(config_path)
+        self.dcm = DiscordClientManager(config_path)
         self.create_bots()
 
     def str_to_class(self, class_name):
@@ -80,14 +81,25 @@ class ClientManager(object):
 
 # TODO: Right now we only support one discord client (ie one token)
 # TODO: We should support indefinate numbers of clients managed by a single controller
-class DiscordClient(object):
+class DiscordClientManager(object):
+
+    _instance = None
+    _initialized = False
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self, config_path):
         self._logger = logging.getLogger(self.__class__.__name__)
 
         self._logger.info("Setting up Discord client")
         self.cm = ConfigManager(config_path)
         self.token = self.cm.get_discord_token()
-        discord_client = discord.Client(intents=discord.Intents.default())
+        intents = discord.Intents.default()
+        intents.message_content = True
+        discord_client = discord.Client(intents=intents)
         self.discord_client = discord_client
         self.listeners = []
         self._logger.info("Discord client setup complete")
@@ -103,20 +115,25 @@ class DiscordClient(object):
             for listener in self.listeners:
                   if listener.channel_id == channel_id:
                     self._logger.debug(f"Recieved Message for bot {listener.bot.bot_name}: {message.content}")
-                    listener.process_message(message.content)
+                    listener.process_message(message)
 
     def add_listener(self, listener):
         self.listeners.append(listener)
 
     def send(self, channel_id, message):
-        channel = self.discord_client.get_channel(channel_id)
-        try:
-            channel.send(message)
-            self._logger.info("Message sent to channel {}: {}".format(channel.name, message))
-            return True
-        except Exception as e:
-            self._logger.error("Error sending message to channel {}: {}".format(channel.name, e))
-            return False
+        async def _send(channel_id, message):
+            channel = self.discord_client.get_channel(channel_id)
+            try:
+                await channel.send(message)
+                self._logger.info("Message sent to channel {}: {}".format(channel.name, message))
+                return True
+            except Exception as e:
+                self._logger.error("Error sending message to channel {}: {}".format(channel.name, e))
+                return False
+        asyncio.run_coroutine_threadsafe(_send(channel_id, message), self.discord_client.loop)
+
+    def get_client(self):
+        return self.discord_client
 
     def run(self):
         self._logger.info("Running Discord client")
