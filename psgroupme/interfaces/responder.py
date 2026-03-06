@@ -20,6 +20,9 @@ class ResponderFactory(object):
         elif responder_type == 'discord':
             # TODO: Get config file somehow
             discord_client = DiscordClientManager(None)
+            if discord_client.discord_client is None:
+                self._logger.warning("Discord client is not available, cannot set up Discord responder")
+                return GroupmeResponder(*args, **kwargs)
             return DiscordResponder(discord_client=discord_client, *args, **kwargs)
         else:
             # For now, default to GroupmeResponder for backwards compatibility
