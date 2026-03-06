@@ -49,5 +49,6 @@ class DiscordListener(Listener):
     def process_message(self, message):
         '''Process and forward a message to the bot'''
         text = message.content
-        self.bot.handle_msg(text, metadata={"channel_id": message.channel.id})
-        self._logger.info("Message processed: {}".format(text))
+        if not message.author.bot:
+            self.bot.handle_msg(text, metadata={"channel_id": message.channel.id})
+            self._logger.info("Message processed: {}".format(text))
