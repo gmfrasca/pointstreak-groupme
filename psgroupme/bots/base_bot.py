@@ -52,45 +52,44 @@ class BaseBot(object):
         """Override this method to add bot-specific responses"""
         return []
 
-    def handle_msg(self, msg):
+    def handle_msg(self, msg, metadata={}):
         """Check if a message is actionable (not system or bot), and respond"""
         self._logger.debug("Handling msg: {}".format(msg))
-        system = msg.get('system', True)
-        sender_type = msg.get('sender_type', 'user')
-        if not system and sender_type != 'bot':
-            self.read_msg(msg)
-
-    def get_matching_responses(self, msg):
-        self._logger.info("Searching for matching responses")
-        context = msg.copy()
+        context = {"text": msg}
+        context.update(metadata)
         context.update(self.bot_data)
+        context.update(self.brm.get_extra_context())
+        context.update(dict(today=datetime.datetime.now().strftime(
+            "%a %b %d %I:%M.%S%p")))
+        context.update(self.context)
+        self.get_extra_context()
+        self.read_msg(context)
+
+    def get_extra_context(self):
+        return self.brm.get_extra_context()
+
+    def get_matching_responses(self, context):
+        self._logger.info("Searching for matching responses")
+        msg = context['text']
         matches = [x for x in self.responses if re.search(
-                   x['input'].format(**context), msg['text'], re.I | re.U)]
+                   x['input'].format(**context), msg, re.I | re.U)]
         self._logger.debug("Matching Responses: {}".format(matches))
         return matches
 
-    def get_extra_context(self):
-        self._logger.info("Getting Extra Context")
-        self.context.update(self.brm.get_extra_context())
-        self.context.update(dict(today=datetime.datetime.now().strftime(
-            "%a %b %d %I:%M.%S%p")))
-
-    def read_msg(self, msg):
+    def read_msg(self, context):
         """
         Read a message's contents, and act on it if it matches a regex in
         self.responses.  Also updates the incoming message with the bot cfg for
         extra context (useful in replies, such as {bot_name})
         """
-        if msg['text'] == '!ping':
+        msg = context['text']
+        if msg == '!ping':
             self.respond('pong')
         self.refresh_responses()
-        matches = self.get_matching_responses(msg)
+        matches = self.get_matching_responses(context)
         if len(matches) > 0:
             self._logger.info("Reactable Msg Recieved!")
-            matches = self.get_matching_responses(msg)
-            self.context = msg.copy()
-            self.context.update(self.bot_data)
-            self.get_extra_context()
+            matches = self.get_matching_responses(context)
             for match in matches:
                 self._logger.info("Working with match: {}".format(match))
                 params = self.get_params(match, msg)
@@ -107,7 +106,7 @@ class BaseBot(object):
                     if 'reply' in match:
                         rpls = match['reply']
                         rpls = rpls if isinstance(rpls, list) else [rpls]
-                        self.respond([x.format(**self.context) for x in rpls])
+                        self.respond([x.format(**context) for x in rpls])
                 except KeyError:
                     # message requires undefined context variable
                     self.respond('Sorry, that command is not available.')
@@ -115,7 +114,7 @@ class BaseBot(object):
     def get_params(self, match, msg):
         ''' Get words after matching command in msgtxt and return as list '''
         cut_amt = len(match.get('input', '').split())
-        words = msg.get('text', '').split()
+        words = msg.split()
         if len(words) <= cut_amt:
             return list()
         return words[cut_amt:]

@@ -10,7 +10,7 @@ class Listener(object):
         self.bot = bot
 
     def process_message(self, message):
-        self.bot.handle_msg(message)
+        self.bot.handle_msg(message, metadata={})
 
 class GroupmeListener(Listener, Resource):
     def __init__(self, bot, *args, **kwargs):
@@ -22,8 +22,12 @@ class GroupmeListener(Listener, Resource):
         '''Process and forward a message to the bot'''
         try:
             msg = json.loads(data)
-            self.bot.handle_msg(msg)
-            return msg
+            msg_text = msg.pop('text')
+
+            system = msg.get('system', True)
+            sender_type = msg.get('sender_type', 'user')
+            if not system and sender_type != 'bot':
+                self.bot.handle_msg(msg_text, msg)
         except ValueError:
             self._logger.error("Error parsing message: {}".format(data))
 
@@ -41,3 +45,9 @@ class DiscordListener(Listener):
     def __init__(self, bot, channel_id, *args, **kwargs):
         super(DiscordListener, self).__init__(bot, *args, **kwargs)
         self.channel_id = channel_id
+
+    def process_message(self, message):
+        '''Process and forward a message to the bot'''
+        text = message.content
+        self.bot.handle_msg(text, metadata={"channel_id": message.channel.id})
+        self._logger.info("Message processed: {}".format(text))
