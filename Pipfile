@@ -22,6 +22,7 @@ rsa = ">=4.1"
 httplib2 = ">=0.19.0"
 icalendar = "*"
 recleagueparser = {git = "git+https://github.com/gmfrasca/rec-league-parser#egg=recleagueparser"}
+"discord.py" = "*"
 
 [requires]
 python_version = "3.6"
