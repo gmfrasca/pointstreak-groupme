@@ -8,6 +8,7 @@ class RsvpBot(BaseBot):
         """Initialize the bot, and add ScheduleBot-specific responses"""
         super(RsvpBot, self).__init__(bot_cfg, *args, **kwargs)
         self.rsvp = rsvp
+        self.rsvp_data = {}
 
     def checkin_player(self, msg, *args, **kwargs):
         checkin_type = kwargs.get("checkin_type", "in")
@@ -47,7 +48,7 @@ class RsvpBot(BaseBot):
             return "", ""
 
     def load_rsvp(self, *args, **kwargs):
-        super(RsvpBot, self).get_extra_context()
+        self._logger.info("Getting RSVP Data from RsvpBot")
         self._load_rsvp()
         if self.rsvp is not None:
             self._logger.info("Getting Extra Context from RSVPTool Parser")
@@ -57,13 +58,17 @@ class RsvpBot(BaseBot):
             lines = self.rsvp.get_next_game_lines()
             teamfee_progress = self.rsvp.get_team_fee_progress()
             drink_duty, all_duties = self.get_duties_responses()
-            self.context.update(dict(attendance=attendance,
-                                     attendance_resp=attendance_resp,
-                                     attendees=attendees,
-                                     lines=lines,
-                                     teamfee_progress=teamfee_progress,
-                                     drink_duty=drink_duty,
-                                     all_duties=all_duties))
+            self.rsvp_data = dict(attendance=attendance,
+                                        attendance_resp=attendance_resp,
+                                        attendees=attendees,
+                                        lines=lines,
+                                        teamfee_progress=teamfee_progress,
+                                        drink_duty=drink_duty,
+                                        all_duties=all_duties)
+    def build_context(self, context=dict()):
+        self._logger.debug("Adding RSVP Data from RsvpBot to Context")
+        context.update(self.rsvp_data)
+        return context
     
     def _load_rsvp(self):
         # Set up RsvpTool

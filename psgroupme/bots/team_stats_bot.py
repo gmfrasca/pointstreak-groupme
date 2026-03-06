@@ -7,6 +7,7 @@ class TeamStatsBot(BaseBot):
     def __init__(self, bot_cfg, team_stats=None, *args, **kwargs):
         super(TeamStatsBot, self).__init__(bot_cfg, *args, **kwargs)
         self.team_stats = team_stats
+        self.team_stats_data = {}
 
     def check_team_stat(self, msg, *args, **kwargs):
         name = msg.get('name', None)  # TODO: this is wrong
@@ -44,11 +45,15 @@ class TeamStatsBot(BaseBot):
             self._logger.exception(e)
             self.respond("ERROR::{0}".format(str(e)))
 
-    def get_standings(self, *args, **kwargs):
-        super(TeamStatsBot, self).get_extra_context()
-        self._logger.info("Getting Team Standings")
+    def load_team_stats(self, *args, **kwargs):
+        self._logger.info("Getting Team Standings from TeamStatsBot")
         self._load_team_stats()
-        self.context.update(dict(standings=self.team_stats.short_table))
+        self.team_stats_data = dict(standings=self.team_stats.short_table)
+
+    def build_context(self, context=dict()):
+        self._logger.debug("Adding Team Stats Data from TeamStatsBot to Context")
+        context.update(self.team_stats_data)
+        return context
 
     def _load_team_stats(self):
         self._logger.debug("Loading TeamStats Parser")

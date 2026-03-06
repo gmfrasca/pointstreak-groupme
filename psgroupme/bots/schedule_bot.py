@@ -19,12 +19,13 @@ class ScheduleBot(BaseBot):
         super(ScheduleBot, self).__init__(bot_cfg, *args, **kwargs)
         self.schedule = schedule
         self.compare_schedule = compare_schedule
+        self.schedule_data = {}
 
     def get_bot_specific_responses(self):
         return self.brm.get_responses().get('schedulebot', list())
 
     def load_schedule(self, *args, **kwargs):
-        super(ScheduleBot, self).get_extra_context()
+        self._logger.info("Getting Schedule Data from ScheduleBot")
         self._load_schedule()
         if self.schedule is not None:
             self._logger.info("Getting Extra Context from Schedule Parser")
@@ -43,12 +44,17 @@ class ScheduleBot(BaseBot):
             if schedule is None or len(self.schedule.games) < 1:
                 schedule_resp = "No schedule yet :("
 
-            self.context.update(dict(nextgame_resp=nextgame_resp,
-                                     lastgame_resp=lastgame_resp,
-                                     schedule_resp=schedule_resp,
-                                     next_game=next_game,
-                                     last_game=last_game,
-                                     schedule=schedule))
+            self.schedule_data = dict(nextgame_resp=nextgame_resp,
+                                  lastgame_resp=lastgame_resp,
+                                  schedule_resp=schedule_resp,
+                                  next_game=str(next_game),
+                                  last_game=str(last_game),
+                                  schedule=str(schedule))
+
+    def build_context(self, context=dict()):
+        self._logger.debug("Adding Schedule Data from ScheduleBot to Context")
+        context.update(self.schedule_data)
+        return context
 
     def compare_schedules(self, msg, *args, **kwargs):
         self._load_schedule()

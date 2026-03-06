@@ -24,13 +24,19 @@ class BaseBot(object):
         self.bot_data = bot_cfg
         self.bot_name = self.bot_data.get('bot_name', 'UnknownBot')
         self.bot_id = self.bot_data.get('bot_id')
-        self.context = dict()
 
         # Setup responders
         responders_cfg = self.bot_data.get('responders', [])
         if self.bot_id is not None:
             responders_cfg.append({"type": "groupme", "bot_id": self.bot_id})
         self.responders = self._setup_responders(responders_cfg, self.bot_id)
+
+    def build_context(self, context=dict()):
+        context.update(dict(
+            bot_name=self.bot_name,
+            today=datetime.datetime.now().strftime("%a %b %d %I:%M.%S%p"),
+        ))
+        return context
 
     def _setup_responders(self, responders_cfg, bot_id):
         responders = []
@@ -52,21 +58,21 @@ class BaseBot(object):
         """Override this method to add bot-specific responses"""
         return []
 
+    def _get_initial_context(self):
+        initial_context = dict(
+            today=datetime.datetime.now().strftime("%a %b %d %I:%M.%S%p"),
+            bot_name=self.bot_name)
+        initial_context.update(self.brm.get_extra_context())
+        return initial_context
+
     def handle_msg(self, msg, metadata={}):
         """Check if a message is actionable (not system or bot), and respond"""
         self._logger.debug("Handling msg: {}".format(msg))
-        context = {"text": msg}
-        context.update(metadata)
-        context.update(self.bot_data)
-        context.update(self.brm.get_extra_context())
-        context.update(dict(today=datetime.datetime.now().strftime(
-            "%a %b %d %I:%M.%S%p")))
-        context.update(self.context)
-        self.get_extra_context()
-        self.read_msg(context)
-
-    def get_extra_context(self):
-        return self.brm.get_extra_context()
+        initial_context = self._get_initial_context()
+        initial_context.update(dict(text=msg))
+        initial_context.update(metadata)
+        self._logger.info("Initial Context: {}".format(initial_context))
+        self.read_msg(initial_context)
 
     def get_matching_responses(self, context):
         self._logger.info("Searching for matching responses")
@@ -94,6 +100,7 @@ class BaseBot(object):
                 self._logger.info("Working with match: {}".format(match))
                 params = self.get_params(match, msg)
                 try:
+                    # First, perform any requested actions
                     for action in self._get_actions(match):
                         action_type = action
                         kwargs = {}
@@ -103,6 +110,12 @@ class BaseBot(object):
                             kwargs = kwargs if isinstance(kwargs, dict) else {}
 
                         self.react(action_type, msg, *params, **kwargs)
+
+                    # Next, build the context after all actions have been performed
+                    context = self.build_context(context)
+                    self._logger.debug("Context: {}".format(context))
+
+                    # Finally, respond to the message if reply is requested
                     if 'reply' in match:
                         rpls = match['reply']
                         rpls = rpls if isinstance(rpls, list) else [rpls]
