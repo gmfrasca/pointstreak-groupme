@@ -9,6 +9,7 @@ class PlayerStatsBot(BaseBot):
         self.player_stats = player_stats
         self.stats_cfg = self.bot_data.get('stats',
                                            self.bot_data.get('schedule'))
+        self.player_stats_data = {}
 
     def check_stat(self, msg, *params, **kwargs):
         name = msg.get('name', None)
@@ -44,20 +45,25 @@ class PlayerStatsBot(BaseBot):
             self._logger.exception(e)
             self.respond("ERROR::{0}".format(str(e)))
 
-    def get_roster(self, *args, **kwargs):
-        super(PlayerStatsBot, self).get_extra_context()
-        self._logger.info("Adding Roster to Extra Context")
+    def load_player_stats(self, *args, **kwargs):
+        self._logger.info("Getting Roster Data from PlayerStatsBot")
         self._load_player_stats()
-        self.context.update(dict(roster=self.player_stats))
+        self.player_stats_data = dict(roster=self.player_stats)
+
+    def build_context(self, context=dict()):
+        self._logger.info("Adding Player Stats Data from PlayerStatsBot to Context")
+        context.update(self.player_stats_data)
+        return context
 
     def _load_player_stats(self):
         self._logger.debug("Loading PlayerStats Parser")
         if self.player_stats is not None:
             self._logger.debug("PlayerStats Parser already loaded.")
-            return
+            return self.player_stats
         if self.stats_cfg is not None:
             self._logger.debug("PlayerStats Parser not loaded, "
                                "creating new one")
             stats_type = self.stats_cfg.get('type', self.DEFAULT_TYPE)
             self.stats_cfg.update(dict(stats_type=stats_type))
             self.player_stats = PlayerStatsFactory.create(**self.stats_cfg)
+            return self.player_stats
