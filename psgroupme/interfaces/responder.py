@@ -1,5 +1,6 @@
 from requests.exceptions import ConnectionError
 from requests import post
+from .clients import DiscordClientManager
 import logging
 import random
 import json
@@ -16,6 +17,10 @@ class ResponderFactory(object):
             return GroupmeResponder(*args, **kwargs)
         elif responder_type == 'debug':
             return DebugResponder(*args, **kwargs)
+        elif responder_type == 'discord':
+            # TODO: Get config file somehow
+            discord_client = DiscordClientManager(None)
+            return DiscordResponder(discord_client=discord_client, *args, **kwargs)
         else:
             # For now, default to GroupmeResponder for backwards compatibility
             self._logger.warning("Responder type '{0}' not found, using GroupmeResponder".format(responder_type))
@@ -43,7 +48,7 @@ class GroupmeResponder(Responder):
         super(GroupmeResponder, self).__init__(bot_id, *args, **kwargs)
         self.bot_id = bot_id
 
-    def send(self, url, data):
+    def _send(self, url, data):
         return post(url, data=data)
 
     def reply(self, message):
@@ -62,11 +67,30 @@ class GroupmeResponder(Responder):
         try:
             self._logger.debug("Posting to {}: {}".format(GROUPME_BOT_URL,
                                                           data))
-            resp = self.send(GROUPME_BOT_URL, data)
+            resp = self._send(GROUPME_BOT_URL, data)
             assert resp.status_code in range(200, 400)
         except (AssertionError, ConnectionError):
             self._logger.exception("Could not post msg to Groupme Endpoint")
 
+
+class DiscordResponder(Responder):
+
+    host_type = 'discord'
+
+    def __init__(self, channel_id, discord_client, *args, **kwargs):
+        super(DiscordResponder, self).__init__(*args, **kwargs)
+        self.channel_id = channel_id
+        self.discord_client = discord_client
+
+    def _send(self, message):
+        return self.discord_client.send(self.channel_id, message)
+
+    def reply(self, message):
+        if not message or message == '':
+            return
+        if isinstance(message, list):
+            message = random.choice(message)
+        return self._send(message)
 
 class DebugResponder(GroupmeResponder):
 
@@ -76,7 +100,7 @@ class DebugResponder(GroupmeResponder):
             self.json_data = json_data
             self.status_code = status_code
 
-    def send(self, url, data):
+    def _send(self, url, data):
         data = json.loads(data)
         self._logger.info("DEBUG Response: {}".format(data.get('text')))
         return self.MockResponse(data, 200)
