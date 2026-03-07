@@ -100,8 +100,11 @@ class DiscordClientManager(object):
         return cls._instance
 
     def __init__(self, config_path):
-        self._logger = logging.getLogger(self.__class__.__name__)
+        if self._initialized:
+            # Already initialized
+            return
 
+        self._logger = logging.getLogger(self.__class__.__name__)
         self._logger.info("Setting up Discord client")
         self.cm = ConfigManager(config_path)
         self.token = self.cm.get_discord_token()
@@ -114,7 +117,7 @@ class DiscordClientManager(object):
         discord_client = discord.Client(intents=intents)
         self.discord_client = discord_client
         self.listeners = []
-        self._logger.info("Discord client setup complete")
+        self._initialized = True
 
         @discord_client.event
         async def on_ready():
@@ -125,7 +128,7 @@ class DiscordClientManager(object):
             channel_id = message.channel.id
             self._logger.debug(f"Message received in channel {message.channel.name} (id: {channel_id}): {message.content}")
             for listener in self.listeners:
-                  if listener.channel_id == channel_id:
+                if listener.channel_id == channel_id:
                     self._logger.debug(f"Recieved Message for bot {listener.bot.bot_name}: {message.content}")
                     listener.process_message(message)
 
