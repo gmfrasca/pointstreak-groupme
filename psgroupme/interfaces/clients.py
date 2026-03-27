@@ -10,6 +10,7 @@ import _thread
 from time import sleep
 import discord
 import asyncio
+import secrets
 
 
 class ClientManager(object):
@@ -157,6 +158,7 @@ class DiscordClientManager(object):
 
 class FlaskClientManager(object):
     def __init__(self, config_path):
+        self._logger = logging.getLogger(self.__class__.__name__)
         self.cm = ConfigManager(config_path)
         self.img_cfg = self.cm.get_img_server_config()
         self.host = '0.0.0.0'
@@ -168,7 +170,11 @@ class FlaskClientManager(object):
         self.api = Api(self.app)
 
     def add_bot(self, bot_class, bot_url, bot_kwargs):
-        self.api.add_resource(bot_class, bot_url, resource_class_kwargs=bot_kwargs)
+        hash = secrets.token_hex(5)
+        bot_name = f"{bot_class.__name__}-{bot_url.replace('/', '')}-{hash}"
+        flask_endpoint = type(bot_name, (bot_class,), {})
+        self._logger.info(f"Adding Flask listener {flask_endpoint.__name__} on {bot_url}")
+        self.api.add_resource(flask_endpoint, bot_url, resource_class_kwargs=bot_kwargs)
 
     def run(self):
         self.app.run(host=self.host, port=self.port)
