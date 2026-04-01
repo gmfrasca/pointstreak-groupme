@@ -22,8 +22,8 @@ rsa = ">=4.1"
 httplib2 = ">=0.19.0"
 icalendar = "*"
 "discord.py" = "*"
-recleagueparser = {git = "https://github.com/gmfrasca/rec-league-parser"}
 validators = "*"
+recleagueparser = {git = "https://github.com/gmfrasca/rec-league-parser"}
 
 [requires]
 python_version = "3.11"
