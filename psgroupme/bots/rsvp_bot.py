@@ -47,6 +47,23 @@ class RsvpBot(BaseBot):
         except:
             return "", ""
 
+    def get_players_checkin_notes(self):
+        data = self.rsvp.get_next_game_data()
+        player_list = data.get('all', list())
+        note_items = [p for p in player_list if p.get('note')]
+        notes = list()
+        for n in note_items:
+            player = n.get('player')
+            note = n.get('note', "")
+            notes.append(f"{player}: {note}")
+        return '\r\n'.join(notes)
+
+    def get_goalie_alert(self):
+        goalies = self.rsvp.get_checked_in_goalies()
+        if len(goalies) < 1:
+            return "ALERT: No goalies checked in"
+        return "Goalies checked in: {0}".format(', '.join([p.get('player') for p in goalies]))
+
     def load_rsvp(self, *args, **kwargs):
         self._logger.info("Getting RSVP Data from RsvpBot")
         self._load_rsvp()
@@ -58,13 +75,18 @@ class RsvpBot(BaseBot):
             lines = self.rsvp.get_next_game_lines()
             teamfee_progress = self.rsvp.get_team_fee_progress()
             drink_duty, all_duties = self.get_duties_responses()
+            players_checkin_notes = self.get_players_checkin_notes()
+            goalie_alert = self.get_goalie_alert()
             self.rsvp_data = dict(attendance=attendance,
                                         attendance_resp=attendance_resp,
                                         attendees=attendees,
                                         lines=lines,
                                         teamfee_progress=teamfee_progress,
                                         drink_duty=drink_duty,
-                                        all_duties=all_duties)
+                                        all_duties=all_duties,
+                                        players_checkin_notes=players_checkin_notes,
+                                        goalie_alert=goalie_alert)
+
     def build_context(self, context=dict()):
         self._logger.debug("Adding RSVP Data from RsvpBot to Context")
         context.update(self.rsvp_data)
