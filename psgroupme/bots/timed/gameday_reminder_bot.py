@@ -65,6 +65,25 @@ class BaseGamedayReminderBot(BaseTimedBot, PlayoffBot):
             return all_duties
         return ''
 
+    def get_players_checkin_notes(self):
+        data = self.rsvp.get_next_game_data()
+        player_list = data.get('all', list())
+        note_items = [p for p in player_list if p.get('note')]
+        notes = list()
+        for n in note_items:
+            player = n.get('player')
+            note = n.get('note', "")
+            notes.append(f"{player}: {note}")
+        return '\r\n'.join(notes)
+
+    def get_goalie_alert(self, show_if_filled=True):
+        goalies = self.rsvp.get_checked_in_goalies()
+        if len(goalies) < 1:
+            return "ALERT: No goalies checked in"
+        if show_if_filled:
+            return "Goalies checked in: {0}".format(', '.join([p.get('player') for p in goalies]))
+        return ""
+
     def send_game_notification(self, *args, **kwargs):
         raise NotImplementedError
 
@@ -85,6 +104,15 @@ class BaseGamedayReminderBot(BaseTimedBot, PlayoffBot):
                 self.rsvp.reset_game_data()
                 attendance = self.rsvp.get_next_game_attendance()
                 msg = "{0}\r\n{1}".format(msg, attendance)
+
+                goalie_alert = self.get_goalie_alert()
+                if goalie_alert:
+                    msg = "{}\r\n\r\n{}".format(msg, goalie_alert)
+
+                notes = self.get_players_checkin_notes()
+                if notes:
+                    msg = "{}\r\n\r\n{}".format(msg, notes)
+
                 duty_assignments = self.get_duty_assignments()
                 if duty_assignments:
                     msg = '{}\r\n\r\n{}'.format(msg, self.get_duty_assignments())
