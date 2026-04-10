@@ -14,7 +14,7 @@ class UpdatedGameNotifierBot(BaseTimedBot):
                           'FINAL_SCORE', 'SCORE_UPDATED',
                           'TIME_UPDATED']
 
-    def __init__(self, **kwargs):
+    def __init__(self, sched_diff_buffer=3,**kwargs):
         super(UpdatedGameNotifierBot, self).__init__(**kwargs)
         self.bot_data = kwargs
         self.schedule_cfg = self.bot_data.get('schedule', dict())
@@ -25,6 +25,8 @@ class UpdatedGameNotifierBot(BaseTimedBot):
         self.result_responses = self.bot_data.get('result_responses', dict())
         self.notify_caps = self.bot_data.get('notify', ['all'])
         self.sched = None
+        self.sched_diff_buffer_max = sched_diff_buffer
+        self.diff_buffer_counter = 0
         self._init_schedule()
 
     def _init_schedule(self):
@@ -50,7 +52,8 @@ class UpdatedGameNotifierBot(BaseTimedBot):
     def refresh_schedule(self):
         self._logger.debug("Refreshing Schedule")
         try:
-            self.store_old_games()
+            if self.diff_buffer_counter == 0 :
+                self.store_old_games()
             self.sched.refresh_schedule()
         except Exception:
             self._logger.warning("Could not refresh schedule")
@@ -83,19 +86,30 @@ class UpdatedGameNotifierBot(BaseTimedBot):
         # TODO: Determine *WHICH* games were added or deleted
         # TODO: Check that game ids all match instead of assuming based on len
         self._logger.debug("Checking for changes in schedule...")
-        if len(self.old_games) < len(self.sched.games):
-            self._logger.info("More Games Detected: {} vs old {}".format(
-                len(self.sched.games), len(self.old_games)))
-            if self._notification_is_enabled('GAMES_ADDED'):
-                self.send_msg("Schedule Change Detected: New Games Added!")
-        elif len(self.old_games) > len(self.sched.games):
-            self._logger.info("Less Games Detected: {} vs old {}".format(
-                len(self.sched.games), len(self.old_games)))
-            if self._notification_is_enabled('GAMES_REMOVED'):
-                self.send_msg("Schedule Change Detected: Games Removed!")
+
+        if len(self.old_games) != len(self.sched.games):
+            self.diff_buffer_counter += 1
+            self._logger.info("Sched Diff detected: {} vs {}".format(len(self.old_games), len(self.sched.games)))
+            self._logger.info(f"DiffChecks before alerting: {self.diff_buffer_counter} out of {self.sched_diff_buffer_max} attempts")
+            if self.diff_buffer_counter >= self.sched_diff_buffer_max:
+                # Send notification
+                if len(self.old_games) < len(self.sched.games):
+                    self._logger.info("More Games Detected: {} vs old {}".format(
+                        len(self.sched.games), len(self.old_games)))
+                    if self._notification_is_enabled('GAMES_ADDED'):
+                        self.send_msg("Schedule Change Detected: New Games Added!")
+                elif len(self.old_games) > len(self.sched.games):
+                    self._logger.info("Less Games Detected: {} vs old {}".format(
+                        len(self.sched.games), len(self.old_games)))
+                    if self._notification_is_enabled('GAMES_REMOVED'):
+                        self.send_msg("Schedule Change Detected: Games Removed!")
+
+                # Reset buffer counter
+                self.diff_buffer_counter = 0
         else:
             msg = ''
             result_res = ''
+            self.diff_buffer_counter = 0
             for x in range(0, len(self.old_games)):
                 old = self.old_games[x]
                 new = self.sched.games[x]
@@ -150,6 +164,40 @@ class UpdatedGameNotifierBot(BaseTimedBot):
             self.check_and_notify_schedule_changes()
             self.sleep_until_next_run()
 
+
+class TestFlakeyScheduleUpdatedGameNotifierBot(UpdatedGameNotifierBot):
+
+    class MockFlakeySchedule(object):
+        def __init__(self, real_schedule,flake_for_iterations, flake_schedule_every):
+            self.schedule_counter = 0
+            self.flake_counter = 0
+            self.unavailable = False
+            self.flake_for_iterations = flake_for_iterations
+            self.flake_schedule_every = flake_schedule_every
+            self.schedule = real_schedule
+
+        @property
+        def games(self):
+            return [] if self.unavailable else self.schedule.games
+
+        def refresh_schedule(self):
+            if self.unavailable:
+                self.flake_counter += 1
+                if self.flake_counter >= self.flake_for_iterations:
+                    self.unavailable = False
+                    self.flake_counter = 0
+            else:
+                self.schedule_counter += 1
+                if self.schedule_counter % self.flake_schedule_every == 0:
+                    self.unavailable = True
+                    self.flake_counter = 0
+
+
+    def __init__(self, **kwargs):
+        super(TestFlakeyScheduleUpdatedGameNotifierBot, self).__init__(**kwargs)
+        self.sched = self.MockFlakeySchedule(real_schedule=self.sched,
+                                             flake_for_iterations=5,
+                                             flake_schedule_every=5)
 
 class TestUpdatedGameNotifierBot(TestTimedBot, UpdatedGameNotifierBot):
     pass
