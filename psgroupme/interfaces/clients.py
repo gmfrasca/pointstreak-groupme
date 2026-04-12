@@ -11,8 +11,7 @@ from time import sleep
 import discord
 import asyncio
 import secrets
-import aiohttp
-import io
+import validators
 
 
 class ClientManager(object):
@@ -139,34 +138,29 @@ class DiscordClientManager(object):
         self.listeners.append(listener)
 
     def send(self, channel_id, message):
+        def _is_image_url(message):
+            if not message.startswith('http'):
+                message = f'https://{message}'
+            return validators.url(message) and message.endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp'))
+
         async def _send(channel_id, message):
             channel = self.discord_client.get_channel(channel_id)
             try:
-                await channel.send(message)
+                if _is_image_url(message):
+                    if not message.startswith('http'):
+                        message = f'https://{message}'
+                    self._logger.info("Sending image to channel {}: {}".format(channel.name, message))
+                    embed = discord.Embed()
+                    embed.set_image(url=message)
+                    await channel.send(embed=embed)
+                else:
+                    await channel.send(message)
                 self._logger.info("Message sent to channel {}: {}".format(channel.name, message))
                 return True
             except Exception as e:
                 self._logger.error("Error sending message to channel {}: {}".format(channel.name, e))
                 return False
         asyncio.run_coroutine_threadsafe(_send(channel_id, message), self.discord_client.loop)
-
-    def send_image(self, channel_id, image_url):
-        async def _send_image(channel_id, image):
-            channel = self.discord_client.get_channel(channel_id)
-            try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(image_url) as response:
-                        if response.status != 200:
-                            self._logger.error("Error sending image to channel {}: {}".format(channel.name, response.status))
-                            return False
-                        image = io.BytesIO(await response.read())
-                        await channel.send(file=discord.File(image, filename='image.png'))
-                        self._logger.info("Image sent to channel {}: {}".format(channel.name, image_url))
-                        return True
-            except Exception as e:
-                self._logger.error("Error sending image to channel {}: {}".format(channel.name, e))
-                return False
-        asyncio.run_coroutine_threadsafe(_send_image(channel_id, image_url), self.discord_client.loop)
 
     def get_client(self):
         return self.discord_client
