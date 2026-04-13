@@ -12,6 +12,10 @@ import discord
 import asyncio
 import secrets
 import validators
+import requests
+import tempfile
+
+LOCAL_IMAGE_DOMAINS = ['tenor.com']
 
 
 class ClientManager(object):
@@ -138,6 +142,9 @@ class DiscordClientManager(object):
         self.listeners.append(listener)
 
     def send(self, channel_id, message):
+        def _requires_local_image(message):
+            return any(domain in message for domain in LOCAL_IMAGE_DOMAINS)
+
         def _is_image_url(message):
             if not message.startswith('http'):
                 message = f'https://{message}'
@@ -147,12 +154,23 @@ class DiscordClientManager(object):
             channel = self.discord_client.get_channel(channel_id)
             try:
                 if _is_image_url(message):
+                    
                     if not message.startswith('http'):
                         message = f'https://{message}'
+
                     self._logger.info("Sending image to channel {}: {}".format(channel.name, message))
                     embed = discord.Embed()
-                    embed.set_image(url=message)
-                    await channel.send(embed=embed)
+                    if _requires_local_image(message):
+                        data = requests.get(message).content
+                        with tempfile.NamedTemporaryFile(mode='wb') as f:
+                            f.write(data)
+                            f.seek(0)
+                            file = discord.File(f.name, filename=message.split('/')[-1] or 'image.gif')
+                            embed.set_image(url=f'attachment://{file.filename}')
+                            await channel.send(file=file, embed=embed)
+                    else:
+                        embed.set_image(url=message)
+                        await channel.send(embed=embed)
                 else:
                     await channel.send(message)
                 self._logger.info("Message sent to channel {}: {}".format(channel.name, message))
