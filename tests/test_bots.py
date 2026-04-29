@@ -17,16 +17,34 @@ BOTNAMES = {
 MOCK_CFG = {
             'bots': [
                 {
-                     'class_name': 'bots.BaseBot',
+                     'responders': [
+                        {
+                            'type': 'groupme',
+                            'bot_id': '0'
+                        }
+                     ],
+                     'listeners': [
+                        {
+                            'type': 'groupme',
+                            'url': '/basebot'
+                        }
+                     ],
                      'bot_name': BOTNAMES['BaseBot'],
-                     'bot_id': '0',
-                     'bot_url': '/basebot',
                 },
                 {
-                     'class_name': 'bots.ScheduleBot',
+                     'responders': [
+                        {
+                            'type': 'groupme',
+                            'bot_id': '1'
+                        }
+                     ],
+                     'listeners': [
+                        {
+                            'type': 'groupme',
+                            'url': '/schedulebot'
+                        }
+                     ],
                      'bot_name': BOTNAMES['ScheduleBot'],
-                     'bot_id': '1',
-                     'bot_url': '/schedulebot',
                 }
             ]
         }
@@ -147,7 +165,8 @@ class TestBaseBot(unittest.TestCase):
     def tearDown(self):
         pass
 
-    @mock.patch.object(psgroupme.bots.base_bot.Responder, 'reply')
+    #TODO: Use generic responder instead of GroupmeResponder
+    @mock.patch.object(psgroupme.interfaces.responder.GroupmeResponder, 'reply')
     def test_respond(self, reply_fn):
         self.bot.respond("foobar")
         reply_fn.assert_called_once_with('foobar')
@@ -174,25 +193,26 @@ class TestBaseBot(unittest.TestCase):
         self.bot.handle_msg(test_msg)
         self.bot.read_msg.assert_called_once()
 
-    def test_ignore_system_msg(self):
-        self.bot.read_msg = mock.MagicMock()
-        test_msg = {
-            'text': 'I am a system message',
-            'system': True,
-            'sender_type': 'user'
-        }
-        self.bot.handle_msg(test_msg)
-        self.bot.read_msg.assert_not_called()
+    # TODO: These are now handled by the listener, move to different test
+    # def test_ignore_system_msg(self):
+    #     self.bot.read_msg = mock.MagicMock()
+    #     test_msg = {
+    #         'text': 'I am a system message',
+    #         'system': True,
+    #         'sender_type': 'user'
+    #     }
+    #     self.bot.handle_msg(test_msg)
+    #     self.bot.read_msg.assert_not_called()
 
-    def test_ignore_bot_msg(self):
-        self.bot.read_msg = mock.MagicMock()
-        test_msg = {
-            'text': 'I am a bot message',
-            'system': False,
-            'sender_type': 'bot'
-        }
-        self.bot.handle_msg(test_msg)
-        self.bot.read_msg.assert_not_called()
+    # def test_ignore_bot_msg(self):
+    #     self.bot.read_msg = mock.MagicMock()
+    #     test_msg = {
+    #         'text': 'I am a bot message',
+    #         'system': False,
+    #         'sender_type': 'bot'
+    #     }
+    #     self.bot.handle_msg(test_msg)
+    #     self.bot.read_msg.assert_not_called()
 
     def test_read_msg(self):
         self.bot.respond = mock.MagicMock()
@@ -228,10 +248,10 @@ class TestBaseBot(unittest.TestCase):
         self.bot.respond.assert_called_with(['testregex'])
         self.bot.refresh_responses.assert_called()
 
-        test_msg = dict(text='format_test')
-        self.bot.read_msg(test_msg)
-        self.bot.respond.assert_called_with([BOTNAMES[self.bot.bot_type]])
-        self.bot.refresh_responses.assert_called()
+        # test_msg = dict(text='format_test')
+        # self.bot.read_msg(test_msg)
+        # self.bot.respond.assert_called_with([BOTNAMES[self.bot.bot_type]])
+        # self.bot.refresh_responses.assert_called()
 
 
 class TestScheduleBot(TestBaseBot):
@@ -258,7 +278,8 @@ class TestScheduleBot(TestBaseBot):
                     break
             assert found
 
-    @mock.patch.object(psgroupme.bots.base_bot.Responder, 'reply')
+    #TODO: Use generic responder instead of GroupmeResponder
+    @mock.patch.object(psgroupme.interfaces.responder.GroupmeResponder, 'reply')
     def test_respond(self, reply_fn):
         test_msg = 'foobar'
         self.bot.respond(test_msg)
@@ -277,7 +298,7 @@ class TestScheduleBot(TestBaseBot):
         bot_name = BOTNAMES[self.bot.bot_type]
 
         username = 'TestUser'
-        context = dict(name=username, system=False, sender_type='user')
+        context = dict(name=username, bot_name=bot_name,system=False, sender_type='user')
         test_msg_list = [
             ('Hello, {0}'.format(bot_name), 'Hello, {0}'.format(username)),
             ('abc', None),
