@@ -1,6 +1,6 @@
 from psgroupme.interfaces.clients import main as clients_main
 import unittest
-import mock
+from unittest import mock
 
 MOCK_CFG = {
     'bots': [
@@ -16,7 +16,8 @@ MOCK_CFG = {
         }
     ],
     'img': {
-        'dest': '/img/'
+        'dest': '/img/',
+        'path': '/tmp'
     }
 }
 
@@ -29,10 +30,8 @@ class TestClients(unittest.TestCase):
     def tearDown(self):
         pass
 
-    @mock.patch('psgroupme.interfaces.rest.Flask.run')
-    @mock.patch('psgroupme.interfaces.rest.ConfigManager')
-    def test_app_runs(self, mock_cm, mock_flask_runner):
-        mock_cm.get_bots.return_value = MOCK_CFG['bots']
-        mock_cm.get_img_server_config = MOCK_CFG['img']
+    @mock.patch('psgroupme.interfaces.clients.ClientManager')
+    def test_app_runs(self, mock_client_manager_class):
         clients_main()
-        mock_flask_runner.assert_called_once()
+        mock_client_manager_class.assert_called_once_with(config_path=None)
+        mock_client_manager_class.return_value.run.assert_called_once()
