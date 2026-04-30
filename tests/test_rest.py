@@ -1,6 +1,6 @@
 from psgroupme.interfaces.rest import main as rest_main
 import unittest
-import mock
+from unittest import mock
 
 MOCK_CFG = {
     'bots': [
@@ -31,10 +31,13 @@ class TestRest(unittest.TestCase):
         pass
 
     @mock.patch('psgroupme.interfaces.rest.Flask.run')
-    @mock.patch('psgroupme.config_manager.ConfigManager')
-    def test_app_runs(self, mock_cm, mock_flask_runner):
-        mock_cm.get_bots.return_value = MOCK_CFG['bots']
+    @mock.patch('psgroupme.interfaces.rest.ConfigManager')
+    def test_app_runs(self, mock_cm_class, mock_flask_runner):
+        mock_cm = mock_cm_class.return_value
+        mock_cm.get_bots.return_value = []
         mock_cm.get_img_server_config.return_value = MOCK_CFG['img']
-        
+        mock_cm.get_public_url.return_value = None
+        mock_cm.get_flask_port.return_value = 5000
+
         rest_main()
         mock_flask_runner.assert_called_once()
