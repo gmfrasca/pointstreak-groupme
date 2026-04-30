@@ -7,6 +7,8 @@ on:
       - master
   pull_request:
 
+env:
+  COVERAGE_THRESHOLD: 40  # TODO: improve, ideally to 70-80
 
 jobs:
   test:
@@ -34,4 +36,9 @@ jobs:
 
       - name: Test with Pytest
         run: |
-          pipenv run pytest tests
+          pipenv run \
+            pytest tests \
+              --cov \
+              --cov-report=xml \
+              --cov-report=term-missing \
+              --cov-fail-under=${COVERAGE_THRESHOLD}
