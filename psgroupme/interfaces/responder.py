@@ -1,6 +1,5 @@
 from requests.exceptions import ConnectionError
 from requests import post
-from .clients import DiscordClientManager
 import logging
 import random
 import json
@@ -18,6 +17,7 @@ class ResponderFactory(object):
         elif responder_type == 'debug':
             return DebugResponder(*args, **kwargs)
         elif responder_type == 'discord':
+            from .clients import DiscordClientManager  # lazy import to avoid circular dependency
             # TODO: Get config file somehow
             discord_client = DiscordClientManager(None)
             if discord_client.discord_client is None:
