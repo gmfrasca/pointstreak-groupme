@@ -5,9 +5,9 @@ verify_ssl = true
 
 [dev-packages]
 ansible = "*"
-flake8 = "==3.3.0"
 pytest = "*"
 pytest-cov = "*"
+flake8 = "*"
 
 [packages]
 parsedatetime = "==2.4"
@@ -25,6 +25,7 @@ icalendar = "*"
 "discord.py" = "*"
 recleagueparser = {git = "https://github.com/gmfrasca/rec-league-parser"}
 validators = "*"
+flake8 = "*"
 
 [requires]
 python_version = "3.11"
