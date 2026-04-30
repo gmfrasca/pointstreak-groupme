@@ -1,6 +1,6 @@
 from psgroupme.interfaces.responder import ResponderFactory, GROUPME_BOT_URL
 import unittest
-import mock
+from unittest import mock
 import json
 
 
