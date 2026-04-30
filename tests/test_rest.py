@@ -16,6 +16,7 @@ MOCK_CFG = {
         }
     ],
     'img': {
+        'path': '/img/',
         'dest': '/img/'
     }
 }
@@ -30,9 +31,10 @@ class TestRest(unittest.TestCase):
         pass
 
     @mock.patch('psgroupme.interfaces.rest.Flask.run')
-    @mock.patch('psgroupme.interfaces.rest.ConfigManager')
+    @mock.patch('psgroupme.config_manager.ConfigManager')
     def test_app_runs(self, mock_cm, mock_flask_runner):
         mock_cm.get_bots.return_value = MOCK_CFG['bots']
-        mock_cm.get_img_server_config = MOCK_CFG['img']
+        mock_cm.get_img_server_config.return_value = MOCK_CFG['img']
+        
         rest_main()
         mock_flask_runner.assert_called_once()
