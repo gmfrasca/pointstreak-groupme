@@ -19,7 +19,6 @@ def main():
 
     # Setup Path for File server
     img_cfg = cm.get_img_server_config()
-    public_url = cm.get_public_url()
 
     # Setup the Flask App
     app = Flask(__name__, static_folder=img_cfg.get('path'),
@@ -40,10 +39,10 @@ def main():
 
         # Set up listeners
         listeners_cfg = bot_cfg.pop('listeners', [default_listener_cfg])
-        for l in listeners_cfg:
-            listener_type = l.get('type', 'groupme')
+        for cfg in listeners_cfg:
+            listener_type = cfg.get('type', 'groupme')
             if listener_type == 'groupme':
-                bot_url = l.get('url', bot_url)
+                bot_url = cfg.get('url', bot_url)
                 if bot_url is not None:
                     logger.info("Adding Groupme listener for bot {} at {}".format(bot.bot_name, bot_url))
                     api.add_resource(GroupmeListener, bot_url, resource_class_kwargs={'bot': bot})

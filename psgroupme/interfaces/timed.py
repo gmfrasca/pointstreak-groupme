@@ -1,5 +1,4 @@
 from psgroupme.config_manager import ConfigManager
-from psgroupme.interfaces.responder import ResponderFactory
 from functools import reduce
 import signal
 import sys

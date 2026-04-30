@@ -47,9 +47,9 @@ class ClientManager(object):
 
             # Set up listeners
             listeners_cfg = bot_cfg.pop('listeners', [default_listener_cfg])
-            for l in listeners_cfg:
-                self.add_listener(l, bot,bot_url)
-    
+            for cfg in listeners_cfg:
+                self.add_listener(cfg, bot, bot_url)
+
     def add_listener(self, listener_cfg, bot, bot_url):
         listener_type = listener_cfg.get('type', 'groupme')
         if listener_type == 'groupme':
@@ -92,6 +92,7 @@ class ClientManager(object):
                 sleep(1)
             except KeyboardInterrupt:
                 running = False
+
 
 # TODO: Right now we only support one discord client (ie one token)
 # TODO: We should support indefinate numbers of clients managed by a single controller
@@ -154,7 +155,6 @@ class DiscordClientManager(object):
             channel = self.discord_client.get_channel(channel_id)
             try:
                 if _is_image_url(message):
-                    
                     if not message.startswith('http'):
                         message = f'https://{message}'
 
