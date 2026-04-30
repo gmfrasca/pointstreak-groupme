@@ -29,6 +29,7 @@ class ResponderFactory(object):
             self._logger.warning("Responder type '{0}' not found, using GroupmeResponder".format(responder_type))
             return GroupmeResponder(*args, **kwargs)
 
+
 class Responder(object):
 
     host_type = None
@@ -42,6 +43,7 @@ class Responder(object):
 
     def reply(self, message):
         raise NotImplementedError("Subclasses must implement this method")
+
 
 class GroupmeResponder(Responder):
 
@@ -94,6 +96,7 @@ class DiscordResponder(Responder):
         if isinstance(message, list):
             message = random.choice(message)
         return self._send(message)
+
 
 class DebugResponder(GroupmeResponder):
 

@@ -3,6 +3,7 @@ from flask import request
 import json
 import logging
 
+
 class Listener(object):
 
     def __init__(self, bot, *args, **kwargs):
@@ -12,9 +13,9 @@ class Listener(object):
     def process_message(self, message):
         self.bot.handle_msg(message, metadata={})
 
+
 class GroupmeListener(Listener, Resource):
     def __init__(self, bot, *args, **kwargs):
-        
         Listener.__init__(self, bot, *args, **kwargs)
         Resource.__init__(self)
 
@@ -40,6 +41,7 @@ class GroupmeListener(Listener, Resource):
         '''React to a POST call'''
         self._logger.info("Received POST call")
         return self.process_message(request.data)
+
 
 class DiscordListener(Listener):
     def __init__(self, bot, channel_id, *args, **kwargs):
