@@ -45,11 +45,11 @@ class ScheduleBot(BaseBot):
                 schedule_resp = "No schedule yet :("
 
             self.schedule_data = dict(nextgame_resp=nextgame_resp,
-                                  lastgame_resp=lastgame_resp,
-                                  schedule_resp=schedule_resp,
-                                  next_game=str(next_game),
-                                  last_game=str(last_game),
-                                  schedule=str(schedule))
+                                      lastgame_resp=lastgame_resp,
+                                      schedule_resp=schedule_resp,
+                                      next_game=str(next_game),
+                                      last_game=str(last_game),
+                                      schedule=str(schedule))
 
     def build_context(self, context=dict()):
         self._logger.debug("Adding Schedule Data from ScheduleBot to Context")

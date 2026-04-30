@@ -7,6 +7,7 @@ import threading
 import datetime
 import croniter
 
+
 class ScheduleSyncCheckBot(BaseTimedBot):
 
     DEFAULT_CRON = "0 12 * * *"
@@ -37,7 +38,7 @@ class ScheduleSyncCheckBot(BaseTimedBot):
             self.schedule.refresh_schedule()
 
             self.cschedule = ScheduleFactory.create(self.cschedule_type,
-                                                   **self.cschedule_cfg)
+                                                    **self.cschedule_cfg)
             self.cschedule.refresh_schedule()
             self._logger.info("Checking Schedules for diffs...")
             if self.schedule is not None and self.cschedule is not None:
@@ -67,6 +68,7 @@ class ScheduleSyncCheckBot(BaseTimedBot):
             t.start()
             while t.is_alive():
                 sleep(1)
+
 
 class TestScheduleSyncCheckBot(TestTimedBot, ScheduleSyncCheckBot):
     pass
