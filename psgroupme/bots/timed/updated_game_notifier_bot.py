@@ -14,7 +14,7 @@ class UpdatedGameNotifierBot(BaseTimedBot):
                           'FINAL_SCORE', 'SCORE_UPDATED',
                           'TIME_UPDATED']
 
-    def __init__(self, sched_diff_buffer=3,**kwargs):
+    def __init__(self, sched_diff_buffer=3, **kwargs):
         super(UpdatedGameNotifierBot, self).__init__(**kwargs)
         self.bot_data = kwargs
         self.schedule_cfg = self.bot_data.get('schedule', dict())
@@ -52,7 +52,7 @@ class UpdatedGameNotifierBot(BaseTimedBot):
     def refresh_schedule(self):
         self._logger.debug("Refreshing Schedule")
         try:
-            if self.diff_buffer_counter == 0 :
+            if self.diff_buffer_counter == 0:
                 self.store_old_games()
             self.sched.refresh_schedule()
         except Exception:
@@ -168,7 +168,7 @@ class UpdatedGameNotifierBot(BaseTimedBot):
 class TestFlakeyScheduleUpdatedGameNotifierBot(UpdatedGameNotifierBot):
 
     class MockFlakeySchedule(object):
-        def __init__(self, real_schedule,flake_for_iterations, flake_schedule_every):
+        def __init__(self, real_schedule, flake_for_iterations, flake_schedule_every):
             self.schedule_counter = 0
             self.flake_counter = 0
             self.unavailable = False
@@ -192,12 +192,12 @@ class TestFlakeyScheduleUpdatedGameNotifierBot(UpdatedGameNotifierBot):
                     self.unavailable = True
                     self.flake_counter = 0
 
-
     def __init__(self, **kwargs):
         super(TestFlakeyScheduleUpdatedGameNotifierBot, self).__init__(**kwargs)
         self.sched = self.MockFlakeySchedule(real_schedule=self.sched,
                                              flake_for_iterations=5,
                                              flake_schedule_every=5)
+
 
 class TestUpdatedGameNotifierBot(TestTimedBot, UpdatedGameNotifierBot):
     pass

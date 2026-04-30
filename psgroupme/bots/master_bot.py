@@ -19,5 +19,5 @@ class MasterBot(ImageBot, PlayoffBot, ScheduleBot, PlayerStatsBot,
     def build_context(self, context=dict()):
         for baseclass in MasterBot.__bases__:
             self._logger.info("Adding {} Data to Context".format(baseclass))
-            context.update(baseclass.build_context(self,context))
+            context.update(baseclass.build_context(self, context))
         return context

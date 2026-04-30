@@ -31,7 +31,7 @@ class RsvpBot(BaseBot):
             d = "drinks" if duty_type.lower() == "beer" else duty_type
             assignee = self.rsvp.get_duty_assignment(d)
             if assignee:
-                self.respond(f"{assignee} is assigned {duty_type} duty for upcoming game.")    
+                self.respond(f"{assignee} is assigned {duty_type} duty for upcoming game.")
             else:
                 self.respond(f"Could not find {duty_type} duty assignment for upcoming game.")
 
@@ -44,7 +44,8 @@ class RsvpBot(BaseBot):
             drink_duty = self.rsvp.get_duty_assignment("Drinks")
             all_duties = self.rsvp.get_all_duty_assignments()
             return drink_duty, all_duties
-        except:
+        except Exception as e:
+            self._logger.exception(e)
             return "", ""
 
     def get_players_checkin_notes(self):
@@ -78,20 +79,20 @@ class RsvpBot(BaseBot):
             players_checkin_notes = self.get_players_checkin_notes()
             goalie_alert = self.get_goalie_alert()
             self.rsvp_data = dict(attendance=attendance,
-                                        attendance_resp=attendance_resp,
-                                        attendees=attendees,
-                                        lines=lines,
-                                        teamfee_progress=teamfee_progress,
-                                        drink_duty=drink_duty,
-                                        all_duties=all_duties,
-                                        players_checkin_notes=players_checkin_notes,
-                                        goalie_alert=goalie_alert)
+                                  attendance_resp=attendance_resp,
+                                  attendees=attendees,
+                                  lines=lines,
+                                  teamfee_progress=teamfee_progress,
+                                  drink_duty=drink_duty,
+                                  all_duties=all_duties,
+                                  players_checkin_notes=players_checkin_notes,
+                                  goalie_alert=goalie_alert)
 
     def build_context(self, context=dict()):
         self._logger.debug("Adding RSVP Data from RsvpBot to Context")
         context.update(self.rsvp_data)
         return context
-    
+
     def _load_rsvp(self):
         # Set up RsvpTool
         self._logger.debug("Loading RSVPTool Parser")

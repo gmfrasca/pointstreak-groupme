@@ -3,7 +3,6 @@ from psgroupme.bots.bot_responses import BotResponseManager
 from psgroupme.util.encode_strings import encode_strings
 import datetime
 import logging
-import json
 import re
 
 

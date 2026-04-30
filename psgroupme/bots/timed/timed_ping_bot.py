@@ -1,6 +1,7 @@
 from .base_timed_bot import BaseTimedBot
 from time import sleep
 
+
 class TimedPingBot(BaseTimedBot):
 
     DEFAULT_SLEEP = 5
