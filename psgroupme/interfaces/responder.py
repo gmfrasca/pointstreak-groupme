@@ -21,13 +21,13 @@ class ResponderFactory(object):
             # TODO: Get config file somehow
             discord_client = DiscordClientManager(None)
             if discord_client.discord_client is None:
-                self._logger.warning("Discord client is not available, cannot set up Discord responder")
-                return GroupmeResponder(*args, **kwargs)
+                self._logger.error("Discord client is not available, cannot set up Discord responder")
+                return None
             return DiscordResponder(discord_client=discord_client, *args, **kwargs)
         else:
             # For now, default to GroupmeResponder for backwards compatibility
-            self._logger.warning("Responder type '{0}' not found, using GroupmeResponder".format(responder_type))
-            return GroupmeResponder(*args, **kwargs)
+            self._logger.error("Responder type '{0}' not found, skipping".format(responder_type))
+            return None
 
 
 class Responder(object):
@@ -60,6 +60,8 @@ class GroupmeResponder(Responder):
         """Post a message to the GroupMe REST API"""
         if not message or message == '':
             return
+
+        # TODO: This should be handled in the base class for consistent behavior across all responders
         if isinstance(message, list):
             message = random.choice(message)
         data = dict(bot_id=self.bot_id, text=message)
