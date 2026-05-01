@@ -41,8 +41,19 @@ class Responder(object):
     def _send(self, url, data):
         raise NotImplementedError("Subclasses must implement this method")
 
+    def _sanitize_message(self, message):
+        """Sanitize the message to be a string and return None if the message is empty"""
+        if not message or message == '':
+            return None
+        if isinstance(message, list):
+            message = random.choice(message)
+        return message
+
     def reply(self, message):
-        raise NotImplementedError("Subclasses must implement this method")
+        message = self._sanitize_message(message)
+        if not message:
+            return
+        return self._send(message)
 
 
 class GroupmeResponder(Responder):
@@ -58,7 +69,8 @@ class GroupmeResponder(Responder):
 
     def reply(self, message):
         """Post a message to the GroupMe REST API"""
-        if not message or message == '':
+        message = self._sanitize_message(message)
+        if not message:
             return
 
         # TODO: This should be handled in the base class for consistent behavior across all responders
@@ -91,13 +103,6 @@ class DiscordResponder(Responder):
 
     def _send(self, message):
         return self.discord_client.send(self.channel_id, message)
-
-    def reply(self, message):
-        if not message or message == '':
-            return
-        if isinstance(message, list):
-            message = random.choice(message)
-        return self._send(message)
 
 
 class DebugResponder(GroupmeResponder):
