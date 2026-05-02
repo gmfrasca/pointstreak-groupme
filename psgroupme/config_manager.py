@@ -21,8 +21,12 @@ class ConfigManager(object):
     def load_cfg(self, cfg_path):
         """Load the config from a target YAML"""
         self._logger.info("Loading config from {}".format(cfg_path))
-        with open(cfg_path) as f:
-            return yaml.load(f, Loader=yaml.FullLoader)
+        try:
+            with open(cfg_path) as f:
+                return yaml.load(f, Loader=yaml.FullLoader)
+        except FileNotFoundError:
+            self._logger.warning(f"Config file {cfg_path} not found. Using empty config")
+            return dict()
 
     def get_bot_data(self, bot_name):
         """Get the configuration for a bot based on bot name"""
