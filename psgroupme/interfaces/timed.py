@@ -31,7 +31,7 @@ def main(cfg_path=TIMED_BOT_CFG):
         except KeyboardInterrupt:
             for bot in running_bots:
                 bot.stop()
-            exit(0)
+            break
 
 
 if __name__ == '__main__':
