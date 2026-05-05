@@ -13,7 +13,7 @@ class PlayoffBot(ScheduleBot, PlayerStatsBot):
         self._load_schedule()
         sched_length = self.schedule.length
         games_remaining = self.schedule.games_remaining
-        danger_str = 'Playoff elligibility:'
+        danger_str = 'Playoff eligibility:'
         danger_exists = False
         el_pars = self.stats_cfg.copy()
         el_pars.update(dict(sched_length=sched_length,
@@ -23,7 +23,7 @@ class PlayoffBot(ScheduleBot, PlayerStatsBot):
             danger_exists = True
             missable = player.get_missable_games(**el_pars)
             danger_str += '\r\n{0} can only miss {1} more games'.format(
-               player.name, missable)
+               player.name, int(missable))
         if danger_exists:
             return "\r\n{0}".format(danger_str)
         return 'No players in danger of missing playoffs'
@@ -61,9 +61,9 @@ class PlayoffBot(ScheduleBot, PlayerStatsBot):
                     elif possible:
                         if in_danger:
                             self.respond(("{0} is in danger of missing " +
-                                          "playoffs.  They can miss {1} more" +
+                                          "playoffs. They can miss {1} more" +
                                           " games").format(player.name,
-                                                           missable))
+                                                           int(missable)))
                         elif name.lower() != 'all':
                             self.respond(("{0} is not in danger of missing " +
                                           "playoffs").format(player.name))

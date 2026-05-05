@@ -5,6 +5,8 @@ from recleagueparser.schedules.pointstreak_schedule import \
     PointstreakSchedule
 from recleagueparser.schedules.game import Game
 from recleagueparser.schedules.schedule import Schedule
+from recleagueparser.player_stats.player_stats import PlayerStats
+from recleagueparser.player_stats.player import Player
 
 EXAMPLE_RESP_YAML = 'tests/config/responses.example.yaml'
 
@@ -48,64 +50,11 @@ MOCK_CFG = {
             ]
         }
 
-MOCK_RESP_CFG = '''
-extra_context:
-       github_url: 'https://github.com/gmfrasca/pointstreak-groupme'
-responses:
-  global:
-    - input: '(hi|hello|greetings|salutations|sup),? {bot_name}'
-      reply: 'Hello, {name}'
-    - input: 'show me the (source|sauce|src|code)'
-      reply: 'You can find it at {github_url}'
-    - input: '(what|who) is (a )? {bot_name}'
-      reply: 'I am a GroupMe helper bot, beep boop. More info at {github_url}'
-  schedulebot:
-    - input: 'when.*next game([\?\!\.( is)].*)??$'
-      action: load_schedule
-      reply: '{nextgame_resp}'
-    - input: 'what was the score\??'
-      action: load_schedule
-      reply: '{lastgame_resp}'
-    - input: "^how('d| did)? we do([\\\?\\\!\\\.].*)??$"
-      action: load_schedule
-      reply: '{lastgame_resp}'
-    - input: 'what is.* schedule([\?\!\.].*)??$'
-      action: load_schedule
-      reply: '{schedule_resp}'
-    - input: '^how many do we have'
-      action: load_rsvp
-      reply: '{attendance_resp}'
-    - input: 'what is today'
-      reply: '{today}'
-    - input: '!nextgame'
-      action: load_schedule
-      reply: '{next_game}'
-    - input: '!lastgame'
-      action: load_schedule
-      reply: '{last_game}'
-    - input: '!schedule'
-      action: load_schedule
-      reply: '{schedule}'
-    - input: '!attendance'
-      action: load_rsvp
-      reply: '{attendance}'
-    - input: '!source'
-      reply: '{github_url}'
-    - input: '!today'
-      reply: '{today}'
-    - input: '!help'
-      reply: >
-              Available Commands - !nextgame, !lastgame, !schedule, !attendance,
-              !source, !today, !help
-
-'''  # noqa
-
 
 class BotResponseManagerMock(BotResponseManager):
 
-    def reload_data(self):
-        self.data = yaml.load(MOCK_RESP_CFG, Loader=yaml.FullLoader)
-        return MOCK_RESP_CFG
+    def __init__(self, cfg_path=EXAMPLE_RESP_YAML):
+        self.cfg_path = cfg_path
 
 
 class PointstreakScheduleMock(PointstreakSchedule):
@@ -159,6 +108,24 @@ MOCK_SCHEDULE_2 = MockSchedule(team_id=0)
 MOCK_SCHEDULE_1.games = [MOCK_GAME_1, MOCK_GAME_2]
 MOCK_SCHEDULE_2.games = [MOCK_GAME_2]
 
+
+# Mock Player Stats
+class MockPlayerStats(PlayerStats):
+    def __init__(self, *args, **kwargs):
+        self._logger = mock.MagicMock()
+        self.html_tables = [self.get_html_table()]
+        self.players = {
+            'players': {
+                'Player1': Player(name='Player1'),
+                'Player2': Player(name='Player2'),
+            },
+            'goalies': {
+                'Goalie1': Player(name='Goalie1'),
+            }
+        }
+
+    def get_html_table(self):
+        return 'TestHtmlTable'
 
 class TeamLockerRoomMock(object):
 
