@@ -4,8 +4,13 @@ from psgroupme.bots.schedule_bot import ScheduleBot
 from psgroupme.bots.bot_responses import BotResponseManager
 from tests.psgm_mocks import MOCK_CFG, EXAMPLE_RESP_YAML, BOTNAMES
 from tests.psgm_mocks import PointstreakScheduleMock, TeamLockerRoomMock
+import tests.psgm_mocks as psgm_mocks
 from psgroupme.bots.schedule_bot import ScheduleBot
 from tests.test_bots.test_base_bot import TestBaseBot, BotResponseManagerMock
+from recleagueparser.schedules.dashplatform_schedule import DashPlatformSchedule
+from recleagueparser.schedules.pointstreak_schedule import PointstreakSchedule
+from recleagueparser.schedules.sportsengine_schedule import SportsEngineSchedule
+from recleagueparser.schedules.ics_schedule import ICSSchedule
 
 
 class TestScheduleBot(TestBaseBot):
@@ -83,3 +88,66 @@ class TestScheduleBot(TestBaseBot):
                     mock_resp.assert_called_with([dialog[1]])
                 else:
                     mock_resp.assert_not_called()
+
+
+    @mock.patch('recleagueparser.schedules.schedule_factory.ScheduleFactory.create')
+    def test_load_schedule(self, mock_create):
+        self.bot.schedule = None
+        self.bot.bot_data = {'schedule': {'type': 'dash', 'team_id': 0, 'company_id': 0}}
+        self.bot.load_schedule()
+        mock_create.assert_called_with(type='dash', schedule_type='dash', team_id=0, company_id=0)
+
+        self.bot.schedule = None
+        self.bot.bot_data = {'schedule': {'type': 'pointstreak', 'team_id': 0, 'season_id': 0}}
+        self.bot.load_schedule()
+        mock_create.assert_called_with(type='pointstreak', schedule_type='pointstreak', team_id=0, season_id=0)
+        
+        self.bot.schedule = None
+        self.bot.bot_data = {'schedule': {'type': 'sportsengine', 'team_id': 0, 'season_id': 0}}
+        self.bot.load_schedule()
+        mock_create.assert_called_with(type='sportsengine', schedule_type='sportsengine', team_id=0, season_id=0)
+        
+        self.bot.schedule = None
+        self.bot.bot_data = {'schedule': {'type': 'ics', 'team_id': 0, 'season_id': 0}}
+        self.bot.load_schedule()
+        mock_create.assert_called_with(type='ics', schedule_type='ics', team_id=0, season_id=0)
+
+
+    @mock.patch('recleagueparser.schedules.schedule_factory.ScheduleFactory.create')
+    def test_load_compare_schedule(self, mock_create):
+        self.bot.compare_schedule = None
+        self.bot.bot_data = {'compare_schedule': {'type': 'dash', 'team_id': 0, 'company_id': 0}}
+        self.bot._load_compare_schedule()
+        mock_create.assert_called_with(type='dash', schedule_type='dash', team_id=0, company_id=0)
+
+        self.bot.compare_schedule = None
+        self.bot.bot_data = {'compare_schedule': {'type': 'pointstreak', 'team_id': 0, 'season_id': 0}}
+        self.bot._load_compare_schedule()
+        mock_create.assert_called_with(type='pointstreak', schedule_type='pointstreak', team_id=0, season_id=0)
+        
+        self.bot.compare_schedule = None
+        self.bot.bot_data = {'compare_schedule': {'type': 'sportsengine', 'team_id': 0, 'season_id': 0}}
+        self.bot._load_compare_schedule()
+        mock_create.assert_called_with(type='sportsengine', schedule_type='sportsengine', team_id=0, season_id=0)
+        
+        self.bot.compare_schedule = None
+        self.bot.bot_data = {'compare_schedule': {'type': 'ics', 'team_id': 0, 'season_id': 0}}
+        self.bot._load_compare_schedule()
+        mock_create.assert_called_with(type='ics', schedule_type='ics', team_id=0, season_id=0)
+
+
+    @mock.patch.object(psgroupme.bots.ScheduleBot, 'respond')
+    @mock.patch('recleagueparser.schedules.compare.ScheduleComparer')
+    def test_compare_schedules(self, mock_sc, mock_resp):
+
+        mock_schedule = psgm_mocks.MOCK_SCHEDULE_1
+        self.bot.schedule = mock_schedule
+        self.bot.compare_schedule = mock_schedule
+
+        self.bot.compare_schedules('test message')
+        mock_resp.assert_called_with('Schedule syncronization verified: no diffs detected')
+
+        self.bot.schedule = psgm_mocks.MOCK_EMPTY_SCHEDULE
+        self.bot.compare_schedule = psgm_mocks.MOCK_SCHEDULE_2
+        self.bot.compare_schedules('test message')
+        mock_resp.assert_called_with('Schedule Diff Detected:\n+ TestHomeTeam vs TestAwayTeam2 at Sat, May 04 10:00 AM\n')
