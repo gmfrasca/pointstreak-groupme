@@ -3,6 +3,8 @@ import yaml
 from psgroupme.bots import BotResponseManager
 from recleagueparser.schedules.pointstreak_schedule import \
     PointstreakSchedule
+from recleagueparser.schedules.game import Game
+from recleagueparser.schedules.schedule import Schedule
 
 EXAMPLE_RESP_YAML = 'tests/config/responses.example.yaml'
 
@@ -133,6 +135,29 @@ class PointstreakScheduleMock(PointstreakSchedule):
 
     def get_last_game_before(self, *args, **kwargs):
         return 'TestLastGame'
+
+
+# Mock Games
+MOCK_GAME_1 = Game(date='Sun, May 03 2126', time='10:00', hometeam='TestHomeTeam', awayteam='TestAwayTeam', homescore=1, awayscore=2)
+MOCK_GAME_2 = Game(date='Mon, May 04 2126', time='10:00', hometeam='TestHomeTeam', awayteam='TestAwayTeam2', homescore=5, awayscore=0)
+
+
+# Mock Schedules
+class MockSchedule(Schedule):
+    def get_schedule_url(self, *args, **kwargs):
+        return 'https://example.com'
+
+    def parse_table(self, *args, **kwargs):
+        return self.games
+
+    def retrieve_html_table(self, *args, **kwargs):
+        return 'TestHtml'
+
+MOCK_EMPTY_SCHEDULE = MockSchedule(team_id=0)
+MOCK_SCHEDULE_1 = MockSchedule(team_id=0)
+MOCK_SCHEDULE_2 = MockSchedule(team_id=0)
+MOCK_SCHEDULE_1.games = [MOCK_GAME_1, MOCK_GAME_2]
+MOCK_SCHEDULE_2.games = [MOCK_GAME_2]
 
 
 class TeamLockerRoomMock(object):
