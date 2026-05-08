@@ -7,7 +7,7 @@ rm = rm
 LOG_FILE = ./log/$(APP_NAME).log
 
 # Variables 
-COVERAGE_THRESHOLD ?= 40  # TODO: improve, ideally to 70-80
+COVERAGE_THRESHOLD ?= 60  # TODO: improve, ideally to 70-80
 
 .PHONY: help run test lint clean
 
