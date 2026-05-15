@@ -42,3 +42,4 @@ class ImageBot(BaseBot):
                     self._logger.info("Found Image: {}".format(url))
                     self.respond(url)
                     return
+            self.respond("Image not found")
