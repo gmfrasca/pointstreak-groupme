@@ -9,6 +9,7 @@ class ImageBot(BaseBot):
     def list_images(self, *args, **kwargs):
         searchdir = self.bot_data.get('img_cfg', dict()).get('path')
         files = self._list_of_files_in_dir(searchdir) if searchdir else []
+        files.sort()
         self.respond(' '.join(['.'.join(x.split('.')[:-1]) for x in files if
                                x.split('.')[-1] in IMG_EXTENSIONS]))
 

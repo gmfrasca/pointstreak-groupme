@@ -46,7 +46,7 @@ class TestImageBot(unittest.TestCase):
     @mock.patch('psgroupme.bots.image_bot.ImageBot.respond')
     def test_list_images(self, mock_respond):
         self.bot.list_images()
-        expected = 'testbmp testpng testgif testjpeg testjpg test'
+        expected = 'test testbmp testgif testjpeg testjpg testpng'
         mock_respond.assert_called_once_with(expected)
 
     @mock.patch('psgroupme.bots.image_bot.ImageBot._respond_image')
